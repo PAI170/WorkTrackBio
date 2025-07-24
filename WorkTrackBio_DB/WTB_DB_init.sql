@@ -97,6 +97,52 @@ BEGIN
 END
 GO
 
+--CREATE ASSISTANCE TABLE
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name ='Assistance')
+BEGIN
+	CREATE TABLE Assistance (
+	Id INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+	EmployeeId INT NOT NULL,
+	CONSTRAINT FK_EmployeeId_EmployeeInfo FOREIGN KEY (EmployeeId) REFERENCES EmployeeInfo(Id),
+	ProjectId INT NOT NULL,
+	CONSTRAINT FK_ProjectId_Projects FOREIGN KEY (ProjectId) REFERENCES Projects(Id),
+	CheckIn DATETIME2 NOT NULL,
+	CheckOut DATETIME2 NULL,
+	TotalHours DECIMAL(5,2) NULL,
+	RegisterType NVARCHAR(50) NOT NULL
+	);
+END
+GO
+
+--CREATE PROJECTS ASSIGNS
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ProjectsAssings')
+BEGIN
+	CREATE TABLE ProjectsAssigns (
+	Id INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+	EmployeeId INT NOT NULL,
+	CONSTRAINT FK_ProjectsAssigns_EmployeeId FOREIGN KEY (EmployeeId) REFERENCES EmployeeInfo(Id),
+	ProjectId INT NOT NULL,
+	CONSTRAINT FK_ProjectAssigns_ProjectId FOREIGN KEY (ProjectId) REFERENCES Projects(Id),
+	AssignDate DATETIME2 NOT NULL DEFAULT GETDATE(),
+	EndDate DATETIME2 NULL
+	);
+END
+GO
+
+--CREATE TABLE AUDIT REGISTER
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name ='AuditRegister')
+BEGIN
+	CREATE TABLE AuditRegister (
+	Id INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+	AssistanceId INT NOT NULL,
+	CONSTRAINT FK_AssitanceId_Assistance FOREIGN KEY (AssistanceId) REFERENCES Assistance(Id),
+	ActionType NVARCHAR(50) NOT NULL,
+	DetailChange NVARCHAR(MAX) NOT NULL,
+	ActionDate DATETIME2 NOT NULL DEFAULT GETDATE(),
+	AdminId INT NOT NULL,
+	CONSTRAINT FK_AuditRegister_InterUser FOREIGN KEY (AdminId) REFERENCES InternUsers(Id)
+	);
+
 --CREATE FINGERPRINT TABLE
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'FingerPrint')
 BEGIN
