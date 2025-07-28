@@ -142,6 +142,8 @@ BEGIN
 	AdminId INT NOT NULL,
 	CONSTRAINT FK_AuditRegister_InterUser FOREIGN KEY (AdminId) REFERENCES InternUsers(Id)
 	);
+END
+GO
 
 --CREATE FINGERPRINT TABLE
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'FingerPrint')
@@ -191,4 +193,255 @@ BEGIN
 	CONSTRAINT FK_ProjectWarranty_StateId FOREIGN KEY (StateId) REFERENCES States(Id)
 	);
 END
+GO
+
+--INDEX CREATION
+USE WTB_DB;
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_States_StateName' AND object_id = OBJECT_ID('States'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_States_StateName
+    ON States (StateName, StateType);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Roles_RoleName' AND object_id = OBJECT_ID('Roles'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Roles_RoleName
+    ON Roles (RolName);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_InternUsers_Email' AND object_id = OBJECT_ID('InternUsers'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_InternUsers_Email
+    ON InternUsers (Email);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_InternUsers_RolId' AND object_id = OBJECT_ID('InternUsers'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_InternUsers_RolId
+    ON InternUsers (RolId);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Projects_ProjectName' AND object_id = OBJECT_ID('Projects'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Projects_ProjectName
+    ON Projects (ProjectName);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Projects_StateId' AND object_id = OBJECT_ID('Projects'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Projects_StateId
+    ON Projects (StateId);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_DocumentType_DocumentName' AND object_id = OBJECT_ID('DocumentType'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_DocumentType_DocumentName
+    ON DocumentType (DocumentName);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_EmployeeInfo_DocumentNumber' AND object_id = OBJECT_ID('EmployeeInfo'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_EmployeeInfo_DocumentNumber
+    ON EmployeeInfo (DocumentNumber);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_EmployeeInfo_StateId' AND object_id = OBJECT_ID('EmployeeInfo'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_EmployeeInfo_StateId
+    ON EmployeeInfo (StateId);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_EmployeeInfo_DocumentTypeId' AND object_id = OBJECT_ID('EmployeeInfo'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_EmployeeInfo_DocumentTypeId
+    ON EmployeeInfo (DocumentTypeId);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Assistance_EmployeeProjectCheckIn' AND object_id = OBJECT_ID('Assistance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Assistance_EmployeeProjectCheckIn
+    ON Assistance (EmployeeId, ProjectId, CheckIn DESC);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Assistance_ProjectId' AND object_id = OBJECT_ID('Assistance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Assistance_ProjectId
+    ON Assistance (ProjectId);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ProjectsAssigns_EmployeeProjectAssign' AND object_id = OBJECT_ID('ProjectsAssigns'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ProjectsAssigns_EmployeeProjectAssign
+    ON ProjectsAssigns (EmployeeId, ProjectId, AssignDate DESC);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ProjectsAssigns_ProjectId' AND object_id = OBJECT_ID('ProjectsAssigns'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ProjectsAssigns_ProjectId
+    ON ProjectsAssigns (ProjectId);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_AuditRegister_AssistanceId' AND object_id = OBJECT_ID('AuditRegister'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_AuditRegister_AssistanceId
+    ON AuditRegister (AssistanceId);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_AuditRegister_AdminId' AND object_id = OBJECT_ID('AuditRegister'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_AuditRegister_AdminId
+    ON AuditRegister (AdminId);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_AuditRegister_ActionDate' AND object_id = OBJECT_ID('AuditRegister'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_AuditRegister_ActionDate
+    ON AuditRegister (ActionDate DESC);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_FingerPrint_EmployeeId' AND object_id = OBJECT_ID('FingerPrint'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_FingerPrint_EmployeeId
+    ON FingerPrint (EmployeeId);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ProjectMaintenance_IdProject' AND object_id = OBJECT_ID('ProjectMaintenance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ProjectMaintenance_IdProject
+    ON ProjectMaintenance (IdProject);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ProjectMaintenance_MadeById' AND object_id = OBJECT_ID('ProjectMaintenance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ProjectMaintenance_MadeById
+    ON ProjectMaintenance (MadeById);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ProjectWarranty_IdProject' AND object_id = OBJECT_ID('ProjectWarranty'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ProjectWarranty_IdProject
+    ON ProjectWarranty (IdProject);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_ProjectWarranty_MadeById' AND object_id = OBJECT_ID('ProjectWarranty'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_ProjectWarranty_MadeById
+    ON ProjectWarranty (MadeById);
+END
+GO
+
+-- CHECK CONSTRAINTS CREATION
+USE WTB_DB;
+GO
+
+-- 1. Tabla 'States'
+
+ALTER TABLE States
+ADD CONSTRAINT CK_States_StateType_NotEmpty CHECK (LEN(StateType) > 0);
+GO
+
+ALTER TABLE Roles
+ADD CONSTRAINT CK_Roles_RolName_NotEmpty CHECK (LEN(RolName) > 0);
+GO
+
+ALTER TABLE InternUsers
+ADD CONSTRAINT CK_InternUsers_Email_NotEmpty CHECK (LEN(Email) > 0);
+
+ALTER TABLE Projects
+ADD CONSTRAINT CK_Projects_Dates CHECK (EndDate IS NULL OR StartDate IS NULL OR EndDate >= StartDate);
+GO
+
+ALTER TABLE Projects
+ADD CONSTRAINT CK_Projects_ProjectName_NotEmpty CHECK (LEN(ProjectName) > 0);
+GO
+
+ALTER TABLE DocumentType
+ADD CONSTRAINT CK_DocumentType_DocumentName_NotEmpty CHECK (LEN(DocumentName) > 0);
+GO
+
+ALTER TABLE EmployeeInfo
+ADD CONSTRAINT CK_EmployeeInfo_DocumentNumber_NotEmpty CHECK (LEN(DocumentNumber) > 0);
+GO
+
+ALTER TABLE EmployeeInfo
+ADD CONSTRAINT CK_EmployeeInfo_Birthday_Past CHECK (Birthday < GETDATE());
+GO
+
+ALTER TABLE EmployeeInfo
+ADD CONSTRAINT CK_EmployeeInfo_RegisterDate_PastOrPresent CHECK (RegisterDate <= GETDATE());
+GO
+
+ALTER TABLE Assistance
+ADD CONSTRAINT CK_Assistance_CheckDates CHECK (CheckOut IS NULL OR CheckOut >= CheckIn);
+GO
+
+ALTER TABLE Assistance
+ADD CONSTRAINT CK_Assistance_TotalHours_NonNegative CHECK (TotalHours IS NULL OR TotalHours >= 0);
+GO
+
+ALTER TABLE Assistance
+ADD CONSTRAINT CK_Assistance_RegisterType_Valid CHECK (RegisterType IN ('CheckIn', 'CheckOut', 'Manual'));
+GO
+
+ALTER TABLE ProjectsAssigns
+ADD CONSTRAINT CK_ProjectsAssigns_Dates CHECK (EndDate IS NULL OR AssignDate IS NULL OR EndDate >= AssignDate);
+GO
+
+ALTER TABLE AuditRegister
+ADD CONSTRAINT CK_AuditRegister_ActionType_NotEmpty CHECK (LEN(ActionType) > 0);
+GO
+
+ALTER TABLE FingerPrint
+ADD CONSTRAINT CK_FingerPrint_Template_NotEmpty CHECK (DATALENGTH(TemplateFingerPrint) > 0);
+GO
+
+ALTER TABLE FingerPrint
+ADD CONSTRAINT CK_FingerPrint_IssueDate_PastOrPresent CHECK (IssueDate <= GETDATE());
+GO
+
+ALTER TABLE ProjectMaintenance
+ADD CONSTRAINT CK_ProjectMaintenance_Cost_NonNegative CHECK (MaintenanceCost IS NULL OR MaintenanceCost >= 0);
+GO
+
+ALTER TABLE ProjectMaintenance
+ADD CONSTRAINT CK_ProjectMaintenance_Description_NotEmpty CHECK (LEN(MaintenanceDescription) > 0);
+GO
+
+ALTER TABLE ProjectMaintenance
+ADD CONSTRAINT CK_ProjectMaintenance_Date_PastOrPresent CHECK (MaintenanceDate <= GETDATE());
+GO
+
+ALTER TABLE ProjectWarranty
+ADD CONSTRAINT CK_ProjectWarranty_Cost_NonNegative CHECK (WarrantyCost IS NULL OR WarrantyCost >= 0);
+GO
+
+ALTER TABLE ProjectWarranty
+ADD CONSTRAINT CK_ProjectWarranty_Description_NotEmpty CHECK (LEN(WarrantyDescription) > 0);
+GO
+
+ALTER TABLE ProjectWarranty
+ADD CONSTRAINT CK_ProjectWarranty_Date_PastOrPresent CHECK (WarrantyDate <= GETDATE());
 GO
