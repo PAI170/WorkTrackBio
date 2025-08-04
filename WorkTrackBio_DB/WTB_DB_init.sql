@@ -1,4 +1,4 @@
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'WTB_DB')
+﻿IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'WTB_DB')
 BEGIN
 	CREATE DATABASE WTB_DB;
 END
@@ -24,7 +24,7 @@ IF NOT EXISTS (SELECT * FROM sys.tables WHERE name ='Roles')
 BEGIN
 	CREATE TABLE Roles (
 	Id INT PRIMARY KEY IDENTITY (1,1) NOT NULL,
-	RolName NVARCHAR(50) NOT NULL UNIQUE,
+	RoleName NVARCHAR(50) NOT NULL UNIQUE,
 	Description NVARCHAR(255) NULL
 	);
 END
@@ -87,8 +87,11 @@ BEGIN
 	FirstName NVARCHAR(50) NOT NULL,
 	LastName NVARCHAR(50) NOT NULL,
 	PhoneNumber NVARCHAR(20) NULL,
+	EmergencyContact NVARCHAR(100) NULL,
+	EmergencyContactPhoneNumber NVARCHAR(20) NULL,
 	Birthday DATE NOT NULL,
 	RegisterDate DATETIME2 DEFAULT GETDATE() NOT NULL,
+	CostPerHour DECIMAL(10,02) NULL,
 	StateId INT NOT NULL,
 	CONSTRAINT FK_Employee_StateId FOREIGN KEY (StateId) REFERENCES States(Id),
 	Address NVARCHAR(255) NULL,
@@ -106,10 +109,14 @@ BEGIN
 	CONSTRAINT FK_EmployeeId_EmployeeInfo FOREIGN KEY (EmployeeId) REFERENCES EmployeeInfo(Id),
 	ProjectId INT NOT NULL,
 	CONSTRAINT FK_ProjectId_Projects FOREIGN KEY (ProjectId) REFERENCES Projects(Id),
+	CreatedDate DATETIME2 DEFAULT GETDATE(),
+	ModifiedDate DATETIME2 NULL,
+	Notes NVARCHAR(500) NULL,
 	CheckIn DATETIME2 NOT NULL,
 	CheckOut DATETIME2 NULL,
 	TotalHours DECIMAL(5,2) NULL,
-	RegisterType NVARCHAR(50) NOT NULL
+	RegisterType NVARCHAR(50) NOT NULL,
+	CheckInDateOnly AS CAST(CheckIn AS DATE)
 	);
 END
 GO
@@ -209,7 +216,7 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Roles_RoleName' AND object_id = OBJECT_ID('Roles'))
 BEGIN
     CREATE UNIQUE NONCLUSTERED INDEX IX_Roles_RoleName
-    ON Roles (RolName);
+    ON Roles (RoleName);
 END
 GO
 
@@ -269,6 +276,14 @@ BEGIN
 END
 GO
 
+-- NUEVO: Índice para búsquedas por nombre completo
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_EmployeeInfo_FullName' AND object_id = OBJECT_ID('EmployeeInfo'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_EmployeeInfo_FullName
+    ON EmployeeInfo (FirstName, LastName);
+END
+GO
+
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Assistance_EmployeeProjectCheckIn' AND object_id = OBJECT_ID('Assistance'))
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Assistance_EmployeeProjectCheckIn
@@ -280,6 +295,16 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Assistance_ProjectId' 
 BEGIN
     CREATE NONCLUSTERED INDEX IX_Assistance_ProjectId
     ON Assistance (ProjectId);
+END
+GO
+
+-- NUEVO: Índice para consultas por fecha de asistencia (muy común en reportes)
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Assistance_CheckInDate' AND object_id = OBJECT_ID('Assistance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Assistance_CheckInDate
+    ON Assistance (CheckInDateOnly DESC) -- ¡Aquí usas la nueva columna computada!
+    INCLUDE (EmployeeId, ProjectId, TotalHours);
+    PRINT 'Index IX_Assistance_CheckInDate created on Assistance table.';
 END
 GO
 
@@ -353,95 +378,255 @@ BEGIN
 END
 GO
 
--- CHECK CONSTRAINTS CREATION
+-- ================================
+-- VALIDACIONES Y RESTRICCIONES BÁSICAS
+-- ================================
 USE WTB_DB;
 GO
 
--- 1. Tabla 'States'
-
-ALTER TABLE States
-ADD CONSTRAINT CK_States_StateType_NotEmpty CHECK (LEN(StateType) > 0);
+-- 1. TABLA STATES - Validaciones básicas de formato
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_States_StateName_NotEmpty')
+BEGIN
+    ALTER TABLE States
+    ADD CONSTRAINT CK_States_StateName_NotEmpty CHECK (LEN(LTRIM(RTRIM(StateName))) > 0);
+END
 GO
 
-ALTER TABLE Roles
-ADD CONSTRAINT CK_Roles_RolName_NotEmpty CHECK (LEN(RolName) > 0);
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_States_StateType_NotEmpty')
+BEGIN
+    ALTER TABLE States
+    ADD CONSTRAINT CK_States_StateType_NotEmpty CHECK (LEN(LTRIM(RTRIM(StateType))) > 0);
+END
 GO
 
-ALTER TABLE InternUsers
-ADD CONSTRAINT CK_InternUsers_Email_NotEmpty CHECK (LEN(Email) > 0);
-
-ALTER TABLE Projects
-ADD CONSTRAINT CK_Projects_Dates CHECK (EndDate IS NULL OR StartDate IS NULL OR EndDate >= StartDate);
+-- 2. TABLA ROLES - Validación de nombre no vacío
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_Roles_RoleName_NotEmpty')
+BEGIN
+    ALTER TABLE Roles
+    ADD CONSTRAINT CK_Roles_RoleName_NotEmpty CHECK (LEN(LTRIM(RTRIM(RoleName))) > 0);
+END
 GO
 
-ALTER TABLE Projects
-ADD CONSTRAINT CK_Projects_ProjectName_NotEmpty CHECK (LEN(ProjectName) > 0);
+-- 3. TABLA INTERNUSERS - Validaciones de formato
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_InternUsers_Email_Format')
+BEGIN
+    ALTER TABLE InternUsers
+    ADD CONSTRAINT CK_InternUsers_Email_Format 
+    CHECK (Email LIKE '%@%.%' AND LEN(Email) >= 5 AND Email NOT LIKE '%@%@%');
+END
 GO
 
-ALTER TABLE DocumentType
-ADD CONSTRAINT CK_DocumentType_DocumentName_NotEmpty CHECK (LEN(DocumentName) > 0);
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_InternUsers_FirstName_NotEmpty')
+BEGIN
+    ALTER TABLE InternUsers
+    ADD CONSTRAINT CK_InternUsers_FirstName_NotEmpty CHECK (LEN(LTRIM(RTRIM(FirstName))) > 0);
+END
 GO
 
-ALTER TABLE EmployeeInfo
-ADD CONSTRAINT CK_EmployeeInfo_DocumentNumber_NotEmpty CHECK (LEN(DocumentNumber) > 0);
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_InternUsers_LastName_NotEmpty')
+BEGIN
+    ALTER TABLE InternUsers
+    ADD CONSTRAINT CK_InternUsers_LastName_NotEmpty CHECK (LEN(LTRIM(RTRIM(LastName))) > 0);
+END
 GO
 
-ALTER TABLE EmployeeInfo
-ADD CONSTRAINT CK_EmployeeInfo_Birthday_Past CHECK (Birthday < GETDATE());
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_InternUsers_PasswordHash_NotEmpty')
+BEGIN
+    ALTER TABLE InternUsers
+    ADD CONSTRAINT CK_InternUsers_PasswordHash_NotEmpty CHECK (LEN(LTRIM(RTRIM(PasswordHash))) >= 32);
+END
 GO
 
-ALTER TABLE EmployeeInfo
-ADD CONSTRAINT CK_EmployeeInfo_RegisterDate_PastOrPresent CHECK (RegisterDate <= GETDATE());
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_InternUsers_PasswordSalt_NotEmpty')
+BEGIN
+    ALTER TABLE InternUsers
+    ADD CONSTRAINT CK_InternUsers_PasswordSalt_NotEmpty CHECK (LEN(LTRIM(RTRIM(PasswordSalt))) >= 8);
+END
 GO
 
-ALTER TABLE Assistance
-ADD CONSTRAINT CK_Assistance_CheckDates CHECK (CheckOut IS NULL OR CheckOut >= CheckIn);
+-- 4. TABLA PROJECTS - Validaciones básicas
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_Projects_ProjectName_NotEmpty')
+BEGIN
+    ALTER TABLE Projects
+    ADD CONSTRAINT CK_Projects_ProjectName_NotEmpty CHECK (LEN(LTRIM(RTRIM(ProjectName))) > 0);
+END
 GO
 
-ALTER TABLE Assistance
-ADD CONSTRAINT CK_Assistance_TotalHours_NonNegative CHECK (TotalHours IS NULL OR TotalHours >= 0);
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_Projects_Dates_Logical')
+BEGIN
+    ALTER TABLE Projects
+    ADD CONSTRAINT CK_Projects_Dates_Logical CHECK (EndDate IS NULL OR StartDate IS NULL OR EndDate >= StartDate);
+END
 GO
 
-ALTER TABLE Assistance
-ADD CONSTRAINT CK_Assistance_RegisterType_Valid CHECK (RegisterType IN ('CheckIn', 'CheckOut', 'Manual'));
+-- 5. TABLA DOCUMENTTYPE - Validación de nombre
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_DocumentType_DocumentName_NotEmpty')
+BEGIN
+    ALTER TABLE DocumentType
+    ADD CONSTRAINT CK_DocumentType_DocumentName_NotEmpty CHECK (LEN(LTRIM(RTRIM(DocumentName))) > 0);
+END
 GO
 
-ALTER TABLE ProjectsAssigns
-ADD CONSTRAINT CK_ProjectsAssigns_Dates CHECK (EndDate IS NULL OR AssignDate IS NULL OR EndDate >= AssignDate);
+-- 6. TABLA EMPLOYEEINFO - Validaciones de formato y lógica
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_EmployeeInfo_DocumentNumber_NotEmpty')
+BEGIN
+    ALTER TABLE EmployeeInfo
+    ADD CONSTRAINT CK_EmployeeInfo_DocumentNumber_NotEmpty CHECK (LEN(LTRIM(RTRIM(DocumentNumber))) > 0);
+END
 GO
 
-ALTER TABLE AuditRegister
-ADD CONSTRAINT CK_AuditRegister_ActionType_NotEmpty CHECK (LEN(ActionType) > 0);
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_EmployeeInfo_FirstName_NotEmpty')
+BEGIN
+    ALTER TABLE EmployeeInfo
+    ADD CONSTRAINT CK_EmployeeInfo_FirstName_NotEmpty CHECK (LEN(LTRIM(RTRIM(FirstName))) > 0);
+END
 GO
 
-ALTER TABLE FingerPrint
-ADD CONSTRAINT CK_FingerPrint_Template_NotEmpty CHECK (DATALENGTH(TemplateFingerPrint) > 0);
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_EmployeeInfo_LastName_NotEmpty')
+BEGIN
+    ALTER TABLE EmployeeInfo
+    ADD CONSTRAINT CK_EmployeeInfo_LastName_NotEmpty CHECK (LEN(LTRIM(RTRIM(LastName))) > 0);
+END
 GO
 
-ALTER TABLE FingerPrint
-ADD CONSTRAINT CK_FingerPrint_IssueDate_PastOrPresent CHECK (IssueDate <= GETDATE());
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_EmployeeInfo_Birthday_Past')
+BEGIN
+    ALTER TABLE EmployeeInfo
+    ADD CONSTRAINT CK_EmployeeInfo_Birthday_Past CHECK (Birthday < CAST(GETDATE() AS DATE));
+END
 GO
 
-ALTER TABLE ProjectMaintenance
-ADD CONSTRAINT CK_ProjectMaintenance_Cost_NonNegative CHECK (MaintenanceCost IS NULL OR MaintenanceCost >= 0);
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_EmployeeInfo_Birthday_Reasonable')
+BEGIN
+    ALTER TABLE EmployeeInfo
+    ADD CONSTRAINT CK_EmployeeInfo_Birthday_Reasonable 
+    CHECK (Birthday >= DATEADD(YEAR, -100, GETDATE()) AND Birthday <= DATEADD(YEAR, -16, GETDATE()));
+END
 GO
 
-ALTER TABLE ProjectMaintenance
-ADD CONSTRAINT CK_ProjectMaintenance_Description_NotEmpty CHECK (LEN(MaintenanceDescription) > 0);
+-- NUEVA: Validación de teléfono formato Costa Rica (nnnn-nnnn)
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_EmployeeInfo_PhoneNumber_Format')
+BEGIN
+    ALTER TABLE EmployeeInfo
+    ADD CONSTRAINT CK_EmployeeInfo_PhoneNumber_Format 
+    CHECK (PhoneNumber IS NULL OR PhoneNumber LIKE '[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9]');
+END
 GO
 
-ALTER TABLE ProjectMaintenance
-ADD CONSTRAINT CK_ProjectMaintenance_Date_PastOrPresent CHECK (MaintenanceDate <= GETDATE());
+-- NUEVA: Validación de IBAN formato Costa Rica (CR + 20 dígitos)
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_EmployeeInfo_IBAN_Format')
+BEGIN
+    ALTER TABLE EmployeeInfo
+    ADD CONSTRAINT CK_EmployeeInfo_IBAN_Format 
+    CHECK (IBAN IS NULL OR (IBAN LIKE 'CR[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' AND LEN(IBAN) = 22));
+END
 GO
 
-ALTER TABLE ProjectWarranty
-ADD CONSTRAINT CK_ProjectWarranty_Cost_NonNegative CHECK (WarrantyCost IS NULL OR WarrantyCost >= 0);
+-- 7. TABLA ASSISTANCE - Validaciones de integridad temporal y datos
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_Assistance_CheckOut_After_CheckIn')
+BEGIN
+    ALTER TABLE Assistance
+    ADD CONSTRAINT CK_Assistance_CheckOut_After_CheckIn CHECK (CheckOut IS NULL OR CheckOut >= CheckIn);
+END
 GO
 
-ALTER TABLE ProjectWarranty
-ADD CONSTRAINT CK_ProjectWarranty_Description_NotEmpty CHECK (LEN(WarrantyDescription) > 0);
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_Assistance_TotalHours_NonNegative')
+BEGIN
+    ALTER TABLE Assistance
+    ADD CONSTRAINT CK_Assistance_TotalHours_NonNegative CHECK (TotalHours IS NULL OR TotalHours >= 0);
+END
 GO
 
-ALTER TABLE ProjectWarranty
-ADD CONSTRAINT CK_ProjectWarranty_Date_PastOrPresent CHECK (WarrantyDate <= GETDATE());
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_Assistance_RegisterType_Valid')
+BEGIN
+    ALTER TABLE Assistance
+    ADD CONSTRAINT CK_Assistance_RegisterType_Valid 
+    CHECK (RegisterType IN ('CheckIn', 'CheckOut', 'Manual'));
+END
+GO
+
+-- 8. TABLA PROJECTSASSIGNS - Validación de fechas
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_ProjectsAssigns_Dates_Logical')
+BEGIN
+    ALTER TABLE ProjectsAssigns
+    ADD CONSTRAINT CK_ProjectsAssigns_Dates_Logical CHECK (EndDate IS NULL OR EndDate >= AssignDate);
+END
+GO
+
+-- 9. TABLA AUDITREGISTER - Validaciones de contenido
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_AuditRegister_ActionType_NotEmpty')
+BEGIN
+    ALTER TABLE AuditRegister
+    ADD CONSTRAINT CK_AuditRegister_ActionType_NotEmpty CHECK (LEN(LTRIM(RTRIM(ActionType))) > 0);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_AuditRegister_DetailChange_NotEmpty')
+BEGIN
+    ALTER TABLE AuditRegister
+    ADD CONSTRAINT CK_AuditRegister_DetailChange_NotEmpty CHECK (LEN(LTRIM(RTRIM(DetailChange))) > 0);
+END
+GO
+
+-- 10. TABLA FINGERPRINT - Validación de datos biométricos
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_FingerPrint_Template_NotEmpty')
+BEGIN
+    ALTER TABLE FingerPrint
+    ADD CONSTRAINT CK_FingerPrint_Template_NotEmpty CHECK (DATALENGTH(TemplateFingerPrint) > 0);
+END
+GO
+
+-- 11. TABLA PROJECTMAINTENANCE - Validaciones de costos y contenido
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_ProjectMaintenance_Cost_NonNegative')
+BEGIN
+    ALTER TABLE ProjectMaintenance
+    ADD CONSTRAINT CK_ProjectMaintenance_Cost_NonNegative CHECK (MaintenanceCost IS NULL OR MaintenanceCost >= 0);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_ProjectMaintenance_Description_NotEmpty')
+BEGIN
+    ALTER TABLE ProjectMaintenance
+    ADD CONSTRAINT CK_ProjectMaintenance_Description_NotEmpty CHECK (LEN(LTRIM(RTRIM(MaintenanceDescription))) > 0);
+END
+GO
+
+-- 12. TABLA PROJECTWARRANTY - Validaciones de costos y contenido
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_ProjectWarranty_Cost_NonNegative')
+BEGIN
+    ALTER TABLE ProjectWarranty
+    ADD CONSTRAINT CK_ProjectWarranty_Cost_NonNegative CHECK (WarrantyCost IS NULL OR WarrantyCost >= 0);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_ProjectWarranty_Description_NotEmpty')
+BEGIN
+    ALTER TABLE ProjectWarranty
+    ADD CONSTRAINT CK_ProjectWarranty_Description_NotEmpty CHECK (LEN(LTRIM(RTRIM(WarrantyDescription))) > 0);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_EmployeeInfo_CostPerHour_NonNegative' AND parent_object_id = OBJECT_ID('EmployeeInfo'))
+BEGIN
+    ALTER TABLE EmployeeInfo
+    ADD CONSTRAINT CK_EmployeeInfo_CostPerHour_NonNegative CHECK (CostPerHour IS NULL OR CostPerHour >= 0);
+    PRINT 'CHECK CONSTRAINT CK_EmployeeInfo_CostPerHour_NonNegative added to EmployeeInfo table.';
+END
+ELSE
+BEGIN
+    PRINT 'CHECK CONSTRAINT CK_EmployeeInfo_CostPerHour_NonNegative already exists in EmployeeInfo table.';
+END
+GO
+
+PRINT '✅ Base de datos WTB_DB inicializada correctamente';
+PRINT '✅ Todas las tablas creadas con relaciones FK';
+PRINT '✅ Índices optimizados para consultas frecuentes';
+PRINT '✅ Validaciones básicas de integridad aplicadas';
+PRINT '📋 Validaciones agregadas:';
+PRINT '   - Formato de email válido';
+PRINT '   - Formato de teléfono CR (nnnn-nnnn)';
+PRINT '   - Formato de IBAN CR (22 caracteres)';
+PRINT '   - Validaciones de fechas lógicas';
+PRINT '   - Validaciones de campos no vacíos';
+PRINT '   - Validaciones de costos no negativos';
 GO

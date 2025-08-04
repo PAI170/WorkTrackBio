@@ -1,170 +1,250 @@
+﻿-- ================================
+-- WTB_DB TEST DATA INSERTION
+-- ================================
+
 USE WTB_DB;
 GO
 
--- INSERT TEST DATA
-
+-- Step 1: Insert States (Estados del sistema)
+-- These are the different states that entities can have in the system
 INSERT INTO States (StateName, StateType, Description) VALUES
-('Active', 'Employee', 'Employee is currently active.'),
-('Inactive', 'Employee', 'Employee is inactive.'),
-('On Leave', 'Employee', 'Employee is on leave.'),
-('Active', 'Project', 'Project is currently active.'),
-('Completed', 'Project', 'Project has been completed.'),
-('Pending', 'Project', 'Project is pending to start.'),
-('Cancelled', 'Project', 'Project has been cancelled.'),
-('Active', 'InternUser', 'Internal user is active.'),
-('Disabled', 'InternUser', 'Internal user account is disabled.'),
-('In Progress', 'Maintenance', 'Maintenance is in progress.'),
-('Finished', 'Maintenance', 'Maintenance completed.'),
-('Approved', 'Warranty', 'Warranty claim approved.'),
-('Rejected', 'Warranty', 'Warranty claim rejected.');
+('Active', 'General', 'Estado activo del sistema'),
+('Inactive', 'General', 'Estado inactivo del sistema'),
+('Suspended', 'General', 'Estado suspendido temporalmente'),
+('In Progress', 'Project', 'Proyecto en progreso'),
+('Completed', 'Project', 'Proyecto completado'),
+('On Hold', 'Project', 'Proyecto en pausa'),
+('Pending', 'Employee', 'Empleado pendiente de aprobación'),
+('Terminated', 'Employee', 'Empleado dado de baja');
 GO
 
-DECLARE @ActiveEmployeeStateId INT = (SELECT Id FROM States WHERE StateName = 'Active' AND StateType = 'Employee');
-DECLARE @InactiveEmployeeStateId INT = (SELECT Id FROM States WHERE StateName = 'Inactive' AND StateType = 'Employee');
-DECLARE @ActiveProjectStateId INT = (SELECT Id FROM States WHERE StateName = 'Active' AND StateType = 'Project');
-DECLARE @CompletedProjectStateId INT = (SELECT Id FROM States WHERE StateName = 'Completed' AND StateType = 'Project');
-DECLARE @ActiveInternUserStateId INT = (SELECT Id FROM States WHERE StateName = 'Active' AND StateType = 'InternUser');
-DECLARE @FinishedMaintenanceStateId INT = (SELECT Id FROM States WHERE StateName = 'Finished' AND StateType = 'Maintenance');
-DECLARE @ApprovedWarrantyStateId INT = (SELECT Id FROM States WHERE StateName = 'Approved' AND StateType = 'Warranty');
-
-INSERT INTO DocumentType (DocumentName, Description) VALUES
-('C�dula de Identidad', 'National identification card.'),
-('DIMEX', 'Foreign Resident Identification Document.'),
-('Pasaporte', 'International travel document.'),
-('Permiso de Trabajo', 'Work permit for foreign nationals.');
-GO
-
-DECLARE @CedulaId INT = (SELECT Id FROM DocumentType WHERE DocumentName = 'C�dula de Identidad');
-DECLARE @DimexId INT = (SELECT Id FROM DocumentType WHERE DocumentName = 'DIMEX');
-DECLARE @PasaporteId INT = (SELECT Id FROM DocumentType WHERE DocumentName = 'Pasaporte');
-DECLARE @PermisoTrabajoId INT = (SELECT Id FROM DocumentType WHERE DocumentName = 'Permiso de Trabajo');
-
+-- Step 2: Insert Roles (Roles de usuarios internos)
+-- Different roles for internal system users
 INSERT INTO Roles (RoleName, Description) VALUES
-('SuperAdmin', 'Full access to all system functionalities.'),
-('ProjectManager', 'Manages projects and oversees assigned employees.'),
-('ITSupport', 'Provides IT support for system operations.');
+('Administrator', 'Administrador del sistema con acceso completo'),
+('HR Manager', 'Gerente de recursos humanos'),
+('Project Manager', 'Gerente de proyectos'),
+('Supervisor', 'Supervisor de campo'),
+('Operator', 'Operador básico del sistema');
 GO
 
-DECLARE @SuperAdminRoleId INT = (SELECT Id FROM Roles WHERE RoleName = 'SuperAdmin');
-DECLARE @ProjectManagerRoleId INT = (SELECT Id FROM Roles WHERE RoleName = 'ProjectManager');
-
-
-INSERT INTO InternUsers (Email, FirstName, LastName, PasswordHash, PasswordSalt, RolId, CreationDate, StateId, LastLogin) VALUES
-('admin@worktrackbio.com', 'System', 'Admin', 'hashedpassword1', 'salt1', @SuperAdminRoleId, GETDATE(), @ActiveInternUserStateId, GETDATE()),
-('manager@worktrackbio.com', 'Project', 'Manager', 'hashedpassword2', 'salt2', @ProjectManagerRoleId, GETDATE(), @ActiveInternUserStateId, NULL);
+-- Step 3: Insert Document Types (Tipos de documentos de Costa Rica)
+-- Document types used in Costa Rica for employee identification
+INSERT INTO DocumentType (DocumentName, Description) VALUES
+('Cedula de Identidad', 'Cédula de identidad costarricense'),
+('Pasaporte', 'Pasaporte internacional'),
+('DIMEX', 'Documento de Identidad Migratoria para Extranjeros'),
+('Permiso de Trabajo', 'Permiso de trabajo para extranjeros');
 GO
 
-DECLARE @AdminUserId INT = (SELECT Id FROM InternUsers WHERE Email = 'admin@worktrackbio.com');
-DECLARE @ManagerUserId INT = (SELECT Id FROM InternUsers WHERE Email = 'manager@worktrackbio.com');
-
-INSERT INTO EmployeeInfo (DocumentNumber, DocumentTypeId, DocumentExpire, FirstName, LastName, PhoneNumber, Birthday, RegisterDate, StateId, Address, IBAN) VALUES
-('101230456', @CedulaId, NULL, 'Ana', 'Hernandez', '8888-1111', '1990-01-15', GETDATE(), @ActiveEmployeeStateId, 'Street 1, City A', 'CR0100000000000000000001'),
-('707890123', @DimexId, '2027-06-30', 'Carlos', 'Mejia', '8888-2222', '1985-04-22', GETDATE(), @ActiveEmployeeStateId, 'Street 2, City B', 'CR0100000000000000000002'),
-('012345678', @PasaporteId, '2029-01-01', 'Laura', 'Vasquez', '8888-3333', '1992-07-10', GETDATE(), @ActiveEmployeeStateId, 'Street 3, City C', 'CR0100000000000000000003'),
-('456789012', @PermisoTrabajoId, '2026-03-15', 'Miguel', 'Sanchez', '8888-4444', '1980-11-05', GETDATE(), @ActiveEmployeeStateId, 'Street 4, City D', 'CR0100000000000000000004'),
-('901234567', @CedulaId, NULL, 'Sofia', 'Rodriguez', '8888-5555', '1993-09-28', GETDATE(), @ActiveEmployeeStateId, 'Street 5, City E', 'CR0100000000000000000005');
+-- Step 4: Insert Internal Users (Usuarios internos del sistema)
+-- Internal system users with different roles
+INSERT INTO InternUsers (Email, FirstName, LastName, PasswordHash, PasswordSalt, RolId, StateId) VALUES
+('admin@wtb.co.cr', 'Carlos', 'Rodríguez', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'salt123abc', 1, 1),
+('hr@wtb.co.cr', 'María', 'González', 'b3a8e0e1f9ab1bfe3a36f231f676f78bb30a519d2b21e6c530c0eee8ebb4a5d0', 'salt456def', 2, 1),
+('pm1@wtb.co.cr', 'José', 'Vargas', 'c2356069e9d1e79ca924378153cfbbfb4d4416b1f99d41a2940bfdb66c5319db', 'salt789ghi', 3, 1),
+('supervisor@wtb.co.cr', 'Ana', 'Mora', 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35', 'saltjklmno', 4, 1);
 GO
 
-
-DECLARE @AnaHernandezId INT = (SELECT Id FROM EmployeeInfo WHERE DocumentNumber = '101230456');
-DECLARE @CarlosMejiaId INT = (SELECT Id FROM EmployeeInfo WHERE DocumentNumber = '707890123');
-DECLARE @LauraVasquezId INT = (SELECT Id FROM EmployeeInfo WHERE DocumentNumber = '012345678');
-DECLARE @MiguelSanchezId INT = (SELECT Id FROM EmployeeInfo WHERE DocumentNumber = '456789012');
-DECLARE @SofiaRodriguezId INT = (SELECT Id FROM EmployeeInfo WHERE DocumentNumber = '901234567');
-
-
+-- Step 5: Insert Projects (Proyectos de la empresa)
+-- Different types of projects the company handles
 INSERT INTO Projects (ProjectName, StartDate, EndDate, StateId) VALUES
-('Office CCTV Install Phase 1', '2025-07-01', '2025-07-31', @ActiveProjectStateId),
-('Client X Network Support', '2025-07-10', NULL, @ActiveProjectStateId),
-('New Website for Corp Z', '2025-06-01', '2025-06-30', @CompletedProjectStateId),
-('Data Center Migration Y', '2025-07-15', '2025-08-15', @ActiveProjectStateId),
-('Residential Alarm System', '2025-07-20', NULL, @ActiveProjectStateId);
+('CCTV Installation - Mall San Pedro', '2024-01-15', '2024-03-30', 5), -- Completed
+('Web Design - Hotel Presidente', '2024-02-01', NULL, 4), -- In Progress
+('Alarm System - Banco Nacional', '2024-01-20', '2024-04-15', 5), -- Completed
+('CCTV Installation - Universidad UCR', '2024-03-01', NULL, 4), -- In Progress
+('Web Design - Restaurant Machu Picchu', '2024-02-15', '2024-05-20', 5), -- Completed
+('Alarm System - Oficinas Ministerio', '2024-03-15', NULL, 6); -- On Hold
 GO
 
-DECLARE @CCTVInstallId INT = (SELECT Id FROM Projects WHERE ProjectName = 'Office CCTV Install Phase 1');
-DECLARE @ClientXNetworkId INT = (SELECT Id FROM Projects WHERE ProjectName = 'Client X Network Support');
-DECLARE @WebsiteCorpZId INT = (SELECT Id FROM Projects WHERE ProjectName = 'New Website for Corp Z');
-DECLARE @DataCenterMigrationId INT = (SELECT Id FROM Projects WHERE ProjectName = 'Data Center Migration Y');
-DECLARE @ResidentialAlarmId INT = (SELECT Id FROM Projects WHERE ProjectName = 'Residential Alarm System');
-
-
-INSERT INTO ProjectsAssigns (EmployeeId, ProjectId, AssignDate, EndDate, IsActive) VALUES
-
-(@AnaHernandezId, @CCTVInstallId, '2025-07-01', NULL, 1),
-(@AnaHernandezId, @DataCenterMigrationId, '2025-07-15', NULL, 1),
-
-
-(@CarlosMejiaId, @ClientXNetworkId, '2025-07-10', NULL, 1),
-(@CarlosMejiaId, @ResidentialAlarmId, '2025-07-20', NULL, 1),
-
-
-(@LauraVasquezId, @ClientXNetworkId, '2025-07-10', NULL, 1),
-
-
-(@MiguelSanchezId, @DataCenterMigrationId, '2025-07-15', NULL, 1),
-
-
-(@SofiaRodriguezId, @ResidentialAlarmId, '2025-07-20', NULL, 1);
+-- Step 6: Insert Employee Information (Información de empleados)
+-- Employee data with Costa Rican document formats
+INSERT INTO EmployeeInfo (DocumentNumber, DocumentTypeId, DocumentExpire, FirstName, LastName, PhoneNumber, EmergencyContact, EmergencyContactPhoneNumber, Birthday, CostPerHour, StateId, Address, IBAN) VALUES
+('1-1234-5678', 1, '2029-12-31', 'Roberto', 'Jiménez', '2456-7890', 'Elena Jiménez', '2456-7891', '1985-06-15', 3500.00, 1, 'San José, Barrio Escalante', 'CR05015202001234567890'),
+('2-2345-6789', 1, '2028-11-30', 'Sofía', 'Herrera', '2567-8901', 'Miguel Herrera', '2567-8902', '1990-03-22', 3200.00, 1, 'Cartago, Centro', 'CR05015202002345678901'),
+('P123456789', 2, '2027-08-15', 'Diego', 'Ramírez', '2678-9012', 'Carmen Ramírez', '2678-9013', '1988-11-08', 3800.00, 1, 'Alajuela, Centro', 'CR05015202003456789012'),
+('DIM-12345678', 3, '2026-05-20', 'Isabella', 'Morales', '2789-0123', 'Pedro Morales', '2789-0124', '1992-09-14', 3000.00, 1, 'Heredia, Mercedes', 'CR05015202004567890123'),
+('PT-987654', 4, '2025-12-10', 'Fernando', 'Castro', '2890-1234', 'Lucía Castro', '2890-1235', '1987-01-30', 3600.00, 1, 'Puntarenas, Centro', 'CR05015202005678901234'),
+('1-9876-5432', 1, '2030-06-25', 'Gabriela', 'Solís', '2901-2345', 'Juan Solís', '2901-2346', '1991-07-12', 3300.00, 1, 'San José, Pavas', 'CR05015202006789012345'),
+('2-8765-4321', 1, '2029-09-18', 'Andrés', 'Navarro', '2012-3456', 'Rosa Navarro', '2012-3457', '1989-04-05', 3700.00, 1, 'Cartago, Paraíso', 'CR05015202007890123456'),
+('DIM-87654321', 3, '2026-03-12', 'Valentina', 'Ortega', '2123-4567', 'Mario Ortega', '2123-4568', '1993-12-28', 2900.00, 1, 'Limón, Centro', 'CR05015202008901234567');
 GO
 
+-- Step 7: Insert Project Assignments (Asignaciones de proyectos)
+-- Assign employees to different projects (some employees work on multiple projects)
+INSERT INTO ProjectsAssigns (EmployeeId, ProjectId, AssignDate, EndDate) VALUES
+-- Mall San Pedro CCTV (Completed)
+(1, 1, '2024-01-15', '2024-03-30'), -- Roberto
+(2, 1, '2024-01-20', '2024-03-30'), -- Sofía
+(3, 1, '2024-02-01', '2024-03-30'), -- Diego
 
-INSERT INTO FingerPrint (EmployeeId, TemplateFingerPrint, Dedo, IssueDate) VALUES
-(@AnaHernandezId, 0x0102030405060708090A0B0C0D0E0F10, 'Right Thumb', GETDATE()),
-(@CarlosMejiaId, 0x1112131415161718191A1B1C1D1E1F20, 'Right Index', GETDATE()),
-(@LauraVasquezId, 0x2122232425262728292A2B2C2D2E2F30, 'Left Thumb', GETDATE()),
-(@MiguelSanchezId, 0x3132333435363738393A3B3C3D3E3F40, 'Right Middle', GETDATE()),
-(@SofiaRodriguezId, 0x4142434445464748494A4B4C4D4E4F50, 'Left Index', GETDATE());
+-- Hotel Presidente Web Design (In Progress)
+(4, 2, '2024-02-01', NULL), -- Isabella
+(5, 2, '2024-02-05', NULL), -- Fernando
+
+-- Banco Nacional Alarm (Completed)
+(1, 3, '2024-01-20', '2024-04-15'), -- Roberto (works on multiple projects)
+(6, 3, '2024-01-25', '2024-04-15'), -- Gabriela
+(7, 3, '2024-02-10', '2024-04-15'), -- Andrés
+
+-- UCR CCTV (In Progress)
+(2, 4, '2024-03-01', NULL), -- Sofía (works on multiple projects)
+(3, 4, '2024-03-05', NULL), -- Diego (works on multiple projects)
+(8, 4, '2024-03-10', NULL), -- Valentina
+
+-- Restaurant Web Design (Completed)
+(4, 5, '2024-02-15', '2024-05-20'), -- Isabella (works on multiple projects)
+(5, 5, '2024-02-20', '2024-05-20'), -- Fernando (works on multiple projects)
+
+-- Ministerio Alarm (On Hold)
+(6, 6, '2024-03-15', NULL), -- Gabriela (works on multiple projects)
+(7, 6, '2024-03-20', NULL); -- Andrés (works on multiple projects)
 GO
 
-
-INSERT INTO Assistance (EmployeeId, ProjectId, CheckIn, CheckOut, TotalHours, RegisterType, IsManual, AdjustedByAdminId, AdjustmentDate, AdjustmentReason) VALUES
-(@AnaHernandezId, @CCTVInstallId, '2025-07-22 08:00:00', '2025-07-22 17:00:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL),
-(@AnaHernandezId, @CCTVInstallId, '2025-07-23 08:30:00', '2025-07-23 17:30:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL),
-
-(@AnaHernandezId, @DataCenterMigrationId, '2025-07-24 09:00:00', '2025-07-24 18:00:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL);
-
-
-INSERT INTO Assistance (EmployeeId, ProjectId, CheckIn, CheckOut, TotalHours, RegisterType, IsManual, AdjustedByAdminId, AdjustmentDate, AdjustmentReason) VALUES
-(@CarlosMejiaId, @ClientXNetworkId, '2025-07-22 08:15:00', '2025-07-22 17:15:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL),
-(@CarlosMejiaId, @ClientXNetworkId, '2025-07-23 08:00:00', '2025-07-23 17:00:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL),
-
-(@CarlosMejiaId, @ResidentialAlarmId, '2025-07-24 10:00:00', '2025-07-24 19:00:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL);
-
-
-INSERT INTO Assistance (EmployeeId, ProjectId, CheckIn, CheckOut, TotalHours, RegisterType, IsManual, AdjustedByAdminId, AdjustmentDate, AdjustmentReason) VALUES
-(@LauraVasquezId, @ClientXNetworkId, '2025-07-22 09:00:00', '2025-07-22 18:00:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL),
-(@LauraVasquezId, @ClientXNetworkId, '2025-07-23 09:15:00', '2025-07-23 18:15:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL);
-
-
-INSERT INTO Assistance (EmployeeId, ProjectId, CheckIn, CheckOut, TotalHours, RegisterType, IsManual, AdjustedByAdminId, AdjustmentDate, AdjustmentReason) VALUES
-(@MiguelSanchezId, @DataCenterMigrationId, '2025-07-22 07:45:00', '2025-07-22 16:45:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL),
-(@MiguelSanchezId, @DataCenterMigrationId, '2025-07-23 08:00:00', '2025-07-23 17:00:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL);
-
-
-INSERT INTO Assistance (EmployeeId, ProjectId, CheckIn, CheckOut, TotalHours, RegisterType, IsManual, AdjustedByAdminId, AdjustmentDate, AdjustmentReason) VALUES
-(@SofiaRodriguezId, @ResidentialAlarmId, '2025-07-22 09:30:00', '2025-07-22 18:30:00', 9.00, 'CheckOut', 0, NULL, NULL, NULL),
-(@SofiaRodriguezId, @ResidentialAlarmId, '2025-07-23 09:00:00', '2025-07-23 17:00:00', 8.00, 'CheckOut', 0, NULL, NULL, NULL);
+-- Step 8: Insert Fingerprint Data (Datos de huellas dactilares)
+-- Simulated fingerprint templates (in real life these would be actual biometric data)
+INSERT INTO FingerPrint (EmployeeId, TemplateFingerPrint) VALUES
+(1, 0x89504E470D0A1A0A0000000D49484452000000640000006408060000007017A5CB), -- Roberto
+(2, 0x89504E470D0A1A0A0000000D49484452000000640000006408060000007017A5CC), -- Sofía
+(3, 0x89504E470D0A1A0A0000000D49484452000000640000006408060000007017A5CD), -- Diego
+(4, 0x89504E470D0A1A0A0000000D49484452000000640000006408060000007017A5CE), -- Isabella
+(5, 0x89504E470D0A1A0A0000000D49484452000000640000006408060000007017A5CF), -- Fernando
+(6, 0x89504E470D0A1A0A0000000D49484452000000640000006408060000007017A5D0), -- Gabriela
+(7, 0x89504E470D0A1A0A0000000D49484452000000640000006408060000007017A5D1), -- Andrés
+(8, 0x89504E470D0A1A0A0000000D49484452000000640000006408060000007017A5D2); -- Valentina
 GO
 
+-- Step 9: Insert Assistance Records (Registros de asistencia)
+-- Time tracking records for employees on different projects
+INSERT INTO Assistance (EmployeeId, ProjectId, CheckIn, CheckOut, TotalHours, RegisterType, Notes) VALUES
+-- Roberto working on Mall San Pedro CCTV
+(1, 1, '2024-01-15 08:00:00', '2024-01-15 17:00:00', 8.0, 'CheckOut', 'Instalación inicial de cámaras en planta baja'),
+(1, 1, '2024-01-16 08:30:00', '2024-01-16 17:30:00', 8.0, 'CheckOut', 'Configuración del sistema de grabación'),
+(1, 1, '2024-01-17 08:00:00', '2024-01-17 16:00:00', 7.0, 'CheckOut', 'Pruebas del sistema completo'),
 
-DECLARE @AdjustedAssistanceIdForAudit INT = (SELECT Id FROM Assistance WHERE EmployeeId = @AnaHernandezId AND CheckIn = '2025-07-24 09:00:00');
+-- Roberto working on Banco Nacional Alarm
+(1, 3, '2024-01-22 09:00:00', '2024-01-22 18:00:00', 8.0, 'CheckOut', 'Instalación de sensores perimetrales'),
+(1, 3, '2024-01-23 08:45:00', '2024-01-23 17:45:00', 8.0, 'CheckOut', 'Configuración de central de alarmas'),
 
+-- Sofía working on Mall San Pedro CCTV
+(2, 1, '2024-01-20 08:00:00', '2024-01-20 17:00:00', 8.5, 'CheckOut', 'Cableado estructurado segundo piso'),
+(2, 1, '2024-01-21 08:15:00', '2024-01-21 17:15:00', 8.0, 'CheckOut', 'Instalación cámaras exteriores'),
 
-INSERT INTO ProjectMaintenance (IdProject, MaintenanceDate, MaintenanceDescription, MadeById, MaintenanceCost, AdditionalInfo, StateId) VALUES
-(@CCTVInstallId, '2025-07-20 10:00:00', 'Replaced faulty camera on 3rd floor.', @AnaHernandezId, 150.75, 'Camera model XZ200', @FinishedMaintenanceStateId),
-(@ClientXNetworkId, '2025-07-24 14:00:00', 'Router firmware update.', @CarlosMejiaId, 50.00, NULL, @FinishedMaintenanceStateId);
+-- Sofía working on UCR CCTV
+(2, 4, '2024-03-01 08:00:00', '2024-03-01 17:30:00', 8.5, 'CheckOut', 'Levantamiento de requerimientos UCR'),
+(2, 4, '2024-03-02 08:30:00', '2024-03-02 17:00:00', 7.5, 'CheckOut', 'Diseño de layout de cámaras'),
+
+-- Diego working on multiple projects
+(3, 1, '2024-02-01 08:00:00', '2024-02-01 16:30:00', 7.5, 'CheckOut', 'Programación de cámaras IP'),
+(3, 4, '2024-03-05 09:00:00', '2024-03-05 18:15:00', 8.25, 'CheckOut', 'Instalación inicial UCR - Facultad Ingeniería'),
+
+-- Isabella working on web projects
+(4, 2, '2024-02-01 09:00:00', '2024-02-01 18:00:00', 8.0, 'CheckOut', 'Análisis de requerimientos web Hotel Presidente'),
+(4, 5, '2024-02-15 08:30:00', '2024-02-15 17:30:00', 8.0, 'CheckOut', 'Diseño UI/UX Restaurant Machu Picchu'),
+
+-- Fernando working on web projects
+(5, 2, '2024-02-05 08:00:00', '2024-02-05 17:45:00', 8.75, 'CheckOut', 'Desarrollo backend Hotel Presidente'),
+(5, 5, '2024-02-20 09:15:00', '2024-02-20 18:00:00', 7.75, 'CheckOut', 'Implementación sistema reservas restaurant'),
+
+-- Gabriela working on alarm systems
+(6, 3, '2024-01-25 08:00:00', '2024-01-25 17:00:00', 8.0, 'CheckOut', 'Instalación detectores de movimiento'),
+(6, 6, '2024-03-15 08:30:00', '2024-03-15 17:30:00', 8.0, 'CheckOut', 'Evaluación sitio Ministerio'),
+
+-- Andrés working on alarm systems
+(7, 3, '2024-02-10 08:15:00', '2024-02-10 17:15:00', 8.0, 'CheckOut', 'Configuración panel central Banco Nacional'),
+(7, 6, '2024-03-20 09:00:00', '2024-03-20 18:00:00', 8.0, 'CheckOut', 'Diseño sistema seguridad Ministerio'),
+
+-- Valentina working on UCR
+(8, 4, '2024-03-10 08:00:00', '2024-03-10 16:45:00', 7.75, 'CheckOut', 'Soporte técnico instalación UCR'),
+
+-- Some current check-ins (employees currently working)
+(2, 4, '2024-07-31 08:00:00', NULL, NULL, 'CheckIn', 'Continuando trabajo UCR - edificio administrativo'),
+(4, 2, '2024-07-31 09:00:00', NULL, NULL, 'CheckIn', 'Desarrollo módulo reservas Hotel Presidente');
 GO
 
-
-INSERT INTO ProjectWarranty (IdProject, WarrantyDate, WarrantyDescription, MadeById, WarrantyCost, StateId) VALUES
-(@CCTVInstallId, '2025-07-21 09:00:00', 'Client reported flickering image on monitor. Re-calibrated.', @AnaHernandezId, 0.00, @ApprovedWarrantyStateId);
+-- Step 10: Insert Audit Records (Registros de auditoría)
+-- Audit trail for assistance modifications
+INSERT INTO AuditRegister (AssistanceId, ActionType, DetailChange, AdminId) VALUES
+(1, 'CREATE', 'Registro de asistencia creado: Roberto Jiménez - Mall San Pedro CCTV - 2024-01-15', 1),
+(2, 'CREATE', 'Registro de asistencia creado: Roberto Jiménez - Mall San Pedro CCTV - 2024-01-16', 1),
+(5, 'UPDATE', 'Modificación de horas: cambio de 7.5 a 8.0 horas por aprobación supervisor', 3),
+(8, 'CREATE', 'Registro de asistencia creado: Sofía Herrera - UCR CCTV - 2024-03-01', 2),
+(12, 'UPDATE', 'Corrección de hora de salida: 17:30 a 18:00 por tiempo extra aprobado', 1);
 GO
 
+-- Step 11: Insert Project Maintenance Records (Registros de mantenimiento)
+-- Maintenance activities for completed projects
+INSERT INTO ProjectMaintenance (IdProject, MaintenanceDescription, MadeById, MaintenanceCost, AdditionalInfo, StateId) VALUES
+(1, 'Limpieza y calibración de cámaras CCTV Mall San Pedro', 1, 75000.00, 'Mantenimiento preventivo trimestral', 1),
+(3, 'Revisión y prueba de sensores alarma Banco Nacional', 6, 45000.00, 'Mantenimiento semestral programado', 1),
+(5, 'Actualización de certificados SSL sitio web Restaurant', 4, 25000.00, 'Renovación anual de seguridad', 1);
+GO
 
-INSERT INTO AuditRegister (AssistanceId, ActionType, DetailChange, ActionDate, AdminId) VALUES
-(@AdjustedAssistanceIdForAudit, 'Manual CheckIn Adjustment', 'Corrected missing CheckIn for Ana Hernandez. Employee forgot.', GETDATE(), @AdminUserId);
+-- Step 12: Insert Project Warranty Records (Registros de garantía)
+-- Warranty services provided for projects
+INSERT INTO ProjectWarranty (IdProject, WarrantyDescription, MadeById, WarrantyCost, StateId) VALUES
+(1, 'Reemplazo de cámara defectuosa en entrada principal Mall San Pedro', 1, 120000.00, 1),
+(3, 'Ajuste de sensibilidad en detector sector norte Banco Nacional', 7, NULL, 1),
+(5, 'Corrección de bug en módulo de pagos Restaurant Machu Picchu', 5, NULL, 1);
+GO
 
+-- ================================
+-- VERIFICATION QUERIES
+-- ================================
 
-INSERT INTO AuditRegister (AssistanceId, ActionType, DetailChange, ActionDate, AdminId) VALUES
-(NULL, 'Project Creation', 'New project "Residential Alarm System" created by Admin.', GETDATE(), @AdminUserId);
+PRINT '✅ Datos de prueba insertados exitosamente';
+PRINT '';
+PRINT '📊 RESUMEN DE DATOS INSERTADOS:';
+
+SELECT 'States' as Tabla, COUNT(*) as Registros FROM States
+UNION ALL
+SELECT 'Roles', COUNT(*) FROM Roles
+UNION ALL
+SELECT 'DocumentType', COUNT(*) FROM DocumentType
+UNION ALL
+SELECT 'InternUsers', COUNT(*) FROM InternUsers
+UNION ALL
+SELECT 'Projects', COUNT(*) FROM Projects
+UNION ALL
+SELECT 'EmployeeInfo', COUNT(*) FROM EmployeeInfo
+UNION ALL
+SELECT 'ProjectsAssigns', COUNT(*) FROM ProjectsAssigns
+UNION ALL
+SELECT 'FingerPrint', COUNT(*) FROM FingerPrint
+UNION ALL
+SELECT 'Assistance', COUNT(*) FROM Assistance
+UNION ALL
+SELECT 'AuditRegister', COUNT(*) FROM AuditRegister
+UNION ALL
+SELECT 'ProjectMaintenance', COUNT(*) FROM ProjectMaintenance
+UNION ALL
+SELECT 'ProjectWarranty', COUNT(*) FROM ProjectWarranty;
+
+PRINT '';
+PRINT '👥 EMPLEADOS QUE TRABAJAN EN MÚLTIPLES PROYECTOS:';
+
+SELECT 
+    e.FirstName + ' ' + e.LastName as Empleado,
+    COUNT(DISTINCT pa.ProjectId) as CantidadProyectos,
+    STRING_AGG(p.ProjectName, ', ') as Proyectos
+FROM EmployeeInfo e
+JOIN ProjectsAssigns pa ON e.Id = pa.EmployeeId
+JOIN Projects p ON pa.ProjectId = p.Id
+GROUP BY e.Id, e.FirstName, e.LastName
+HAVING COUNT(DISTINCT pa.ProjectId) > 1
+ORDER BY CantidadProyectos DESC;
+
+PRINT '';
+PRINT '📈 HORAS TRABAJADAS POR PROYECTO:';
+
+SELECT 
+    p.ProjectName as Proyecto,
+    COUNT(a.Id) as RegistrosAsistencia,
+    SUM(ISNULL(a.TotalHours, 0)) as TotalHoras,
+    COUNT(DISTINCT a.EmployeeId) as EmpleadosAsignados
+FROM Projects p
+LEFT JOIN Assistance a ON p.Id = a.ProjectId
+GROUP BY p.Id, p.ProjectName
+ORDER BY TotalHoras DESC;
+
 GO
