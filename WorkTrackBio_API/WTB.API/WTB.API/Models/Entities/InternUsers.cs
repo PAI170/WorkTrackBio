@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WTB.API.Models.Entities
 {
-    public class InternUsers
+    public class InternUsers : AuditableEntity
     {
         [Key]
         public int Id { get; set; }
@@ -33,18 +33,19 @@ namespace WTB.API.Models.Entities
         [ForeignKey("Roles")]
         public int RolId { get; set; }
 
-        [Required]
-        public DateTime CreationDate { get; set; } = DateTime.UtcNow;
+        public DateTime? LastLogin { get; set; }
 
         [Required]
         [ForeignKey("States")]
         public int StateId { get; set; }
 
-        public DateTime? LastLogin { get; set; }
-
         // Navigation Properties
         public virtual Roles Role { get; set; } = null!;
         public virtual States State { get; set; } = null!;
         public virtual ICollection<AuditRegister> AuditRegisters { get; set; } = new List<AuditRegister>();
+
+        // Implementación de métodos abstractos para auditoría
+        public override string GetEntityId() => Id.ToString();
+        public override string GetEntityType() => "InternUser";
     }
 }

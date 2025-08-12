@@ -6,7 +6,7 @@ namespace WTB.API.Models.Entities
     /// <summary>
     /// Entidad para gestionar dispositivos lectores de huella por proyecto
     /// </summary>
-    public class Device
+    public class Device : AuditableEntity
     {
         [Key]
         public int Id { get; set; }
@@ -32,9 +32,6 @@ namespace WTB.API.Models.Entities
         [Required]
         public bool IsActive { get; set; } = true;
 
-        [Required]
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-
         public DateTime? LastSeen { get; set; }
 
         [StringLength(500)]
@@ -53,5 +50,9 @@ namespace WTB.API.Models.Entities
         // Navigation Properties
         public virtual Projects Project { get; set; } = null!;
         public virtual ICollection<Assistance> Assistances { get; set; } = new List<Assistance>();
+
+        // Implementación de métodos abstractos para auditoría
+        public override string GetEntityId() => Id.ToString();
+        public override string GetEntityType() => "Device";
     }
 }

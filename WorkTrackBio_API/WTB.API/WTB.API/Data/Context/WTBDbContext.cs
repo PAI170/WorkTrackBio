@@ -20,6 +20,7 @@ namespace WTB.API.Data.Context
         public DbSet<ProjectsAssigns> ProjectsAssigns { get; set; }
         public DbSet<AuditRegister> AuditRegister { get; set; }
         public DbSet<FingerPrint> FingerPrint { get; set; }
+        public DbSet<Device> Devices { get; set; }
         public DbSet<ProjectMaintenance> ProjectMaintenance { get; set; }
         public DbSet<ProjectWarranty> ProjectWarranty { get; set; }
 
@@ -83,7 +84,7 @@ namespace WTB.API.Data.Context
                 entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.PasswordSalt).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.CreationDate).HasDefaultValueSql("GETDATE()");
+                // La entidad InternUsers hereda de AuditableEntity que ya tiene CreatedDate
 
                 // Relaciones Foreign Key
                 entity.HasOne(d => d.Role)

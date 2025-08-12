@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using WTB.API.Data.Context;
+using WTB.API.Data.Interceptors;
+using WTB.API.Models.Configuration;
 
 namespace WTB.API.Data.Configurations
 {
@@ -18,6 +21,14 @@ namespace WTB.API.Data.Configurations
                             maxRetryDelay: TimeSpan.FromSeconds(10),
                             errorNumbersToAdd: null);
                     });
+
+                // Agregar interceptor de auditoría automática
+                // Se registra como singleton para evitar problemas de ciclo de vida
+                var interceptor = new AuditSaveChangesInterceptor(
+                    services.BuildServiceProvider().GetRequiredService<IHttpContextAccessor>(),
+                    services.BuildServiceProvider().GetRequiredService<IOptions<SystemSettings>>()
+                );
+                options.AddInterceptors(interceptor);
 
                 // Solo en desarrollo - habilita logging sensible
                 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")

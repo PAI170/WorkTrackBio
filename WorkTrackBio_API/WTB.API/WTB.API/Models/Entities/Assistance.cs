@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WTB.API.Models.Entities
 {
-    public class Assistance
+    public class Assistance : AuditableEntity
     {
         [Key]
         public int Id { get; set; }
@@ -15,11 +15,6 @@ namespace WTB.API.Models.Entities
         [Required]
         [ForeignKey("Projects")]
         public int ProjectId { get; set; }
-
-        [Required]
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-
-        public DateTime? ModifiedDate { get; set; }
 
         [StringLength(500)]
         public string? Notes { get; set; }
@@ -49,5 +44,9 @@ namespace WTB.API.Models.Entities
         public virtual Projects Project { get; set; } = null!;
         public virtual Device? Device { get; set; }
         public virtual ICollection<AuditRegister> AuditRegisters { get; set; } = new List<AuditRegister>();
+
+        // Implementación de métodos abstractos para auditoría
+        public override string GetEntityId() => Id.ToString();
+        public override string GetEntityType() => "Assistance";
     }
 }

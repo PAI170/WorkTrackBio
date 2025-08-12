@@ -1,18 +1,30 @@
 using WTB.API.Data.Context;
 using WTB.API.Data.Configurations;
 using WTB.API.Extensions;
+using WTB.API.Data.Interceptors;
+using WTB.API.Models.Configuration;
+using WTB.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Configurar base de datos
-// TEMPORALMENTE COMENTADO PARA PRUEBAS DE DTOs
-// builder.Services.AddDatabaseServices(builder.Configuration);
+// Configurar HttpContextAccessor para el interceptor de auditoría
+builder.Services.AddHttpContextAccessor();
+
+// Configurar base de datos con interceptor de auditoría
+builder.Services.AddDatabaseServices(builder.Configuration);
 
 // Configurar FluentValidation
 builder.Services.AddFluentValidationServices();
+
+// Configurar opciones del sistema
+builder.Services.Configure<SystemSettings>(
+    builder.Configuration.GetSection("SystemSettings"));
+
+// Registrar servicios de control de acceso
+builder.Services.AddScoped<IDeviceAccessControlService, DeviceAccessControlService>();
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -42,8 +54,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     
     // Aplicar migraciones automáticamente en desarrollo
-    // TEMPORALMENTE COMENTADO PARA PRUEBAS DE DTOs
-    // await app.UseDatabaseMigrationAsync();
+    await app.UseDatabaseMigrationAsync();
 }
 
 app.UseHttpsRedirection();

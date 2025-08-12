@@ -25,7 +25,6 @@ namespace WTB.API.Models.DTOs.InternUser
 
         [Required]
         [StringLength(100, MinimumLength = 8, ErrorMessage = "Debe confirmar la contraseña")]
-        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden")]
         string ConfirmPassword,
 
         [Required]

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WTB.API.Models.Entities
 {
-    public class EmployeeInfo
+    public class EmployeeInfo : AuditableEntity
     {
         [Key]
         public int Id { get; set; }
@@ -62,5 +62,9 @@ namespace WTB.API.Models.Entities
         public virtual ICollection<FingerPrint> FingerPrints { get; set; } = new List<FingerPrint>();
         public virtual ICollection<ProjectMaintenance> ProjectMaintenancesMadeBy { get; set; } = new List<ProjectMaintenance>();
         public virtual ICollection<ProjectWarranty> ProjectWarrantiesMadeBy { get; set; } = new List<ProjectWarranty>();
+
+        // Implementación de métodos abstractos para auditoría
+        public override string GetEntityId() => Id.ToString();
+        public override string GetEntityType() => "Employee";
     }
 }
