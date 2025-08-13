@@ -16,3 +16,4 @@ namespace WTB.API.Models.DTOs.Assistance
         string? Notes
     );
 }
+

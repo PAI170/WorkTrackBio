@@ -22,3 +22,7 @@ namespace WTB.API.Models.DTOs.Auth
         ICollection<string> Permissions
     );
 }
+
+
+
+

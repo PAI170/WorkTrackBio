@@ -16,6 +16,12 @@ builder.Services.AddHttpContextAccessor();
 // Configurar base de datos con interceptor de auditoría
 builder.Services.AddDatabaseServices(builder.Configuration);
 
+// Configurar repositorios
+builder.Services.AddRepositoryServices();
+
+// Configurar servicios de negocio
+builder.Services.AddBusinessServices();
+
 // Configurar FluentValidation
 builder.Services.AddFluentValidationServices();
 

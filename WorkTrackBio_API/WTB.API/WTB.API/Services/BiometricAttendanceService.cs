@@ -80,7 +80,7 @@ namespace WTB.API.Services
                                       lastAssistance.CheckInDateOnly.Date == DateTime.Today;
 
                 // 6. Procesar la acción correspondiente
-                if (shouldBeCheckOut)
+                if (shouldBeCheckOut && lastAssistance != null)
                 {
                     // Hacer CheckOut
                     var checkOutResult = await ProcessCheckOutAsync(lastAssistance, device);
@@ -110,7 +110,7 @@ namespace WTB.API.Services
                     };
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 // TODO: Log error
                 return new BiometricAttendanceResult
@@ -186,7 +186,7 @@ namespace WTB.API.Services
         /// <summary>
         /// Procesa CheckIn automático
         /// </summary>
-        private async Task<Assistance> ProcessCheckInAsync(int employeeId, Device device)
+        private Task<Assistance> ProcessCheckInAsync(int employeeId, Device device)
         {
             var assistance = new Assistance
             {
@@ -200,13 +200,13 @@ namespace WTB.API.Services
 
             // TODO: Guardar en base de datos
             assistance.Id = 1; // Mock ID
-            return assistance;
+            return Task.FromResult(assistance);
         }
 
         /// <summary>
         /// Procesa CheckOut automático
         /// </summary>
-        private async Task<Assistance> ProcessCheckOutAsync(Assistance assistance, Device device)
+        private Task<Assistance> ProcessCheckOutAsync(Assistance assistance, Device device)
         {
             assistance.CheckOut = DateTime.Now;
             assistance.ModifiedDate = DateTime.Now;
@@ -219,7 +219,7 @@ namespace WTB.API.Services
             assistance.Notes += $" | CheckOut automático desde {device.DeviceName}";
 
             // TODO: Actualizar en base de datos
-            return assistance;
+            return Task.FromResult(assistance);
         }
     }
 
@@ -238,3 +238,6 @@ namespace WTB.API.Services
         public string? ErrorCode { get; set; }
     }
 }
+
+
+

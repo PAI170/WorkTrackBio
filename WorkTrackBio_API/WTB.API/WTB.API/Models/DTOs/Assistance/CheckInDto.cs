@@ -21,7 +21,6 @@ namespace WTB.API.Models.DTOs.Assistance
         string? Notes = null,
 
         // Información del dispositivo (opcional para registros manuales)
-        [StringLength(50, ErrorMessage = "El ID del dispositivo no puede exceder 50 caracteres")]
-        string? DeviceId = null
+        int? DeviceId = null
     );
 }

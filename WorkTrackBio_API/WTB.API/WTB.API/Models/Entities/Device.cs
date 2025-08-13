@@ -56,3 +56,7 @@ namespace WTB.API.Models.Entities
         public override string GetEntityType() => "Device";
     }
 }
+
+
+
+

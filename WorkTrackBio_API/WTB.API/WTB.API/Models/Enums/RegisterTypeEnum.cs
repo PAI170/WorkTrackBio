@@ -21,3 +21,7 @@ namespace WTB.API.Models.Enums
         Manual = 3
     }
 }
+
+
+
+

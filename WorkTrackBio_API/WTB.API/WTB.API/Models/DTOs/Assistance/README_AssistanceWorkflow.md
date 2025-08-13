@@ -85,3 +85,7 @@ UpdateAssistanceDto
 3. **Corrección administrativa**: Admin ajusta tiempos incorrectos
 4. **Reportes de tiempo**: Consultas con filtros avanzados
 5. **Auditoría**: Seguimiento de cambios y modificaciones
+
+
+
+

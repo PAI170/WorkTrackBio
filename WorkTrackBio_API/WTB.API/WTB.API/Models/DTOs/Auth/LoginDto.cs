@@ -18,3 +18,7 @@ namespace WTB.API.Models.DTOs.Auth
         bool RememberMe = false
     );
 }
+
+
+
+

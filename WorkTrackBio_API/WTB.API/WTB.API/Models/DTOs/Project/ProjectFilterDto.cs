@@ -41,3 +41,4 @@ namespace WTB.API.Models.DTOs.Project
         bool SortDescending = true
     );
 }
+

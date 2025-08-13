@@ -75,7 +75,7 @@ namespace WTB.API.Controllers
                     timestamp = DateTime.Now
                 }));
             }
-            catch (Exception ex)
+            catch
             {
                 // TODO: Log error
                 return HttpErrors.InternalServerError("Error interno del servidor");
@@ -110,7 +110,7 @@ namespace WTB.API.Controllers
 
                 return Ok(APIResponse<object>.SuccessResponse(deviceStatus));
             }
-            catch (Exception ex)
+            catch
             {
                 return HttpErrors.InternalServerError("Error obteniendo status del dispositivo");
             }
@@ -150,7 +150,7 @@ namespace WTB.API.Controllers
                     timestamp = DateTime.Now
                 }));
             }
-            catch (Exception ex)
+            catch
             {
                 return HttpErrors.InternalServerError("Error en simulación");
             }

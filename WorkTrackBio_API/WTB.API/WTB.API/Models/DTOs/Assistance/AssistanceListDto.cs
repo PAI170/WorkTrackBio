@@ -16,3 +16,7 @@ namespace WTB.API.Models.DTOs.Assistance
         bool IsOvertime
     );
 }
+
+
+
+

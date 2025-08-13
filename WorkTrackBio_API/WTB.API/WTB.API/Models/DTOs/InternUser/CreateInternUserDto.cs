@@ -32,3 +32,7 @@ namespace WTB.API.Models.DTOs.InternUser
         int RolId
     );
 }
+
+
+
+
