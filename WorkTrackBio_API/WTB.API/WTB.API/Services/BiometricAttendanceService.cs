@@ -1,13 +1,14 @@
 using WTB.API.Models.DTOs.Assistance;
 using WTB.API.Models.Entities;
 using WTB.API.Models.Enums;
+using WTB.API.Services.Interfaces;
 
 namespace WTB.API.Services
 {
     /// <summary>
     /// Servicio para manejo automático de asistencia biométrica por proyecto
     /// </summary>
-    public class BiometricAttendanceService
+    public class BiometricAttendanceService : IBiometricAttendanceService
     {
         // TODO: Inyectar dependencias cuando esté listo el DbContext
         // private readonly WTBDbContext _context;
@@ -102,17 +103,18 @@ namespace WTB.API.Services
                     return new BiometricAttendanceResult
                     {
                         Success = true,
-                        Message = $"✅ CheckIn registrado - ¡Buenos días {employee.FirstName}!",
+                        Message = $"✅ CheckIn registrado - ¡Bienvenido {employee.FirstName}!",
                         ActionType = "CheckIn",
                         EmployeeName = $"{employee.FirstName} {employee.LastName}",
                         ProjectName = device.Project.ProjectName,
+                        TotalHours = 0,
                         AssistanceId = checkInResult.Id
                     };
                 }
             }
-            catch
+            catch (Exception)
             {
-                // TODO: Log error
+                // TODO: Log error cuando esté configurado
                 return new BiometricAttendanceResult
                 {
                     Success = false,

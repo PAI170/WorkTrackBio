@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using WTB.API.Helpers;
-using WTB.API.Services;
+using WTB.API.Services.Interfaces;
 using System.ComponentModel.DataAnnotations;
+using System.Net;
 
 namespace WTB.API.Controllers
 {
@@ -13,12 +14,15 @@ namespace WTB.API.Controllers
     [Produces("application/json")]
     public class BiometricController : ControllerBase
     {
-        private readonly BiometricAttendanceService _biometricService;
+        private readonly IBiometricAttendanceService _biometricService;
+        private readonly ILogger<BiometricController> _logger;
 
-        public BiometricController()
+        public BiometricController(
+            IBiometricAttendanceService biometricService,
+            ILogger<BiometricController> logger)
         {
-            // TODO: Inyectar dependencia cuando esté configurado DI
-            _biometricService = new BiometricAttendanceService();
+            _biometricService = biometricService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -27,13 +31,23 @@ namespace WTB.API.Controllers
         /// <param name="request">Datos del escaneo biométrico</param>
         /// <returns>Resultado del procesamiento de asistencia</returns>
         [HttpPost("attendance")]
+        [ProducesResponseType(typeof(APIResponse<object>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> ProcessBiometricAttendance([FromBody] BiometricAttendanceRequest request)
         {
             try
             {
+                _logger.LogInformation("Procesando asistencia biométrica para dispositivo: {DeviceId}", request.DeviceId);
+
                 if (!ModelState.IsValid)
                 {
-                    return HttpErrors.ValidationError(ModelState);
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage);
+                    
+                    return BadRequest(APIResponse.ErrorResponse($"Datos de entrada inválidos: {string.Join(", ", errors)}"));
                 }
 
                 // Convertir template de Base64 a bytes
@@ -44,7 +58,7 @@ namespace WTB.API.Controllers
                 }
                 catch
                 {
-                    return HttpErrors.BadRequest("Template de huella inválido");
+                    return BadRequest(APIResponse.ErrorResponse("Template de huella inválido"));
                 }
 
                 // Procesar asistencia biométrica
@@ -54,17 +68,28 @@ namespace WTB.API.Controllers
 
                 if (!result.Success)
                 {
-                    return result.ErrorCode switch
+                    var errorMessage = result.ErrorCode switch
                     {
-                        "DEVICE_NOT_FOUND" => HttpErrors.NotFound("Dispositivo no encontrado"),
-                        "DEVICE_INACTIVE" => HttpErrors.BadRequest("Dispositivo inactivo"),
-                        "FINGERPRINT_NOT_FOUND" => HttpErrors.NotFound("Huella no reconocida"),
-                        "EMPLOYEE_NOT_ASSIGNED" => HttpErrors.BadRequest(result.Message),
-                        _ => HttpErrors.InternalServerError("Error procesando asistencia")
+                        "DEVICE_NOT_FOUND" => "Dispositivo no encontrado",
+                        "DEVICE_INACTIVE" => "Dispositivo inactivo",
+                        "FINGERPRINT_NOT_FOUND" => "Huella no reconocida",
+                        "EMPLOYEE_NOT_ASSIGNED" => result.Message,
+                        _ => "Error procesando asistencia"
                     };
+
+                    var statusCode = result.ErrorCode switch
+                    {
+                        "DEVICE_NOT_FOUND" => HttpStatusCode.NotFound,
+                        "DEVICE_INACTIVE" => HttpStatusCode.BadRequest,
+                        "FINGERPRINT_NOT_FOUND" => HttpStatusCode.NotFound,
+                        "EMPLOYEE_NOT_ASSIGNED" => HttpStatusCode.BadRequest,
+                        _ => HttpStatusCode.InternalServerError
+                    };
+
+                    return StatusCode((int)statusCode, APIResponse.ErrorResponse(errorMessage, statusCode));
                 }
 
-                return Ok(APIResponse<object>.SuccessResponse(new
+                var response = new
                 {
                     message = result.Message,
                     actionType = result.ActionType,
@@ -73,12 +98,16 @@ namespace WTB.API.Controllers
                     totalHours = result.TotalHours,
                     assistanceId = result.AssistanceId,
                     timestamp = DateTime.Now
-                }));
+                };
+
+                _logger.LogInformation("Asistencia biométrica procesada exitosamente para empleado: {EmployeeName}", result.EmployeeName);
+
+                return Ok(APIResponse<object>.SuccessResponse(response, "Asistencia biométrica procesada exitosamente"));
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO: Log error
-                return HttpErrors.InternalServerError("Error interno del servidor");
+                _logger.LogError(ex, "Error procesando asistencia biométrica para dispositivo: {DeviceId}", request.DeviceId);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
             }
         }
 
@@ -88,11 +117,16 @@ namespace WTB.API.Controllers
         /// <param name="deviceId">ID del dispositivo</param>
         /// <returns>Estado del dispositivo</returns>
         [HttpGet("device/{deviceId}/status")]
+        [ProducesResponseType(typeof(APIResponse<object>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> GetDeviceStatus([FromRoute] string deviceId)
         {
             try
             {
-                // TODO: Implementar consulta real
+                _logger.LogInformation("Obteniendo status del dispositivo: {DeviceId}", deviceId);
+
+                // TODO: Implementar consulta real al servicio
+                // Por ahora retornamos datos simulados hasta que se implemente el servicio completo
                 await Task.Delay(1);
 
                 var deviceStatus = new
@@ -108,11 +142,12 @@ namespace WTB.API.Controllers
                     lastActionTime = DateTime.Now.AddMinutes(-15)
                 };
 
-                return Ok(APIResponse<object>.SuccessResponse(deviceStatus));
+                return Ok(APIResponse<object>.SuccessResponse(deviceStatus, "Status del dispositivo obtenido exitosamente"));
             }
-            catch
+            catch (Exception ex)
             {
-                return HttpErrors.InternalServerError("Error obteniendo status del dispositivo");
+                _logger.LogError(ex, "Error obteniendo status del dispositivo: {DeviceId}", deviceId);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
             }
         }
 
@@ -122,10 +157,25 @@ namespace WTB.API.Controllers
         /// <param name="request">Datos de simulación</param>
         /// <returns>Resultado simulado</returns>
         [HttpPost("simulate")]
+        [ProducesResponseType(typeof(APIResponse<object>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
         public async Task<IActionResult> SimulateBiometricScan([FromBody] BiometricSimulationRequest request)
         {
             try
             {
+                _logger.LogInformation("Simulando escaneo biométrico para empleado: {EmployeeId} en dispositivo: {DeviceId}", 
+                    request.EmployeeId, request.DeviceId);
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage);
+                    
+                    return BadRequest(APIResponse.ErrorResponse($"Datos de simulación inválidos: {string.Join(", ", errors)}"));
+                }
+
                 // Generar template falso para simulación
                 var fakeTemplate = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"FAKE_TEMPLATE_{request.EmployeeId}_{DateTime.Now.Ticks}"));
 
@@ -140,7 +190,7 @@ namespace WTB.API.Controllers
                     biometricRequest.DeviceId,
                     Convert.FromBase64String(biometricRequest.FingerprintTemplate));
 
-                return Ok(APIResponse<object>.SuccessResponse(new
+                var response = new
                 {
                     message = $"🧪 SIMULACIÓN - {result.Message}",
                     isSimulation = true,
@@ -148,11 +198,17 @@ namespace WTB.API.Controllers
                     employeeName = result.EmployeeName,
                     projectName = result.ProjectName,
                     timestamp = DateTime.Now
-                }));
+                };
+
+                _logger.LogInformation("Simulación biométrica completada exitosamente para empleado: {EmployeeName}", result.EmployeeName);
+
+                return Ok(APIResponse<object>.SuccessResponse(response, "Simulación biométrica completada exitosamente"));
             }
-            catch
+            catch (Exception ex)
             {
-                return HttpErrors.InternalServerError("Error en simulación");
+                _logger.LogError(ex, "Error en simulación biométrica para empleado: {EmployeeId} en dispositivo: {DeviceId}", 
+                    request.EmployeeId, request.DeviceId);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
             }
         }
     }
@@ -179,10 +235,10 @@ namespace WTB.API.Controllers
     /// </summary>
     public class BiometricSimulationRequest
     {
-        [Required]
+        [Required(ErrorMessage = "El ID del dispositivo es obligatorio")]
         public string DeviceId { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "El ID del empleado es obligatorio")]
         [Range(1, int.MaxValue, ErrorMessage = "ID de empleado inválido")]
         public int EmployeeId { get; set; }
     }

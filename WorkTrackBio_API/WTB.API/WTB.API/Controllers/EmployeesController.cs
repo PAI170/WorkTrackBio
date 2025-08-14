@@ -1,23 +1,129 @@
 using Microsoft.AspNetCore.Mvc;
 using WTB.API.Models.DTOs.Employee;
+using WTB.API.Services.Interfaces;
 using WTB.API.Helpers;
 using System.Net;
 
 namespace WTB.API.Controllers
 {
     /// <summary>
-    /// Controller básico para gestión de empleados
+    /// Controlador para gestión de empleados conectado a la base de datos
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class EmployeesController : ControllerBase
     {
+        private readonly IEmployeeService _employeeService;
         private readonly ILogger<EmployeesController> _logger;
 
-        public EmployeesController(ILogger<EmployeesController> logger)
+        public EmployeesController(
+            IEmployeeService employeeService,
+            ILogger<EmployeesController> logger)
         {
+            _employeeService = employeeService;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Obtener lista de empleados con filtros
+        /// </summary>
+        /// <param name="filter">Filtros de búsqueda</param>
+        /// <returns>Lista paginada de empleados</returns>
+        [HttpGet]
+        [ProducesResponseType(typeof(APIResponse<IEnumerable<EmployeeListDto>>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetEmployees([FromQuery] EmployeeFilterDto filter)
+        {
+            try
+            {
+                _logger.LogInformation("Obteniendo lista de empleados con filtros");
+                
+                var (items, totalCount) = await _employeeService.GetFilteredAsync(filter);
+                
+                // Convertir entidades a DTOs
+                var employeeDtos = items.Select(e => new EmployeeListDto(
+                    e.Id,
+                    e.DocumentNumber,
+                    $"{e.FirstName} {e.LastName}",
+                    e.PhoneNumber ?? "N/A",
+                    e.DocumentType?.DocumentName ?? "N/A",
+                    e.State?.StateName ?? "N/A",
+                    e.CostPerHour ?? 0,
+                    e.CreatedDate,
+                    e.FingerPrints.Any()
+                ));
+                
+                var response = APIResponse<IEnumerable<EmployeeListDto>>.SuccessResponse(
+                    employeeDtos, 
+                    $"Se encontraron {totalCount} empleados"
+                );
+                
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener lista de empleados");
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
+            }
+        }
+
+        /// <summary>
+        /// Obtener un empleado por ID
+        /// </summary>
+        /// <param name="id">ID del empleado</param>
+        /// <returns>Datos del empleado</returns>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(APIResponse<EmployeeResponseDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.NotFound)]
+        public async Task<IActionResult> GetEmployeeById(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Obteniendo empleado con ID: {Id}", id);
+                
+                var result = await _employeeService.GetByIdWithIncludesAsync(id);
+                
+                if (result == null)
+                {
+                    return NotFound(APIResponse.ErrorResponse("Empleado no encontrado", HttpStatusCode.NotFound));
+                }
+                
+                var employeeDto = new EmployeeResponseDto(
+                    result.Id,
+                    result.DocumentNumber,
+                    result.DocumentTypeId,
+                    result.DocumentType?.DocumentName ?? "N/A",
+                    result.DocumentExpire,
+                    result.FirstName,
+                    result.LastName,
+                    $"{result.FirstName} {result.LastName}",
+                    result.PhoneNumber ?? "N/A",
+                    result.EmergencyContact ?? "N/A",
+                    result.EmergencyContactPhoneNumber ?? "N/A",
+                    result.Birthday,
+                    CalculateAge(result.Birthday),
+                    result.RegisterDate,
+                    result.CostPerHour ?? 0,
+                    result.StateId,
+                    result.State?.StateName ?? "N/A",
+                    result.Address ?? "N/A",
+                    result.IBAN ?? "N/A",
+                    result.FingerPrints.Any(),
+                    result.ProjectsAssigns.Count,
+                    result.Assistances.OrderByDescending(a => a.CreatedDate).FirstOrDefault()?.CreatedDate
+                );
+                
+                return Ok(APIResponse<EmployeeResponseDto>.SuccessResponse(
+                    employeeDto, 
+                    "Empleado obtenido exitosamente"
+                ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener empleado con ID: {Id}", id);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
+            }
         }
 
         /// <summary>
@@ -28,45 +134,52 @@ namespace WTB.API.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(APIResponse<EmployeeResponseDto>), (int)HttpStatusCode.Created)]
         [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.BadRequest)]
-        public IActionResult CreateEmployee([FromBody] CreateEmployeeDto dto)
+        public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeDto dto)
         {
             try
             {
                 _logger.LogInformation("Creando empleado: {DocumentNumber}", dto.DocumentNumber);
 
-                // Simulamos la creación del empleado
-                var employeeResponse = new EmployeeResponseDto(
-                    Id: new Random().Next(1, 1000),
-                    DocumentNumber: dto.DocumentNumber,
-                    DocumentTypeId: dto.DocumentTypeId,
-                    DocumentTypeName: GetDocumentTypeName(dto.DocumentTypeId),
-                    DocumentExpire: dto.DocumentExpire,
-                    FirstName: dto.FirstName,
-                    LastName: dto.LastName,
-                    FullName: $"{dto.FirstName} {dto.LastName}",
-                    PhoneNumber: dto.PhoneNumber,
-                    EmergencyContact: dto.EmergencyContact,
-                    EmergencyContactPhoneNumber: dto.EmergencyContactPhoneNumber,
-                    Birthday: dto.Birthday,
-                    Age: CalculateAge(dto.Birthday),
-                    RegisterDate: DateTime.UtcNow,
-                    CostPerHour: dto.CostPerHour,
-                    StateId: dto.StateId,
-                    StateName: GetStateName(dto.StateId),
-                    Address: dto.Address,
-                    IBAN: dto.IBAN,
-                    HasFingerPrint: false,
-                    TotalProjects: 0,
-                    LastAssistance: null
+                // Validar antes de crear
+                var (isValid, errors) = await _employeeService.ValidateForCreationAsync(dto);
+                if (!isValid)
+                {
+                    return BadRequest(APIResponse.ErrorResponse($"Error de validación: {string.Join(", ", errors)}"));
+                }
+
+                var result = await _employeeService.CreateAsync(dto);
+                
+                var employeeDto = new EmployeeResponseDto(
+                    result.Id,
+                    result.DocumentNumber,
+                    result.DocumentTypeId,
+                    result.DocumentType?.DocumentName ?? "N/A",
+                    result.DocumentExpire,
+                    result.FirstName,
+                    result.LastName,
+                    $"{result.FirstName} {result.LastName}",
+                    result.PhoneNumber ?? "N/A",
+                    result.EmergencyContact ?? "N/A",
+                    result.EmergencyContactPhoneNumber ?? "N/A",
+                    result.Birthday,
+                    CalculateAge(result.Birthday),
+                    result.RegisterDate,
+                    result.CostPerHour ?? 0,
+                    result.StateId,
+                    result.State?.StateName ?? "N/A",
+                    result.Address ?? "N/A",
+                    result.IBAN ?? "N/A",
+                    result.FingerPrints.Any(),
+                    result.ProjectsAssigns.Count,
+                    result.Assistances.OrderByDescending(a => a.CreatedDate).FirstOrDefault()?.CreatedDate
                 );
 
                 var response = APIResponse<EmployeeResponseDto>.SuccessResponse(
-                    employeeResponse,
+                    employeeDto,
                     "Empleado creado exitosamente"
                 );
-                response.StatusCode = HttpStatusCode.Created;
 
-                return CreatedAtAction(nameof(GetEmployeeById), new { id = employeeResponse.Id }, response);
+                return CreatedAtAction(nameof(GetEmployeeById), new { id = result.Id }, response);
             }
             catch (Exception ex)
             {
@@ -85,7 +198,7 @@ namespace WTB.API.Controllers
         [ProducesResponseType(typeof(APIResponse<EmployeeResponseDto>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.NotFound)]
-        public IActionResult UpdateEmployee(int id, [FromBody] UpdateEmployeeDto dto)
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeDto dto)
         {
             try
             {
@@ -97,163 +210,48 @@ namespace WTB.API.Controllers
                     return BadRequest(APIResponse.ErrorResponse("El ID del empleado no coincide con la URL"));
                 }
 
-                // Simular que el empleado no existe (para demostrar NotFound)
-                if (id <= 0)
+                // Validar antes de actualizar
+                var (isValid, errors) = await _employeeService.ValidateForUpdateAsync(id, dto);
+                if (!isValid)
                 {
-                    return NotFound(APIResponse.ErrorResponse("Empleado no encontrado", HttpStatusCode.NotFound));
+                    return BadRequest(APIResponse.ErrorResponse($"Error de validación: {string.Join(", ", errors)}"));
                 }
 
-                // Simulamos la actualización del empleado
-                var employeeResponse = new EmployeeResponseDto(
-                    Id: dto.Id,
-                    DocumentNumber: dto.DocumentNumber,
-                    DocumentTypeId: dto.DocumentTypeId,
-                    DocumentTypeName: GetDocumentTypeName(dto.DocumentTypeId),
-                    DocumentExpire: dto.DocumentExpire,
-                    FirstName: dto.FirstName,
-                    LastName: dto.LastName,
-                    FullName: $"{dto.FirstName} {dto.LastName}",
-                    PhoneNumber: dto.PhoneNumber,
-                    EmergencyContact: dto.EmergencyContact,
-                    EmergencyContactPhoneNumber: dto.EmergencyContactPhoneNumber,
-                    Birthday: dto.Birthday,
-                    Age: CalculateAge(dto.Birthday),
-                    RegisterDate: DateTime.UtcNow.AddDays(-30), // Simular fecha de registro anterior
-                    CostPerHour: dto.CostPerHour,
-                    StateId: dto.StateId,
-                    StateName: GetStateName(dto.StateId),
-                    Address: dto.Address,
-                    IBAN: dto.IBAN,
-                    HasFingerPrint: new Random().Next(0, 2) == 1,
-                    TotalProjects: new Random().Next(1, 5),
-                    LastAssistance: DateTime.UtcNow.AddDays(-new Random().Next(1, 7))
+                var result = await _employeeService.UpdateAsync(id, dto);
+                
+                var employeeDto = new EmployeeResponseDto(
+                    result.Id,
+                    result.DocumentNumber,
+                    result.DocumentTypeId,
+                    result.DocumentType?.DocumentName ?? "N/A",
+                    result.DocumentExpire,
+                    result.FirstName,
+                    result.LastName,
+                    $"{result.FirstName} {result.LastName}",
+                    result.PhoneNumber ?? "N/A",
+                    result.EmergencyContact ?? "N/A",
+                    result.EmergencyContactPhoneNumber ?? "N/A",
+                    result.Birthday,
+                    CalculateAge(result.Birthday),
+                    result.RegisterDate,
+                    result.CostPerHour ?? 0,
+                    result.StateId,
+                    result.State?.StateName ?? "N/A",
+                    result.Address ?? "N/A",
+                    result.IBAN ?? "N/A",
+                    result.FingerPrints.Any(),
+                    result.ProjectsAssigns.Count,
+                    result.Assistances.OrderByDescending(a => a.CreatedDate).FirstOrDefault()?.CreatedDate
                 );
 
                 return Ok(APIResponse<EmployeeResponseDto>.SuccessResponse(
-                    employeeResponse,
+                    employeeDto,
                     "Empleado actualizado exitosamente"
                 ));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al actualizar empleado con ID: {Id}", id);
-                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
-            }
-        }
-
-        /// <summary>
-        /// Obtener un empleado por ID
-        /// </summary>
-        /// <param name="id">ID del empleado</param>
-        /// <returns>Datos del empleado</returns>
-        [HttpGet("{id}")]
-        [ProducesResponseType(typeof(APIResponse<EmployeeResponseDto>), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.NotFound)]
-        public IActionResult GetEmployeeById(int id)
-        {
-            try
-            {
-                _logger.LogInformation("Obteniendo empleado con ID: {Id}", id);
-
-                if (id <= 0)
-                {
-                    return NotFound(APIResponse.ErrorResponse("Empleado no encontrado", HttpStatusCode.NotFound));
-                }
-
-                // Simulamos un empleado
-                var employee = new EmployeeResponseDto(
-                    Id: id,
-                    DocumentNumber: "1-1234-5678",
-                    DocumentTypeId: 1,
-                    DocumentTypeName: "Cédula de Identidad",
-                    DocumentExpire: DateTime.Today.AddYears(5),
-                    FirstName: "Juan",
-                    LastName: "Pérez",
-                    FullName: "Juan Pérez",
-                    PhoneNumber: "2456-7890",
-                    EmergencyContact: "María Pérez",
-                    EmergencyContactPhoneNumber: "2456-7891",
-                    Birthday: new DateTime(1990, 5, 15),
-                    Age: CalculateAge(new DateTime(1990, 5, 15)),
-                    RegisterDate: DateTime.UtcNow.AddDays(-30),
-                    CostPerHour: 3500.00m,
-                    StateId: 1,
-                    StateName: "Active",
-                    Address: "San José, Costa Rica",
-                    IBAN: "CR05015202001234567890",
-                    HasFingerPrint: true,
-                    TotalProjects: 3,
-                    LastAssistance: DateTime.UtcNow.AddDays(-2)
-                );
-
-                return Ok(APIResponse<EmployeeResponseDto>.SuccessResponse(
-                    employee,
-                    "Empleado obtenido exitosamente"
-                ));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener empleado con ID: {Id}", id);
-                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
-            }
-        }
-
-        /// <summary>
-        /// Obtener lista de empleados con filtros
-        /// </summary>
-        /// <param name="filter">Filtros de búsqueda</param>
-        /// <returns>Lista paginada de empleados</returns>
-        [HttpGet]
-        [ProducesResponseType(typeof(PagedResponse<EmployeeListDto>), (int)HttpStatusCode.OK)]
-        public IActionResult GetEmployees([FromQuery] EmployeeFilterDto filter)
-        {
-            try
-            {
-                _logger.LogInformation("Obteniendo lista de empleados con filtros");
-
-                // Simulamos una lista de empleados
-                var employees = new List<EmployeeListDto>
-                {
-                    new EmployeeListDto(1, "1-1234-5678", "Juan Pérez", "2456-7890", "Cédula de Identidad", "Active", 3500.00m, DateTime.UtcNow.AddDays(-30), true),
-                    new EmployeeListDto(2, "2-2345-6789", "María González", "2567-8901", "Cédula de Identidad", "Active", 3200.00m, DateTime.UtcNow.AddDays(-45), true),
-                    new EmployeeListDto(3, "DIM-12345678", "Carlos Rodríguez", "2678-9012", "DIMEX", "Active", 3800.00m, DateTime.UtcNow.AddDays(-60), true),
-                    new EmployeeListDto(4, "PT-123456", "Ana Morales", "2789-0123", "Permiso de Trabajo", "Inactive", 3000.00m, DateTime.UtcNow.AddDays(-90), false)
-                };
-
-                // Aplicar filtros básicos (simulados)
-                if (!string.IsNullOrEmpty(filter.SearchTerm))
-                {
-                    employees = employees.Where(e => 
-                        e.FullName.Contains(filter.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        e.DocumentNumber.Contains(filter.SearchTerm, StringComparison.OrdinalIgnoreCase)
-                    ).ToList();
-                }
-
-                if (filter.IsActive.HasValue)
-                {
-                    employees = employees.Where(e => e.IsActive == filter.IsActive.Value).ToList();
-                }
-
-                // Paginación simulada
-                var totalRecords = employees.Count;
-                var pagedEmployees = employees
-                    .Skip((filter.Page - 1) * filter.PageSize)
-                    .Take(filter.PageSize)
-                    .ToList();
-
-                var response = PagedResponse<EmployeeListDto>.Create(
-                    pagedEmployees,
-                    filter.Page,
-                    filter.PageSize,
-                    totalRecords,
-                    "Empleados obtenidos exitosamente"
-                );
-
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener lista de empleados");
                 return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
             }
         }
@@ -266,23 +264,107 @@ namespace WTB.API.Controllers
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.NotFound)]
-        public IActionResult DeleteEmployee(int id)
+        public async Task<IActionResult> DeleteEmployee(int id)
         {
             try
             {
                 _logger.LogInformation("Eliminando empleado con ID: {Id}", id);
 
-                if (id <= 0)
+                // Validar antes de eliminar
+                var (isValid, errors) = await _employeeService.ValidateForDeletionAsync(id);
+                if (!isValid)
                 {
-                    return NotFound(APIResponse.ErrorResponse("Empleado no encontrado", HttpStatusCode.NotFound));
+                    return BadRequest(APIResponse.ErrorResponse($"No se puede eliminar el empleado: {string.Join(", ", errors)}"));
                 }
 
-                // Simulamos la eliminación
+                await _employeeService.DeleteAsync(id);
+
                 return Ok(APIResponse.SuccessResponse($"Empleado con ID {id} eliminado exitosamente"));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar empleado con ID: {Id}", id);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
+            }
+        }
+
+        /// <summary>
+        /// Buscar empleados por término de búsqueda
+        /// </summary>
+        /// <param name="searchTerm">Término de búsqueda</param>
+        /// <returns>Lista de empleados encontrados</returns>
+        [HttpGet("search")]
+        [ProducesResponseType(typeof(APIResponse<IEnumerable<EmployeeListDto>>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> SearchEmployees([FromQuery] string searchTerm)
+        {
+            try
+            {
+                _logger.LogInformation("Buscando empleados con término: {SearchTerm}", searchTerm);
+                
+                var results = await _employeeService.SearchAsync(searchTerm);
+                
+                var employeeDtos = results.Select(e => new EmployeeListDto(
+                    e.Id,
+                    e.DocumentNumber,
+                    $"{e.FirstName} {e.LastName}",
+                    e.PhoneNumber ?? "N/A",
+                    e.DocumentType?.DocumentName ?? "N/A",
+                    e.State?.StateName ?? "N/A",
+                    e.CostPerHour ?? 0,
+                    e.CreatedDate,
+                    e.FingerPrints.Any()
+                ));
+                
+                var response = APIResponse<IEnumerable<EmployeeListDto>>.SuccessResponse(
+                    employeeDtos, 
+                    $"Se encontraron {employeeDtos.Count()} empleados"
+                );
+                
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al buscar empleados con término: {SearchTerm}", searchTerm);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
+            }
+        }
+
+        /// <summary>
+        /// Obtener empleados activos
+        /// </summary>
+        /// <returns>Lista de empleados activos</returns>
+        [HttpGet("active")]
+        [ProducesResponseType(typeof(APIResponse<IEnumerable<EmployeeListDto>>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetActiveEmployees()
+        {
+            try
+            {
+                _logger.LogInformation("Obteniendo empleados activos");
+                
+                var results = await _employeeService.GetActiveAsync();
+                
+                var employeeDtos = results.Select(e => new EmployeeListDto(
+                    e.Id,
+                    e.DocumentNumber,
+                    $"{e.FirstName} {e.LastName}",
+                    e.PhoneNumber ?? "N/A",
+                    e.DocumentType?.DocumentName ?? "N/A",
+                    e.State?.StateName ?? "N/A",
+                    e.CostPerHour ?? 0,
+                    e.CreatedDate,
+                    e.FingerPrints.Any()
+                ));
+                
+                var response = APIResponse<IEnumerable<EmployeeListDto>>.SuccessResponse(
+                    employeeDtos, 
+                    $"Se encontraron {employeeDtos.Count()} empleados activos"
+                );
+                
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener empleados activos");
                 return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
             }
         }
@@ -300,29 +382,6 @@ namespace WTB.API.Controllers
                 age--;
             return age;
         }
-
-        /// <summary>
-        /// Obtiene el nombre del tipo de documento (simulado)
-        /// </summary>
-        private static string GetDocumentTypeName(int documentTypeId) => documentTypeId switch
-        {
-            1 => "Cédula de Identidad",
-            2 => "Pasaporte",
-            3 => "DIMEX",
-            4 => "Permiso de Trabajo",
-            _ => "Desconocido"
-        };
-
-        /// <summary>
-        /// Obtiene el nombre del estado (simulado)
-        /// </summary>
-        private static string GetStateName(int stateId) => stateId switch
-        {
-            1 => "Active",
-            2 => "Inactive",
-            3 => "Suspended",
-            _ => "Desconocido"
-        };
 
         #endregion
     }

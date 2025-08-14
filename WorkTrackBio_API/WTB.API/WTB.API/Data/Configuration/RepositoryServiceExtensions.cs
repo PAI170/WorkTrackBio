@@ -22,6 +22,7 @@ namespace WTB.API.Data.Configurations
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IAssistanceRepository, AssistanceRepository>();
             services.AddScoped<IProjectRepository, ProjectRepository>();
+            services.AddScoped<IProjectAssignRepository, ProjectAssignRepository>();
 
             // Los repositorios genéricos se crean a través del Unit of Work
             // No es necesario registrarlos individualmente

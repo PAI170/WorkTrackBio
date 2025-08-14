@@ -34,5 +34,8 @@ namespace WTB.API.Data.Repositories
         // Operaciones de consulta con includes
         Task<T?> GetByIdWithIncludesAsync(int id, params Expression<Func<T, object>>[] includes);
         Task<IEnumerable<T>> GetAllWithIncludesAsync(params Expression<Func<T, object>>[] includes);
+        
+        // Operaciones de persistencia
+        Task<int> SaveChangesAsync();
     }
 }

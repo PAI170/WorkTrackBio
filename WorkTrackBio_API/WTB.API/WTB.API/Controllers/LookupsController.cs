@@ -1,22 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
 using WTB.API.Models.DTOs.Common;
+using WTB.API.Services.Interfaces;
 using WTB.API.Helpers;
 using System.Net;
 
 namespace WTB.API.Controllers
 {
     /// <summary>
-    /// Controller para obtener datos de catálogos/lookups
+    /// Controlador para obtener datos de catálogos/lookups desde la base de datos
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
     public class LookupsController : ControllerBase
     {
+        private readonly ILookupService _lookupService;
         private readonly ILogger<LookupsController> _logger;
 
-        public LookupsController(ILogger<LookupsController> logger)
+        public LookupsController(
+            ILookupService lookupService,
+            ILogger<LookupsController> logger)
         {
+            _lookupService = lookupService;
             _logger = logger;
         }
 
@@ -26,27 +31,25 @@ namespace WTB.API.Controllers
         /// <returns>Lista de estados</returns>
         [HttpGet("states")]
         [ProducesResponseType(typeof(APIResponse<List<StateDto>>), (int)HttpStatusCode.OK)]
-        public IActionResult GetStates()
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetStates()
         {
             try
             {
                 _logger.LogInformation("Obteniendo estados del sistema");
-
-                var states = new List<StateDto>
-                {
-                    new StateDto(1, "Active", "General", "Estado activo del sistema"),
-                    new StateDto(2, "Inactive", "General", "Estado inactivo del sistema"),
-                    new StateDto(3, "Suspended", "General", "Estado suspendido temporalmente"),
-                    new StateDto(4, "In Progress", "Project", "Proyecto en progreso"),
-                    new StateDto(5, "Completed", "Project", "Proyecto completado"),
-                    new StateDto(6, "On Hold", "Project", "Proyecto en pausa"),
-                    new StateDto(7, "Pending", "Employee", "Empleado pendiente de aprobación"),
-                    new StateDto(8, "Terminated", "Employee", "Empleado dado de baja")
-                };
+                
+                var states = await _lookupService.GetAllStatesAsync();
+                
+                var stateDtos = states.Select(s => new StateDto(
+                    s.Id,
+                    s.StateName,
+                    s.StateType,
+                    s.Description ?? string.Empty
+                )).ToList();
 
                 return Ok(APIResponse<List<StateDto>>.SuccessResponse(
-                    states,
-                    "Estados obtenidos exitosamente"
+                    stateDtos,
+                    $"Se obtuvieron {stateDtos.Count} estados exitosamente"
                 ));
             }
             catch (Exception ex)
@@ -62,24 +65,24 @@ namespace WTB.API.Controllers
         /// <returns>Lista de roles</returns>
         [HttpGet("roles")]
         [ProducesResponseType(typeof(APIResponse<List<RoleDto>>), (int)HttpStatusCode.OK)]
-        public IActionResult GetRoles()
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetRoles()
         {
             try
             {
                 _logger.LogInformation("Obteniendo roles de usuario");
-
-                var roles = new List<RoleDto>
-                {
-                    new RoleDto(1, "Administrator", "Administrador del sistema con acceso completo"),
-                    new RoleDto(2, "HR Manager", "Gerente de recursos humanos"),
-                    new RoleDto(3, "Project Manager", "Gerente de proyectos"),
-                    new RoleDto(4, "Supervisor", "Supervisor de campo"),
-                    new RoleDto(5, "Operator", "Operador básico del sistema")
-                };
+                
+                var roles = await _lookupService.GetAllRolesAsync();
+                
+                var roleDtos = roles.Select(r => new RoleDto(
+                    r.Id,
+                    r.RoleName,
+                    r.Description ?? string.Empty
+                )).ToList();
 
                 return Ok(APIResponse<List<RoleDto>>.SuccessResponse(
-                    roles,
-                    "Roles obtenidos exitosamente"
+                    roleDtos,
+                    $"Se obtuvieron {roleDtos.Count} roles exitosamente"
                 ));
             }
             catch (Exception ex)
@@ -95,23 +98,24 @@ namespace WTB.API.Controllers
         /// <returns>Lista de tipos de documento</returns>
         [HttpGet("document-types")]
         [ProducesResponseType(typeof(APIResponse<List<DocumentTypeDto>>), (int)HttpStatusCode.OK)]
-        public IActionResult GetDocumentTypes()
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetDocumentTypes()
         {
             try
             {
                 _logger.LogInformation("Obteniendo tipos de documento");
-
-                var documentTypes = new List<DocumentTypeDto>
-                {
-                    new DocumentTypeDto(1, "Cedula de Identidad", "Cédula de identidad costarricense"),
-                    new DocumentTypeDto(2, "Pasaporte", "Pasaporte internacional"),
-                    new DocumentTypeDto(3, "DIMEX", "Documento de Identidad Migratoria para Extranjeros"),
-                    new DocumentTypeDto(4, "Permiso de Trabajo", "Permiso de trabajo para extranjeros")
-                };
+                
+                var documentTypes = await _lookupService.GetAllDocumentTypesAsync();
+                
+                var documentTypeDtos = documentTypes.Select(dt => new DocumentTypeDto(
+                    dt.Id,
+                    dt.DocumentName,
+                    dt.Description ?? string.Empty
+                )).ToList();
 
                 return Ok(APIResponse<List<DocumentTypeDto>>.SuccessResponse(
-                    documentTypes,
-                    "Tipos de documento obtenidos exitosamente"
+                    documentTypeDtos,
+                    $"Se obtuvieron {documentTypeDtos.Count} tipos de documento exitosamente"
                 ));
             }
             catch (Exception ex)
@@ -128,36 +132,185 @@ namespace WTB.API.Controllers
         /// <returns>Lista de estados filtrados por tipo</returns>
         [HttpGet("states/{stateType}")]
         [ProducesResponseType(typeof(APIResponse<List<StateDto>>), (int)HttpStatusCode.OK)]
-        public IActionResult GetStatesByType(string stateType)
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetStatesByType(string stateType)
         {
             try
             {
                 _logger.LogInformation("Obteniendo estados por tipo: {StateType}", stateType);
-
-                var allStates = new List<StateDto>
-                {
-                    new StateDto(1, "Active", "General", "Estado activo del sistema"),
-                    new StateDto(2, "Inactive", "General", "Estado inactivo del sistema"),
-                    new StateDto(3, "Suspended", "General", "Estado suspendido temporalmente"),
-                    new StateDto(4, "In Progress", "Project", "Proyecto en progreso"),
-                    new StateDto(5, "Completed", "Project", "Proyecto completado"),
-                    new StateDto(6, "On Hold", "Project", "Proyecto en pausa"),
-                    new StateDto(7, "Pending", "Employee", "Empleado pendiente de aprobación"),
-                    new StateDto(8, "Terminated", "Employee", "Empleado dado de baja")
-                };
-
-                var filteredStates = allStates
-                    .Where(s => s.StateType.Equals(stateType, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                
+                var states = await _lookupService.GetStatesByTypeAsync(stateType);
+                
+                var stateDtos = states.Select(s => new StateDto(
+                    s.Id,
+                    s.StateName,
+                    s.StateType,
+                    s.Description ?? string.Empty
+                )).ToList();
 
                 return Ok(APIResponse<List<StateDto>>.SuccessResponse(
-                    filteredStates,
-                    $"Estados de tipo '{stateType}' obtenidos exitosamente"
+                    stateDtos,
+                    $"Se obtuvieron {stateDtos.Count} estados del tipo '{stateType}' exitosamente"
                 ));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al obtener estados por tipo: {StateType}", stateType);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
+            }
+        }
+
+        /// <summary>
+        /// Obtener un estado específico por ID
+        /// </summary>
+        /// <param name="id">ID del estado</param>
+        /// <returns>Estado específico</returns>
+        [HttpGet("states/id/{id}")]
+        [ProducesResponseType(typeof(APIResponse<StateDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetStateById(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Obteniendo estado con ID: {Id}", id);
+                
+                var state = await _lookupService.GetStateByIdAsync(id);
+                
+                if (state == null)
+                {
+                    return NotFound(APIResponse.ErrorResponse("Estado no encontrado", HttpStatusCode.NotFound));
+                }
+                
+                var stateDto = new StateDto(
+                    state.Id,
+                    state.StateName,
+                    state.StateType,
+                    state.Description ?? string.Empty
+                );
+
+                return Ok(APIResponse<StateDto>.SuccessResponse(
+                    stateDto,
+                    "Estado obtenido exitosamente"
+                ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener estado con ID: {Id}", id);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
+            }
+        }
+
+        /// <summary>
+        /// Obtener un rol específico por ID
+        /// </summary>
+        /// <param name="id">ID del rol</param>
+        /// <returns>Rol específico</returns>
+        [HttpGet("roles/{id}")]
+        [ProducesResponseType(typeof(APIResponse<RoleDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetRoleById(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Obteniendo rol con ID: {Id}", id);
+                
+                var role = await _lookupService.GetRoleByIdAsync(id);
+                
+                if (role == null)
+                {
+                    return NotFound(APIResponse.ErrorResponse("Rol no encontrado", HttpStatusCode.NotFound));
+                }
+                
+                var roleDto = new RoleDto(
+                    role.Id,
+                    role.RoleName,
+                    role.Description ?? string.Empty
+                );
+
+                return Ok(APIResponse<RoleDto>.SuccessResponse(
+                    roleDto,
+                    "Rol obtenido exitosamente"
+                ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener rol con ID: {Id}", id);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
+            }
+        }
+
+        /// <summary>
+        /// Obtener un tipo de documento específico por ID
+        /// </summary>
+        /// <param name="id">ID del tipo de documento</param>
+        /// <returns>Tipo de documento específico</returns>
+        [HttpGet("document-types/{id}")]
+        [ProducesResponseType(typeof(APIResponse<DocumentTypeDto>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetDocumentTypeById(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Obteniendo tipo de documento con ID: {Id}", id);
+                
+                var documentType = await _lookupService.GetDocumentTypeByIdAsync(id);
+                
+                if (documentType == null)
+                {
+                    return NotFound(APIResponse.ErrorResponse("Tipo de documento no encontrado", HttpStatusCode.NotFound));
+                }
+                
+                var documentTypeDto = new DocumentTypeDto(
+                    documentType.Id,
+                    documentType.DocumentName,
+                    documentType.Description ?? string.Empty
+                );
+
+                return Ok(APIResponse<DocumentTypeDto>.SuccessResponse(
+                    documentTypeDto,
+                    "Tipo de documento obtenido exitosamente"
+                ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener tipo de documento con ID: {Id}", id);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
+            }
+        }
+
+        /// <summary>
+        /// Obtener todos los lookups del sistema en una sola llamada
+        /// </summary>
+        /// <returns>Todos los datos de lookup del sistema</returns>
+        [HttpGet("all")]
+        [ProducesResponseType(typeof(APIResponse<object>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(APIResponse), (int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetAllLookups()
+        {
+            try
+            {
+                _logger.LogInformation("Obteniendo todos los lookups del sistema");
+                
+                var lookupData = await _lookupService.GetAllLookupsAsync();
+                
+                var response = new
+                {
+                    States = lookupData.States.Select(s => new StateDto(s.Id, s.StateName, s.StateType, s.Description ?? string.Empty)),
+                    Roles = lookupData.Roles.Select(r => new RoleDto(r.Id, r.RoleName, r.Description ?? string.Empty)),
+                    DocumentTypes = lookupData.DocumentTypes.Select(dt => new DocumentTypeDto(dt.Id, dt.DocumentName, dt.Description ?? string.Empty))
+                };
+
+                return Ok(APIResponse<object>.SuccessResponse(
+                    response,
+                    "Todos los lookups obtenidos exitosamente"
+                ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener todos los lookups");
                 return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
             }
         }

@@ -153,6 +153,15 @@ namespace WTB.API.Data.Repositories
 
         #endregion
 
+        #region Operaciones de Persistencia
+
+        public virtual async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        #endregion
+
         #region Métodos de Utilidad
 
         /// <summary>

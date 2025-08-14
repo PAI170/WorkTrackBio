@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using WTB.API.Services.Interfaces;
 using WTB.API.Services.Implementations;
+using WTB.API.Services;
+using WTB.API.Data.Repositories;
 
 namespace WTB.API.Services
 {
@@ -20,9 +22,20 @@ namespace WTB.API.Services
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IAssistanceService, AssistanceService>();
             services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<ILookupService, LookupService>();
+            services.AddScoped<IInternUserService, InternUserService>();
+            services.AddScoped<IProjectMaintenanceService, ProjectMaintenanceService>();
+            services.AddScoped<IProjectWarrantyService, ProjectWarrantyService>();
+            services.AddScoped<IProjectAssignService, ProjectAssignService>();
+            
+            // Registrar servicios de control de acceso y biométricos
+            services.AddScoped<IBiometricAttendanceService, BiometricAttendanceService>();
+            services.AddScoped<IDeviceAccessControlService, DeviceAccessControlService>();
 
-            // Los servicios existentes ya están registrados en Program.cs
-            // BiometricAttendanceService y DeviceAccessControlService
+            // Registrar repositorios
+            services.AddScoped<IInternUserRepository, InternUserRepository>();
+            services.AddScoped<IProjectMaintenanceRepository, ProjectMaintenanceRepository>();
+            services.AddScoped<IProjectWarrantyRepository, ProjectWarrantyRepository>();
 
             return services;
         }

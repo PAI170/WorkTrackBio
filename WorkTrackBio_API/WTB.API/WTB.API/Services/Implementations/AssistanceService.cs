@@ -57,7 +57,7 @@ namespace WTB.API.Services.Implementations
                     a => a.Employee,
                     a => a.Project,
                     a => a.Device);
-                return result;
+                return result!;
             }
             catch (Exception ex)
             {

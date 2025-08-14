@@ -3,25 +3,13 @@ using Microsoft.AspNetCore.Http;
 using WTB.API.Data.Context;
 using WTB.API.Models.DTOs.Device;
 using WTB.API.Models.Entities;
+using WTB.API.Services.Interfaces;
 
 namespace WTB.API.Services
 {
     /// <summary>
     /// Servicio para control de acceso automático a dispositivos
     /// </summary>
-    public interface IDeviceAccessControlService
-    {
-        /// <summary>
-        /// Valida el acceso de un usuario a un dispositivo y registra la asistencia
-        /// </summary>
-        Task<DeviceAccessResponseDto> ProcessDeviceAccessAsync(DeviceAccessRequestDto request);
-        
-        /// <summary>
-        /// Verifica si un usuario tiene acceso activo a un proyecto
-        /// </summary>
-        Task<bool> ValidateUserProjectAccessAsync(int employeeId, int projectId);
-    }
-
     public class DeviceAccessControlService : IDeviceAccessControlService
     {
         private readonly WTBDbContext _context;

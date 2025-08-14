@@ -29,9 +29,6 @@ builder.Services.AddFluentValidationServices();
 builder.Services.Configure<SystemSettings>(
     builder.Configuration.GetSection("SystemSettings"));
 
-// Registrar servicios de control de acceso
-builder.Services.AddScoped<IDeviceAccessControlService, DeviceAccessControlService>();
-
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

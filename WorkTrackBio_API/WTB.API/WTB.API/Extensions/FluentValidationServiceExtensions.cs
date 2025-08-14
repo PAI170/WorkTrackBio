@@ -47,6 +47,7 @@ namespace WTB.API.Extensions
             // Registrar validadores de ProjectAssign
             services.AddScoped<IValidator<CreateProjectAssignDto>, CreateProjectAssignValidator>();
             services.AddScoped<IValidator<UpdateProjectAssignDto>, UpdateProjectAssignValidator>();
+            services.AddScoped<IValidator<ProjectAssignFilterDto>, ProjectAssignFilterValidator>();
 
             return services;
         }
