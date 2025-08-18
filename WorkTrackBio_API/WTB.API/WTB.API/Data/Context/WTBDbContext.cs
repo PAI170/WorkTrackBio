@@ -200,6 +200,9 @@ namespace WTB.API.Data.Context
                       .WithMany(p => p.Assistances)
                       .HasForeignKey(d => d.ProjectId)
                       .HasConstraintName("FK_ProjectId_Projects");
+
+                // Evitar que EF Core cree relaciones automáticas con Devices
+                entity.Ignore("DeviceId");
             });
 
             // Asignaciones de Proyecto

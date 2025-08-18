@@ -59,16 +59,20 @@ namespace WTB.API.Data.Repositories
             int pageNumber = 1,
             int pageSize = 10)
         {
-            var query = _dbSet.AsQueryable();
+            var query = _dbSet
+                .Include(a => a.Employee)
+                .Include(a => a.Project)
+                .AsQueryable();
 
             // Aplicar filtros
             if (!string.IsNullOrEmpty(filter.SearchTerm))
             {
                 var searchTerm = filter.SearchTerm.ToLower();
-                query = query.Where(a => a.Employee.FirstName.ToLower().Contains(searchTerm) || 
-                                       a.Employee.LastName.ToLower().Contains(searchTerm) ||
-                                       a.Project.ProjectName.ToLower().Contains(searchTerm) ||
-                                       (a.Notes != null && a.Notes.ToLower().Contains(searchTerm)));
+                query = query.Where(a => 
+                    (a.Employee != null && a.Employee.FirstName != null && a.Employee.FirstName.ToLower().Contains(searchTerm)) || 
+                    (a.Employee != null && a.Employee.LastName != null && a.Employee.LastName.ToLower().Contains(searchTerm)) ||
+                    (a.Project != null && a.Project.ProjectName != null && a.Project.ProjectName.ToLower().Contains(searchTerm)) ||
+                    (a.Notes != null && a.Notes.ToLower().Contains(searchTerm)));
             }
 
             if (filter.EmployeeId.HasValue)
@@ -144,11 +148,11 @@ namespace WTB.API.Data.Repositories
                     query.OrderByDescending(a => a.TotalHours) :
                     query.OrderBy(a => a.TotalHours),
                 "employee" => filter.SortDescending ? 
-                    query.OrderByDescending(a => a.Employee.FirstName) :
-                    query.OrderBy(a => a.Employee.FirstName),
+                    query.OrderByDescending(a => a.Employee != null ? a.Employee.FirstName ?? "" : "") :
+                    query.OrderBy(a => a.Employee != null ? a.Employee.FirstName ?? "" : ""),
                 "project" => filter.SortDescending ? 
-                    query.OrderByDescending(a => a.Project.ProjectName) :
-                    query.OrderBy(a => a.Project.ProjectName),
+                    query.OrderByDescending(a => a.Project != null ? a.Project.ProjectName ?? "" : "") :
+                    query.OrderBy(a => a.Project != null ? a.Project.ProjectName ?? "" : ""),
                 _ => filter.SortDescending ? 
                     query.OrderByDescending(a => a.CheckIn) :
                     query.OrderBy(a => a.CheckIn)
@@ -158,8 +162,6 @@ namespace WTB.API.Data.Repositories
             var items = await query
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .Include(a => a.Employee)
-                .Include(a => a.Project)
                 .ToListAsync();
 
             return (items, totalCount);

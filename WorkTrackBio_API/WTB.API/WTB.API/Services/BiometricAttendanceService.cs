@@ -194,7 +194,6 @@ namespace WTB.API.Services
             {
                 EmployeeId = employeeId,
                 ProjectId = device.ProjectId,
-                DeviceId = device.Id,
                 CheckIn = DateTime.Now,
                 RegisterType = RegisterTypeEnum.CheckIn.ToString(),
                 Notes = $"CheckIn automático desde {device.DeviceName}"

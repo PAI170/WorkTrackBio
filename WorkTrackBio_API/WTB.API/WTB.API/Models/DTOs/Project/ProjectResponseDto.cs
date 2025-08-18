@@ -8,8 +8,6 @@ namespace WTB.API.Models.DTOs.Project
         string ProjectName,
         DateTime? StartDate,
         DateTime? EndDate,
-        int StateId,
-        DateTime CreatedDate,
-        DateTime? ModifiedDate
+        int StateId
     );
 }

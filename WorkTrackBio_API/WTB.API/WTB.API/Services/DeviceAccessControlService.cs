@@ -169,7 +169,7 @@ namespace WTB.API.Services
             {
                 // Ya existe un check-in sin check-out, actualizar notas
                 existingAssistance.Notes = $"Check-in múltiple registrado desde {device.DeviceName}. {request.Notes}";
-                existingAssistance.MarkAsModified(GetCurrentUserId());
+                existingAssistance.ModifiedDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return existingAssistance.Id;
             }
@@ -179,7 +179,6 @@ namespace WTB.API.Services
             {
                 EmployeeId = request.EmployeeId,
                 ProjectId = device.ProjectId,
-                DeviceId = device.Id,
                 CheckIn = DateTime.UtcNow,
                 RegisterType = "DEVICE",
                 Notes = request.Notes
@@ -211,7 +210,6 @@ namespace WTB.API.Services
                 {
                     EmployeeId = request.EmployeeId,
                     ProjectId = device.ProjectId,
-                    DeviceId = device.Id,
                     CheckIn = DateTime.UtcNow.AddHours(-8), // Asumir 8 horas de trabajo
                     CheckOut = DateTime.UtcNow,
                     RegisterType = "DEVICE_AUTO",
@@ -226,7 +224,7 @@ namespace WTB.API.Services
             // Actualizar check-out existente
             activeAssistance.CheckOut = DateTime.UtcNow;
             activeAssistance.Notes = $"{activeAssistance.Notes}. Check-out desde {device.DeviceName}. {request.Notes}".Trim();
-            activeAssistance.MarkAsModified(GetCurrentUserId());
+            activeAssistance.ModifiedDate = DateTime.UtcNow;
             
             await _context.SaveChangesAsync();
             return activeAssistance.Id;
@@ -270,7 +268,7 @@ namespace WTB.API.Services
             if (device != null)
             {
                 device.LastSeen = DateTime.UtcNow;
-                device.MarkAsModified(GetCurrentUserId());
+                device.ModifiedDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
         }

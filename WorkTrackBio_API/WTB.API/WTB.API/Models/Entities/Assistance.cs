@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WTB.API.Models.Entities
 {
-    public class Assistance : AuditableEntity
+    public class Assistance
     {
         [Key]
         public int Id { get; set; }
@@ -31,22 +31,17 @@ namespace WTB.API.Models.Entities
         [StringLength(50)]
         public string RegisterType { get; set; } = string.Empty;
 
-        // Referencia al dispositivo que registró la asistencia
-        [ForeignKey("Device")]
-        public int? DeviceId { get; set; }
-
         // Computed column - se calcula automáticamente en la base de datos
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CheckInDateOnly { get; set; }
 
+        // Campos de auditoría básicos (que sí existen en la BD)
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? ModifiedDate { get; set; }
+
         // Navigation Properties
         public virtual EmployeeInfo Employee { get; set; } = null!;
         public virtual Projects Project { get; set; } = null!;
-        public virtual Device? Device { get; set; }
         public virtual ICollection<AuditRegister> AuditRegisters { get; set; } = new List<AuditRegister>();
-
-        // Implementación de métodos abstractos para auditoría
-        public override string GetEntityId() => Id.ToString();
-        public override string GetEntityType() => "Assistance";
     }
 }

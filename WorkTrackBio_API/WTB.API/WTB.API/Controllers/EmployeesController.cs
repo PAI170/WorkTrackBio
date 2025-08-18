@@ -50,7 +50,7 @@ namespace WTB.API.Controllers
                     e.DocumentType?.DocumentName ?? "N/A",
                     e.State?.StateName ?? "N/A",
                     e.CostPerHour ?? 0,
-                    e.CreatedDate,
+                    e.RegisterDate,
                     e.FingerPrints.Any()
                 ));
                 
@@ -311,7 +311,7 @@ namespace WTB.API.Controllers
                     e.DocumentType?.DocumentName ?? "N/A",
                     e.State?.StateName ?? "N/A",
                     e.CostPerHour ?? 0,
-                    e.CreatedDate,
+                    e.RegisterDate,
                     e.FingerPrints.Any()
                 ));
                 
@@ -351,7 +351,7 @@ namespace WTB.API.Controllers
                     e.DocumentType?.DocumentName ?? "N/A",
                     e.State?.StateName ?? "N/A",
                     e.CostPerHour ?? 0,
-                    e.CreatedDate,
+                    e.RegisterDate,
                     e.FingerPrints.Any()
                 ));
                 

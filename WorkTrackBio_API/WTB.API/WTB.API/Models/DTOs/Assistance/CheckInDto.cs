@@ -18,9 +18,6 @@ namespace WTB.API.Models.DTOs.Assistance
         DateTime CheckIn,
 
         [StringLength(500, ErrorMessage = "Las notas no pueden exceder 500 caracteres")]
-        string? Notes = null,
-
-        // Información del dispositivo (opcional para registros manuales)
-        int? DeviceId = null
+        string? Notes = null
     );
 }

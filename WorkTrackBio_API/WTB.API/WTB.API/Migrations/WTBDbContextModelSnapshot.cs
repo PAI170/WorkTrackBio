@@ -41,21 +41,12 @@ namespace WTB.API.Migrations
                     b.Property<DateTime?>("CheckOut")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("CreatedById")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<int?>("DeviceId")
-                        .HasColumnType("int");
-
                     b.Property<int>("EmployeeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ModifiedById")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("ModifiedDate")
@@ -80,8 +71,6 @@ namespace WTB.API.Migrations
 
                     b.HasIndex("CheckInDateOnly")
                         .HasDatabaseName("IX_Assistance_CheckInDate");
-
-                    b.HasIndex("DeviceId");
 
                     b.HasIndex("ProjectId")
                         .HasDatabaseName("IX_Assistance_ProjectId");
@@ -270,12 +259,6 @@ namespace WTB.API.Migrations
                     b.Property<decimal?>("CostPerHour")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int?>("CreatedById")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime?>("DocumentExpire")
                         .HasColumnType("datetime2");
 
@@ -308,12 +291,6 @@ namespace WTB.API.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
@@ -573,19 +550,7 @@ namespace WTB.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CreatedById")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ModifiedById")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ProjectName")
@@ -715,10 +680,6 @@ namespace WTB.API.Migrations
 
             modelBuilder.Entity("WTB.API.Models.Entities.Assistance", b =>
                 {
-                    b.HasOne("WTB.API.Models.Entities.Device", "Device")
-                        .WithMany("Assistances")
-                        .HasForeignKey("DeviceId");
-
                     b.HasOne("WTB.API.Models.Entities.EmployeeInfo", "Employee")
                         .WithMany("Assistances")
                         .HasForeignKey("EmployeeId")
@@ -732,8 +693,6 @@ namespace WTB.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_ProjectId_Projects");
-
-                    b.Navigation("Device");
 
                     b.Navigation("Employee");
 
@@ -920,11 +879,6 @@ namespace WTB.API.Migrations
             modelBuilder.Entity("WTB.API.Models.Entities.Assistance", b =>
                 {
                     b.Navigation("AuditRegisters");
-                });
-
-            modelBuilder.Entity("WTB.API.Models.Entities.Device", b =>
-                {
-                    b.Navigation("Assistances");
                 });
 
             modelBuilder.Entity("WTB.API.Models.Entities.DocumentType", b =>

@@ -49,7 +49,6 @@ namespace WTB.API.Models.Entities
 
         // Navigation Properties
         public virtual Projects Project { get; set; } = null!;
-        public virtual ICollection<Assistance> Assistances { get; set; } = new List<Assistance>();
 
         // Implementación de métodos abstractos para auditoría
         public override string GetEntityId() => Id.ToString();

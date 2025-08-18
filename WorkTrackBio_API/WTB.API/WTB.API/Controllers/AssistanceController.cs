@@ -7,7 +7,7 @@ using System.Net;
 namespace WTB.API.Controllers
 {
     /// <summary>
-    /// Controlador para gestión de asistencia de empleados
+    /// Controlador para gestión de asistencias
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -55,8 +55,7 @@ namespace WTB.API.Controllers
                     a.RegisterType,
                     a.CreatedDate,
                     a.ModifiedDate,
-                    a.CheckInDateOnly,
-                    a.DeviceId
+                    a.CheckInDateOnly
                 ));
                 
                 var response = APIResponse<IEnumerable<AssistanceResponseDto>>.SuccessResponse(
@@ -107,8 +106,7 @@ namespace WTB.API.Controllers
                     result.RegisterType,
                     result.CreatedDate,
                     result.ModifiedDate,
-                    result.CheckInDateOnly,
-                    result.DeviceId
+                    result.CheckInDateOnly
                 );
                 
                 return Ok(APIResponse<AssistanceResponseDto>.SuccessResponse(assistanceDto, "Asistencia obtenida exitosamente"));
@@ -149,8 +147,7 @@ namespace WTB.API.Controllers
                     result.RegisterType,
                     result.CreatedDate,
                     result.ModifiedDate,
-                    result.CheckInDateOnly,
-                    result.DeviceId
+                    result.CheckInDateOnly
                 );
                 
                 var response = APIResponse<AssistanceResponseDto>.SuccessResponse(
@@ -196,8 +193,7 @@ namespace WTB.API.Controllers
                     result.RegisterType,
                     result.CreatedDate,
                     result.ModifiedDate,
-                    result.CheckInDateOnly,
-                    result.DeviceId
+                    result.CheckInDateOnly
                 );
                 
                 var response = APIResponse<AssistanceResponseDto>.SuccessResponse(
@@ -250,8 +246,7 @@ namespace WTB.API.Controllers
                     result.RegisterType,
                     result.CreatedDate,
                     result.ModifiedDate,
-                    result.CheckInDateOnly,
-                    result.DeviceId
+                    result.CheckInDateOnly
                 );
                 
                 var response = APIResponse<AssistanceResponseDto>.SuccessResponse(
@@ -291,6 +286,33 @@ namespace WTB.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al eliminar asistencia con ID: {Id}", id);
+                return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
+            }
+        }
+
+        /// <summary>
+        /// Obtener estadísticas de asistencias
+        /// </summary>
+        /// <param name="fromDate">Fecha de inicio</param>
+        /// <param name="toDate">Fecha de fin</param>
+        /// <returns>Estadísticas de asistencias</returns>
+        [HttpGet("statistics")]
+        [ProducesResponseType(typeof(APIResponse<object>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAssistanceStatistics([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
+        {
+            try
+            {
+                _logger.LogInformation("Obteniendo estadísticas de asistencias desde {FromDate} hasta {ToDate}", fromDate, toDate);
+                
+                var statistics = await _assistanceService.GetStatisticsAsync(fromDate, toDate);
+                
+                var response = APIResponse<object>.SuccessResponse(statistics, "Estadísticas obtenidas exitosamente");
+                
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener estadísticas de asistencias");
                 return StatusCode(500, APIResponse.ErrorResponse("Error interno del servidor", HttpStatusCode.InternalServerError));
             }
         }

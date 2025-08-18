@@ -47,9 +47,7 @@ namespace WTB.API.Controllers
                     p.ProjectName,
                     p.StartDate,
                     p.EndDate,
-                    p.StateId,
-                    p.CreatedDate,
-                    p.ModifiedDate
+                    p.StateId
                 ));
                 
                 var response = APIResponse<IEnumerable<ProjectResponseDto>>.SuccessResponse(
@@ -92,9 +90,7 @@ namespace WTB.API.Controllers
                     result.ProjectName,
                     result.StartDate,
                     result.EndDate,
-                    result.StateId,
-                    result.CreatedDate,
-                    result.ModifiedDate
+                    result.StateId
                 );
                 
                 return Ok(APIResponse<ProjectResponseDto>.SuccessResponse(projectDto, "Proyecto obtenido exitosamente"));
@@ -127,9 +123,7 @@ namespace WTB.API.Controllers
                     result.ProjectName,
                     result.StartDate,
                     result.EndDate,
-                    result.StateId,
-                    result.CreatedDate,
-                    result.ModifiedDate
+                    result.StateId
                 );
                 
                 var response = APIResponse<ProjectResponseDto>.SuccessResponse(
@@ -174,9 +168,7 @@ namespace WTB.API.Controllers
                     result.ProjectName,
                     result.StartDate,
                     result.EndDate,
-                    result.StateId,
-                    result.CreatedDate,
-                    result.ModifiedDate
+                    result.StateId
                 );
                 
                 var response = APIResponse<ProjectResponseDto>.SuccessResponse(

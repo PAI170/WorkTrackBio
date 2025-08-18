@@ -4,6 +4,7 @@ using WTB.API.Extensions;
 using WTB.API.Data.Interceptors;
 using WTB.API.Models.Configuration;
 using WTB.API.Services;
+using WTB.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,9 @@ builder.Services.AddRepositoryServices();
 
 // Configurar servicios de negocio
 builder.Services.AddBusinessServices();
+
+// Configurar AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
 
 // Configurar FluentValidation
 builder.Services.AddFluentValidationServices();
@@ -57,8 +61,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     
     // Aplicar migraciones automáticamente en desarrollo
-    await app.UseDatabaseMigrationAsync();
+    // await app.UseDatabaseMigrationAsync(); // Comentado temporalmente
 }
+
+// Agregar middleware de manejo global de errores
+app.UseGlobalExceptionHandler();
 
 app.UseHttpsRedirection();
 app.UseAuthorization();

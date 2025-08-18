@@ -55,8 +55,7 @@ namespace WTB.API.Services.Implementations
                 _logger.LogInformation("Obteniendo asistencia con ID: {AssistanceId} e includes", id);
                 var result = await _assistanceRepository.GetByIdWithIncludesAsync(id,
                     a => a.Employee,
-                    a => a.Project,
-                    a => a.Device);
+                    a => a.Project);
                 return result!;
             }
             catch (Exception ex)
@@ -113,8 +112,7 @@ namespace WTB.API.Services.Implementations
                     ProjectId = checkInDto.ProjectId,
                     CheckIn = checkInDto.CheckIn,
                     RegisterType = "Manual", // Valor por defecto para registros manuales
-                    Notes = checkInDto.Notes,
-                    DeviceId = checkInDto.DeviceId
+                    Notes = checkInDto.Notes
                 };
 
                 var createdAssistance = await _assistanceRepository.AddAsync(assistance);
@@ -291,8 +289,7 @@ namespace WTB.API.Services.Implementations
                     ProjectId = checkInDto.ProjectId,
                     CheckIn = checkInDto.CheckIn,
                     RegisterType = "Manual", // Valor por defecto para registros manuales
-                    Notes = checkInDto.Notes,
-                    DeviceId = checkInDto.DeviceId
+                    Notes = checkInDto.Notes
                 };
 
                 var createdAssistance = await _assistanceRepository.AddAsync(assistance);

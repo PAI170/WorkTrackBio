@@ -16,7 +16,6 @@ namespace WTB.API.Models.DTOs.Assistance
         string RegisterType,
         DateTime CreatedDate,
         DateTime? ModifiedDate,
-        DateTime CheckInDateOnly,
-        int? DeviceId
+        DateTime CheckInDateOnly
     );
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WTB.API.Models.Entities
 {
-    public class Projects : AuditableEntity
+    public class Projects
     {
         [Key]
         public int Id { get; set; }
@@ -26,9 +26,5 @@ namespace WTB.API.Models.Entities
         public virtual ICollection<ProjectsAssigns> ProjectsAssigns { get; set; } = new List<ProjectsAssigns>();
         public virtual ICollection<ProjectMaintenance> ProjectMaintenances { get; set; } = new List<ProjectMaintenance>();
         public virtual ICollection<ProjectWarranty> ProjectWarranties { get; set; } = new List<ProjectWarranty>();
-
-        // Implementación de métodos abstractos para auditoría
-        public override string GetEntityId() => Id.ToString();
-        public override string GetEntityType() => "Project";
     }
 }
