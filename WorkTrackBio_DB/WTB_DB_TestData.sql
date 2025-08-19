@@ -247,4 +247,101 @@ LEFT JOIN Assistance a ON p.Id = a.ProjectId
 GROUP BY p.Id, p.ProjectName
 ORDER BY TotalHoras DESC;
 
+-- =====================================================
+-- DATOS DE PRUEBA PARA DISPOSITIVOS BIOMÉTRICOS
+-- =====================================================
+
+PRINT '';
+PRINT '📱 Insertando datos de prueba para dispositivos biométricos...';
+
+-- Insertar dispositivos de prueba para diferentes proyectos
+IF NOT EXISTS (SELECT * FROM [dbo].[Devices] WHERE [DeviceId] = 'DEV001')
+BEGIN
+    INSERT INTO [dbo].[Devices] ([DeviceId], [DeviceName], [ProjectId], [Location], [DeviceType], [IpAddress], [SerialNumber], [FirmwareVersion], [Notes]) VALUES 
+        ('DEV001', 'Lector Principal - Edificio A', 1, 'Entrada Principal - Edificio A', 'Fingerprint', '192.168.1.100', 'SN001234567', 'v2.1.5', 'Dispositivo principal para empleados - Mall San Pedro'),
+        ('DEV002', 'Lector Secundario - Edificio B', 1, 'Entrada Secundaria - Edificio B', 'Fingerprint', '192.168.1.101', 'SN001234568', 'v2.1.5', 'Dispositivo para visitantes - Mall San Pedro'),
+        ('DEV003', 'Lector RFID - Estacionamiento', 1, 'Entrada Estacionamiento', 'RFID', '192.168.1.102', 'SN001234569', 'v1.8.2', 'Control de acceso vehicular - Mall San Pedro'),
+        ('DEV004', 'Lector Facial - Recepción', 2, 'Recepción Principal', 'Facial', '192.168.1.103', 'SN001234570', 'v3.0.1', 'Identificación facial para ejecutivos - Hotel Presidente'),
+        ('DEV005', 'Lector Backup - Almacén', 2, 'Entrada Almacén', 'Fingerprint', '192.168.1.104', 'SN001234571', 'v2.1.5', 'Dispositivo de respaldo - Hotel Presidente'),
+        ('DEV006', 'Lector Principal - Banco', 3, 'Entrada Principal Banco', 'Fingerprint', '192.168.1.105', 'SN001234572', 'v2.1.5', 'Control de acceso principal - Banco Nacional'),
+        ('DEV007', 'Lector Secundario - Banco', 3, 'Entrada Empleados Banco', 'Fingerprint', '192.168.1.106', 'SN001234573', 'v2.1.5', 'Acceso personal autorizado - Banco Nacional'),
+        ('DEV008', 'Lector UCR - Facultad Ingeniería', 4, 'Entrada Facultad Ingeniería', 'Fingerprint', '192.168.1.107', 'SN001234574', 'v2.1.5', 'Control de acceso estudiantes - UCR'),
+        ('DEV009', 'Lector UCR - Biblioteca', 4, 'Entrada Biblioteca Central', 'Fingerprint', '192.168.1.108', 'SN001234575', 'v2.1.5', 'Acceso a biblioteca - UCR'),
+        ('DEV010', 'Lector Restaurant - Entrada', 5, 'Entrada Principal Restaurant', 'Fingerprint', '192.168.1.109', 'SN001234576', 'v2.1.5', 'Control de acceso personal - Restaurant Machu Picchu'),
+        ('DEV011', 'Lector Ministerio - Recepción', 6, 'Recepción Ministerio', 'Fingerprint', '192.168.1.110', 'SN001234577', 'v2.1.5', 'Control de acceso visitantes - Ministerio'),
+        ('DEV012', 'Lector Ministerio - Personal', 6, 'Entrada Personal Ministerio', 'Fingerprint', '192.168.1.111', 'SN001234578', 'v2.1.5', 'Acceso personal autorizado - Ministerio');
+    
+    PRINT '✅ Datos de prueba para Devices insertados exitosamente';
+END
+ELSE
+BEGIN
+    PRINT 'ℹ️ Los datos de prueba para Devices ya existen';
+END
+
+-- =====================================================
+-- VERIFICACIÓN FINAL COMPLETA
+-- =====================================================
+
+PRINT '';
+PRINT '========================================';
+PRINT 'VERIFICACIÓN FINAL COMPLETA';
+PRINT '========================================';
+
+-- Verificar todas las tablas incluyendo Devices
+PRINT '';
+PRINT '📋 RESUMEN COMPLETO DE DATOS:';
+
+SELECT 'States' as Tabla, COUNT(*) as Registros FROM States
+UNION ALL
+SELECT 'Roles', COUNT(*) FROM Roles
+UNION ALL
+SELECT 'DocumentType', COUNT(*) FROM DocumentType
+UNION ALL
+SELECT 'InternUsers', COUNT(*) FROM InternUsers
+UNION ALL
+SELECT 'Projects', COUNT(*) FROM Projects
+UNION ALL
+SELECT 'EmployeeInfo', COUNT(*) FROM EmployeeInfo
+UNION ALL
+SELECT 'ProjectsAssigns', COUNT(*) FROM ProjectsAssigns
+UNION ALL
+SELECT 'FingerPrint', COUNT(*) FROM FingerPrint
+UNION ALL
+SELECT 'Assistance', COUNT(*) FROM Assistance
+UNION ALL
+SELECT 'AuditRegister', COUNT(*) FROM AuditRegister
+UNION ALL
+SELECT 'ProjectMaintenance', COUNT(*) FROM ProjectMaintenance
+UNION ALL
+SELECT 'ProjectWarranty', COUNT(*) FROM ProjectWarranty
+UNION ALL
+SELECT 'Devices', COUNT(*) FROM Devices;
+
+PRINT '';
+PRINT '📱 DISPOSITIVOS POR PROYECTO:';
+
+SELECT 
+    p.ProjectName as Proyecto,
+    COUNT(d.Id) as CantidadDispositivos,
+    STRING_AGG(d.DeviceType, ', ') as TiposDispositivos
+FROM Projects p
+LEFT JOIN Devices d ON p.Id = d.ProjectId
+GROUP BY p.Id, p.ProjectName
+ORDER BY CantidadDispositivos DESC;
+
+PRINT '';
+PRINT '🔒 TIPOS DE DISPOSITIVOS INSTALADOS:';
+
+SELECT 
+    DeviceType as TipoDispositivo,
+    COUNT(*) as Cantidad,
+    STRING_AGG(DeviceName, '; ') as Dispositivos
+FROM Devices
+GROUP BY DeviceType
+ORDER BY Cantidad DESC;
+
+PRINT '';
+PRINT '✅ TODOS LOS DATOS DE PRUEBA HAN SIDO INSERTADOS EXITOSAMENTE!';
+PRINT '🚀 La base de datos está completamente configurada y poblada con datos de prueba';
+
 GO
