@@ -1,0 +1,6 @@
+@WorkTrackBio.API_HostAddress = http://localhost:5032
+
+GET {{WorkTrackBio.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
