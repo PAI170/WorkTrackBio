@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using WorkTrackBio.API.Data.Context;
+using WorkTrackBio.API.Repositories.StateRepository;
 using WorkTrackBio.API.Services.StateService;
+using WorkTrackBio.API.Validators.StateValidator;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +18,16 @@ builder.Services.AddDbContext<WorkTrackBioDbContext>(options =>
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
+
+// Add FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+// Register Repositories
+builder.Services.AddScoped<IStateRepository, StateRepository>();
+
+// Register Validators
+builder.Services.AddScoped<IStateValidator, StateValidator>();
 
 // Register Services
 builder.Services.AddScoped<IStateService, StateService>();
