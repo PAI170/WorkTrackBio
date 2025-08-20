@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WorkTrackBio.API.Data.Context;
+using WorkTrackBio.API.Services.StateService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,12 @@ builder.Services.AddOpenApi();
 // Configurar Entity Framework
 builder.Services.AddDbContext<WorkTrackBioDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
+
+// Register Services
+builder.Services.AddScoped<IStateService, StateService>();
 
 var app = builder.Build();
 

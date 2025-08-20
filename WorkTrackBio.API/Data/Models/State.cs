@@ -16,5 +16,12 @@ namespace WorkTrackBio.API.Data.Models
         
         [StringLength(50)]
         public string? Description { get; set; }
+        
+        // Navigation Properties - Relaciones inversas
+        public virtual ICollection<InternUser> InternUsers { get; set; } = new List<InternUser>();
+        public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+        public virtual ICollection<EmployeeInfo> EmployeeInfos { get; set; } = new List<EmployeeInfo>();
+        public virtual ICollection<ProjectMaintenance> ProjectMaintenances { get; set; } = new List<ProjectMaintenance>();
+        public virtual ICollection<ProjectWarranty> ProjectWarranties { get; set; } = new List<ProjectWarranty>();
     }
 }
