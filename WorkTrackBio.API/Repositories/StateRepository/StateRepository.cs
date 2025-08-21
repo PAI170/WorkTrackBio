@@ -66,8 +66,32 @@ namespace WorkTrackBio.API.Repositories.StateRepository
             if (existingState == null)
                 throw new InvalidOperationException($"No se encontró el estado con ID {state.Id}");
 
-            _context.Entry(existingState).CurrentValues.SetValues(state);
-            await SaveChangesAsync();
+            // Solo actualizar si realmente hay cambios
+            bool hasChanges = false;
+
+            if (existingState.StateName != state.StateName)
+            {
+                existingState.StateName = state.StateName;
+                hasChanges = true;
+            }
+
+            if (existingState.StateType != state.StateType)
+            {
+                existingState.StateType = state.StateType;
+                hasChanges = true;
+            }
+
+            if (existingState.Description != state.Description)
+            {
+                existingState.Description = state.Description;
+                hasChanges = true;
+            }
+
+            // Solo guardar en la base de datos si hubo cambios
+            if (hasChanges)
+            {
+                await SaveChangesAsync();
+            }
 
             return existingState;
         }
@@ -82,6 +106,19 @@ namespace WorkTrackBio.API.Repositories.StateRepository
             await SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<bool> HasDependenciesAsync(int stateId)
+        {
+            // Verificar si hay entidades que dependen de este estado
+            // Esto previene errores de Foreign Key constraint
+            var hasInternUsers = await _context.InternUsers.AnyAsync(u => u.StateId == stateId);
+            var hasProjects = await _context.Projects.AnyAsync(p => p.StateId == stateId);
+            var hasEmployeeInfos = await _context.EmployeeInfos.AnyAsync(e => e.StateId == stateId);
+            var hasProjectMaintenances = await _context.ProjectMaintenances.AnyAsync(pm => pm.StateId == stateId);
+            var hasProjectWarranties = await _context.ProjectWarranties.AnyAsync(pw => pw.StateId == stateId);
+
+            return hasInternUsers || hasProjects || hasEmployeeInfos || hasProjectMaintenances || hasProjectWarranties;
         }
 
         public async Task<int> SaveChangesAsync()

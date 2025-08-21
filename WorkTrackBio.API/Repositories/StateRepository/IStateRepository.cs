@@ -13,6 +13,7 @@ namespace WorkTrackBio.API.Repositories.StateRepository
         Task<State> CreateAsync(State state);
         Task<State> UpdateAsync(State state);
         Task<bool> DeleteAsync(int id);
+        Task<bool> HasDependenciesAsync(int stateId);
         Task<int> SaveChangesAsync();
     }
 }

@@ -638,13 +638,13 @@ namespace WorkTrackBio.API.Migrations
                     b.HasOne("WorkTrackBio.API.Data.Models.InternUser", "Admin")
                         .WithMany()
                         .HasForeignKey("AdminId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("WorkTrackBio.API.Data.Models.Assistance", "Assistance")
                         .WithMany()
                         .HasForeignKey("AssistanceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Admin");
@@ -672,7 +672,7 @@ namespace WorkTrackBio.API.Migrations
                         .IsRequired();
 
                     b.HasOne("WorkTrackBio.API.Data.Models.State", "State")
-                        .WithMany()
+                        .WithMany("EmployeeInfos")
                         .HasForeignKey("StateId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -702,7 +702,7 @@ namespace WorkTrackBio.API.Migrations
                         .IsRequired();
 
                     b.HasOne("WorkTrackBio.API.Data.Models.State", "State")
-                        .WithMany()
+                        .WithMany("InternUsers")
                         .HasForeignKey("StateId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -715,7 +715,7 @@ namespace WorkTrackBio.API.Migrations
             modelBuilder.Entity("WorkTrackBio.API.Data.Models.Project", b =>
                 {
                     b.HasOne("WorkTrackBio.API.Data.Models.State", "State")
-                        .WithMany()
+                        .WithMany("Projects")
                         .HasForeignKey("StateId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -728,19 +728,19 @@ namespace WorkTrackBio.API.Migrations
                     b.HasOne("WorkTrackBio.API.Data.Models.Project", "Project")
                         .WithMany()
                         .HasForeignKey("IdProject")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("WorkTrackBio.API.Data.Models.EmployeeInfo", "MadeBy")
                         .WithMany()
                         .HasForeignKey("MadeById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("WorkTrackBio.API.Data.Models.State", "State")
-                        .WithMany()
+                        .WithMany("ProjectMaintenances")
                         .HasForeignKey("StateId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("MadeBy");
@@ -755,19 +755,19 @@ namespace WorkTrackBio.API.Migrations
                     b.HasOne("WorkTrackBio.API.Data.Models.Project", "Project")
                         .WithMany()
                         .HasForeignKey("IdProject")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("WorkTrackBio.API.Data.Models.EmployeeInfo", "MadeBy")
                         .WithMany()
                         .HasForeignKey("MadeById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("WorkTrackBio.API.Data.Models.State", "State")
-                        .WithMany()
+                        .WithMany("ProjectWarranties")
                         .HasForeignKey("StateId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("MadeBy");
@@ -782,13 +782,13 @@ namespace WorkTrackBio.API.Migrations
                     b.HasOne("WorkTrackBio.API.Data.Models.EmployeeInfo", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("WorkTrackBio.API.Data.Models.Project", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Employee");
@@ -805,6 +805,19 @@ namespace WorkTrackBio.API.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WorkTrackBio.API.Data.Models.State", b =>
+                {
+                    b.Navigation("EmployeeInfos");
+
+                    b.Navigation("InternUsers");
+
+                    b.Navigation("ProjectMaintenances");
+
+                    b.Navigation("ProjectWarranties");
+
+                    b.Navigation("Projects");
                 });
 #pragma warning restore 612, 618
         }

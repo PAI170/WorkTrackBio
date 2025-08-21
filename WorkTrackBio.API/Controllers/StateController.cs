@@ -349,8 +349,15 @@ namespace WorkTrackBio.API.Controllers
 
                 var successResponse = ApiResponse<object>.SuccessResponse(
                     "Estado eliminado exitosamente", 
-                    StatusCodes.Status204NoContent);
-                return NoContent();
+                    StatusCodes.Status200OK);
+                return Ok(successResponse);
+            }
+            catch (InvalidOperationException ex)
+            {
+                var response = ApiResponse<object>.ErrorResponse(
+                    ex.Message, 
+                    StatusCodes.Status409Conflict);
+                return Conflict(response);
             }
             catch (Exception ex)
             {

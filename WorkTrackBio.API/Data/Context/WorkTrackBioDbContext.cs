@@ -68,14 +68,14 @@ namespace WorkTrackBio.API.Data.Context
 
             modelBuilder.Entity<InternUser>()
                 .HasOne(u => u.State)
-                .WithMany()
+                .WithMany(s => s.InternUsers)
                 .HasForeignKey(u => u.StateId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Projects
             modelBuilder.Entity<Project>()
                 .HasOne(p => p.State)
-                .WithMany()
+                .WithMany(s => s.Projects)
                 .HasForeignKey(p => p.StateId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -88,7 +88,7 @@ namespace WorkTrackBio.API.Data.Context
 
             modelBuilder.Entity<EmployeeInfo>()
                 .HasOne(e => e.State)
-                .WithMany()
+                .WithMany(s => s.EmployeeInfos)
                 .HasForeignKey(e => e.StateId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -104,6 +104,91 @@ namespace WorkTrackBio.API.Data.Context
                 .WithMany()
                 .HasForeignKey(a => a.ProjectId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ProjectsAssigns
+            modelBuilder.Entity<ProjectsAssigns>()
+                .HasOne(pa => pa.Employee)
+                .WithMany()
+                .HasForeignKey(pa => pa.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectsAssigns>()
+                .HasOne(pa => pa.Project)
+                .WithMany()
+                .HasForeignKey(pa => pa.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // AuditRegister
+            modelBuilder.Entity<AuditRegister>()
+                .HasOne(ar => ar.Assistance)
+                .WithMany()
+                .HasForeignKey(ar => ar.AssistanceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AuditRegister>()
+                .HasOne(ar => ar.Admin)
+                .WithMany()
+                .HasForeignKey(ar => ar.AdminId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // FingerPrint
+            modelBuilder.Entity<FingerPrint>()
+                .HasOne(fp => fp.Employee)
+                .WithMany()
+                .HasForeignKey(fp => fp.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ProjectMaintenance
+            modelBuilder.Entity<ProjectMaintenance>()
+                .HasOne(pm => pm.Project)
+                .WithMany()
+                .HasForeignKey(pm => pm.IdProject)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectMaintenance>()
+                .HasOne(pm => pm.MadeBy)
+                .WithMany()
+                .HasForeignKey(pm => pm.MadeById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectMaintenance>()
+                .HasOne(pm => pm.State)
+                .WithMany(s => s.ProjectMaintenances)
+                .HasForeignKey(pm => pm.StateId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ProjectWarranty
+            modelBuilder.Entity<ProjectWarranty>()
+                .HasOne(pw => pw.Project)
+                .WithMany()
+                .HasForeignKey(pw => pw.IdProject)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectWarranty>()
+                .HasOne(pw => pw.MadeBy)
+                .WithMany()
+                .HasForeignKey(pw => pw.MadeById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectWarranty>()
+                .HasOne(pw => pw.State)
+                .WithMany(s => s.ProjectWarranties)
+                .HasForeignKey(pw => pw.StateId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Device
+            modelBuilder.Entity<Device>()
+                .HasOne(d => d.Project)
+                .WithMany()
+                .HasForeignKey(d => d.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Session
+            modelBuilder.Entity<Session>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         private void ConfigureIndexes(ModelBuilder modelBuilder)

@@ -61,9 +61,10 @@ namespace WorkTrackBio.API.Services.StateService
             if (createDto == null)
                 throw new ArgumentNullException(nameof(createDto));
 
-            // Verificar si ya existe un estado con el mismo nombre
-            if (await _stateRepository.ExistsByNameAsync(createDto.StateName))
-                throw new InvalidOperationException($"Ya existe un estado con el nombre '{createDto.StateName}'");
+            // Verificar si ya existe un estado con el mismo nombre (case-insensitive)
+            var existingState = await _stateRepository.GetAllAsync();
+            if (existingState.Any(s => string.Equals(s.StateName, createDto.StateName, StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException($"Ya existe un estado con el nombre '{createDto.StateName}' (ignorando mayúsculas/minúsculas)");
 
             // Mapear DTO a Model
             var state = _mapper.Map<WorkTrackBio.API.Data.Models.State>(createDto);
@@ -88,17 +89,54 @@ namespace WorkTrackBio.API.Services.StateService
             if (existingState == null)
                 return null;
 
-            // Verificar si el nuevo nombre ya existe en otro estado
-            if (await _stateRepository.ExistsByNameAsync(updateDto.StateName) && 
-                existingState.StateName != updateDto.StateName)
-                throw new InvalidOperationException($"Ya existe un estado con el nombre '{updateDto.StateName}'");
+            // Lógica de "Partial Update": Solo actualizar campos que realmente cambiaron
+            bool hasChanges = false;
 
-            // Actualizar propiedades
-            existingState.StateName = updateDto.StateName;
-            existingState.StateType = updateDto.StateType;
-            existingState.Description = updateDto.Description;
+            // Actualizar StateName solo si se proporcionó un nuevo valor
+            if (!string.IsNullOrWhiteSpace(updateDto.StateName))
+            {
+                // Verificar si el nuevo nombre ya existe en otro estado (case-insensitive)
+                var allStates = await _stateRepository.GetAllAsync();
+                if (allStates.Any(s => string.Equals(s.StateName, updateDto.StateName, StringComparison.OrdinalIgnoreCase) && 
+                    s.Id != updateDto.Id))
+                    throw new InvalidOperationException($"Ya existe un estado con el nombre '{updateDto.StateName}' (ignorando mayúsculas/minúsculas)");
 
-            // Guardar cambios
+                // Solo actualizar si realmente cambió
+                if (!string.Equals(existingState.StateName, updateDto.StateName, StringComparison.OrdinalIgnoreCase))
+                {
+                    existingState.StateName = updateDto.StateName;
+                    hasChanges = true;
+                }
+            }
+
+            // Actualizar StateType solo si se proporcionó un nuevo valor
+            if (!string.IsNullOrWhiteSpace(updateDto.StateType))
+            {
+                if (!string.Equals(existingState.StateType, updateDto.StateType, StringComparison.OrdinalIgnoreCase))
+                {
+                    existingState.StateType = updateDto.StateType;
+                    hasChanges = true;
+                }
+            }
+
+            // Actualizar Description solo si se proporcionó un nuevo valor
+            if (updateDto.Description != null) // null significa "sin cambios"
+            {
+                if (!string.Equals(existingState.Description ?? "", updateDto.Description))
+                {
+                    existingState.Description = updateDto.Description;
+                    hasChanges = true;
+                }
+            }
+            // Si updateDto.Description es null, no se modifica (mantiene el valor original)
+
+            // Si no hay cambios, retornar el estado existente sin modificar
+            if (!hasChanges)
+            {
+                return _mapper.Map<StateDataTransferObject>(existingState);
+            }
+
+            // Guardar cambios solo si hubo modificaciones
             var updatedState = await _stateRepository.UpdateAsync(existingState);
 
             // Mapear de vuelta a DTO y retornar
@@ -115,10 +153,21 @@ namespace WorkTrackBio.API.Services.StateService
             if (state == null)
                 return false;
 
-            // TODO: Aquí podrías agregar lógica para verificar si el estado está siendo usado
-            // antes de permitir eliminarlo
+            // Verificar si el estado está siendo usado por otras entidades
+            // Esto evita errores de Foreign Key constraint
+            var isStateInUse = await IsStateInUseAsync(id);
+            if (isStateInUse)
+                throw new InvalidOperationException($"No se puede eliminar el estado '{state.StateName}' porque está siendo usado por otras entidades del sistema");
 
             return await _stateRepository.DeleteAsync(id);
+        }
+
+        private async Task<bool> IsStateInUseAsync(int stateId)
+        {
+            // Verificar si hay entidades que dependen de este estado
+            // Esto es una implementación básica - puedes expandirla según tus necesidades
+            var hasDependencies = await _stateRepository.HasDependenciesAsync(stateId);
+            return hasDependencies;
         }
     }
 }

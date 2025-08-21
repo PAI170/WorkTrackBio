@@ -86,15 +86,19 @@ namespace WorkTrackBio.API.Validators.StateValidator
             }
 
             // Validación de unicidad del nombre (excluyendo el ID actual)
-            var nameUniqueValidation = await ValidateStateNameUniqueAsync(updateDto.StateName, updateDto.Id);
-            if (!nameUniqueValidation.IsValid)
+            // Solo validar si se proporcionó un nombre
+            if (!string.IsNullOrWhiteSpace(updateDto.StateName))
             {
-                var combinedResult = new ValidationResult();
-                foreach (var error in basicValidation.Errors)
-                    combinedResult.Errors.Add(error);
-                foreach (var error in nameUniqueValidation.Errors)
-                    combinedResult.Errors.Add(error);
-                return combinedResult;
+                var nameUniqueValidation = await ValidateStateNameUniqueAsync(updateDto.StateName, updateDto.Id);
+                if (!nameUniqueValidation.IsValid)
+                {
+                    var combinedResult = new ValidationResult();
+                    foreach (var error in basicValidation.Errors)
+                        combinedResult.Errors.Add(error);
+                    foreach (var error in nameUniqueValidation.Errors)
+                        combinedResult.Errors.Add(error);
+                    return combinedResult;
+                }
             }
 
             return basicValidation;
@@ -268,6 +272,7 @@ namespace WorkTrackBio.API.Validators.StateValidator
     /// <summary>
     /// Validator específico para actualizar estados
     /// Valida formato, restricciones de base de datos y existencia
+    /// Permite campos opcionales para "Partial Updates"
     /// </summary>
     public class UpdateStateValidator : AbstractValidator<UpdateStateDataTransferObject>
     {
@@ -277,19 +282,22 @@ namespace WorkTrackBio.API.Validators.StateValidator
                 .GreaterThan(0).WithMessage("El ID debe ser mayor que 0")
                 .LessThan(int.MaxValue).WithMessage("El ID excede el valor máximo permitido");
 
+            // StateName es opcional en updates - solo validar si se proporciona
             RuleFor(x => x.StateName)
-                .NotEmpty().WithMessage("El nombre del estado es obligatorio")
                 .MaximumLength(50).WithMessage("El nombre del estado no puede exceder 50 caracteres (restricción de BD)")
-                .Must(name => !string.IsNullOrWhiteSpace(name?.Trim())).WithMessage("El nombre del estado no puede estar vacío o contener solo espacios (restricción de BD)");
+                .Must(name => name == null || !string.IsNullOrWhiteSpace(name.Trim())).WithMessage("Si se proporciona un nombre, no puede estar vacío o contener solo espacios")
+                .When(x => x.StateName != null);
 
+            // StateType es opcional en updates - solo validar si se proporciona
             RuleFor(x => x.StateType)
-                .NotEmpty().WithMessage("El tipo de estado es obligatorio")
                 .MaximumLength(50).WithMessage("El tipo de estado no puede exceder 50 caracteres (restricción de BD)")
-                .Must(name => !string.IsNullOrWhiteSpace(name?.Trim())).WithMessage("El tipo de estado no puede estar vacío o contener solo espacios (restricción de BD)");
+                .Must(name => name == null || !string.IsNullOrWhiteSpace(name.Trim())).WithMessage("Si se proporciona un tipo, no puede estar vacío o contener solo espacios")
+                .When(x => x.StateType != null);
 
+            // Description es opcional en updates - solo validar si se proporciona
             RuleFor(x => x.Description)
                 .MaximumLength(50).WithMessage("La descripción no puede exceder 50 caracteres (restricción de BD)")
-                .When(x => !string.IsNullOrWhiteSpace(x.Description));
+                .When(x => x.Description != null);
         }
     }
 }

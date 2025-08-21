@@ -13,7 +13,6 @@ namespace WorkTrackBio.API.Mappers
             
             // DTO -> Model
             CreateMap<CreateStateDataTransferObject, State>();
-            CreateMap<UpdateStateDataTransferObject, State>();
             
             // Para actualizaciones, ignorar el Id
             CreateMap<UpdateStateDataTransferObject, State>()

@@ -10,7 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Add Controllers - NECESARIO para que funcionen los controladores
+builder.Services.AddControllers();
 
 // Configurar Entity Framework
 builder.Services.AddDbContext<WorkTrackBioDbContext>(options =>
@@ -37,10 +41,19 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Deshabilitar completamente la redirección HTTPS para desarrollo
+app.Use(async (context, next) =>
+{
+    context.Request.Scheme = "http";
+    await next();
+});
+
+// Map Controllers - NECESARIO para que funcionen las rutas de los controladores
+app.MapControllers();
 
 // Remover el ejemplo de WeatherForecast ya que no lo necesitamos
 // app.MapGet("/weatherforecast", () => { ... });
