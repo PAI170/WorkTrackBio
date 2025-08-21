@@ -8,13 +8,8 @@ namespace WorkTrackBio.API.Mappers
     {
         public StateMapperProfile()
         {
-            // Model -> DTO
             CreateMap<State, StateDataTransferObject>();
-            
-            // DTO -> Model
             CreateMap<CreateStateDataTransferObject, State>();
-            
-            // Para actualizaciones, ignorar el Id
             CreateMap<UpdateStateDataTransferObject, State>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
         }

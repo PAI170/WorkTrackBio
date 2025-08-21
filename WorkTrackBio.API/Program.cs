@@ -3,6 +3,9 @@ using WorkTrackBio.API.Data.Context;
 using WorkTrackBio.API.Repositories.StateRepository;
 using WorkTrackBio.API.Services.StateService;
 using WorkTrackBio.API.Validators.StateValidator;
+using WorkTrackBio.API.Repositories.RoleRepository;
+using WorkTrackBio.API.Services.RoleService;
+using WorkTrackBio.API.Validators.RoleValidator;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
@@ -29,12 +32,15 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 // Register Repositories
 builder.Services.AddScoped<IStateRepository, StateRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 // Register Validators
 builder.Services.AddScoped<IStateValidator, StateValidator>();
+builder.Services.AddScoped<IRoleValidator, RoleValidator>();
 
 // Register Services
 builder.Services.AddScoped<IStateService, StateService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 var app = builder.Build();
 

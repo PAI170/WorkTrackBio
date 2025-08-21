@@ -66,7 +66,6 @@ namespace WorkTrackBio.API.Repositories.StateRepository
             if (existingState == null)
                 throw new InvalidOperationException($"No se encontró el estado con ID {state.Id}");
 
-            // Solo actualizar si realmente hay cambios
             bool hasChanges = false;
 
             if (existingState.StateName != state.StateName)
@@ -87,7 +86,6 @@ namespace WorkTrackBio.API.Repositories.StateRepository
                 hasChanges = true;
             }
 
-            // Solo guardar en la base de datos si hubo cambios
             if (hasChanges)
             {
                 await SaveChangesAsync();
@@ -110,8 +108,6 @@ namespace WorkTrackBio.API.Repositories.StateRepository
 
         public async Task<bool> HasDependenciesAsync(int stateId)
         {
-            // Verificar si hay entidades que dependen de este estado
-            // Esto previene errores de Foreign Key constraint
             var hasInternUsers = await _context.InternUsers.AnyAsync(u => u.StateId == stateId);
             var hasProjects = await _context.Projects.AnyAsync(p => p.StateId == stateId);
             var hasEmployeeInfos = await _context.EmployeeInfos.AnyAsync(e => e.StateId == stateId);
