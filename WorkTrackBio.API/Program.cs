@@ -9,6 +9,12 @@ using WorkTrackBio.API.Validators.RoleValidator;
 using WorkTrackBio.API.Repositories.ProjectRepository;
 using WorkTrackBio.API.Services.ProjectService;
 using WorkTrackBio.API.Validators.ProjectValidator;
+using WorkTrackBio.API.Repositories.DocumentTypeRepository;
+using WorkTrackBio.API.Services.DocumentTypeService;
+using WorkTrackBio.API.Validators.DocumentTypeValidator;
+using WorkTrackBio.API.Repositories.EmployeeInfoRepository;
+using WorkTrackBio.API.Services.EmployeeInfoService;
+using WorkTrackBio.API.Validators.EmployeeInfoValidator;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
@@ -33,20 +39,26 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Register Repositories
-builder.Services.AddScoped<IStateRepository, StateRepository>();
-builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+        // Register Repositories
+        builder.Services.AddScoped<IStateRepository, StateRepository>();
+        builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+        builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+        builder.Services.AddScoped<IDocumentTypeRepository, DocumentTypeRepository>();
+        builder.Services.AddScoped<IEmployeeInfoRepository, EmployeeInfoRepository>();
 
-// Register Validators
-builder.Services.AddScoped<IStateValidator, StateValidator>();
-builder.Services.AddScoped<IRoleValidator, RoleValidator>();
-builder.Services.AddScoped<IProjectValidator, ProjectValidator>();
+        // Register Validators
+        builder.Services.AddScoped<IStateValidator, StateValidator>();
+        builder.Services.AddScoped<IRoleValidator, RoleValidator>();
+        builder.Services.AddScoped<IProjectValidator, ProjectValidator>();
+        builder.Services.AddScoped<IDocumentTypeValidator, DocumentTypeValidator>();
+        builder.Services.AddScoped<IEmployeeInfoValidator, EmployeeInfoValidator>();
 
-// Register Services
-builder.Services.AddScoped<IStateService, StateService>();
-builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
+        // Register Services
+        builder.Services.AddScoped<IStateService, StateService>();
+        builder.Services.AddScoped<IRoleService, RoleService>();
+        builder.Services.AddScoped<IProjectService, ProjectService>();
+        builder.Services.AddScoped<IDocumentTypeService, DocumentTypeService>();
+        builder.Services.AddScoped<IEmployeeInfoService, EmployeeInfoService>();
 
 var app = builder.Build();
 
