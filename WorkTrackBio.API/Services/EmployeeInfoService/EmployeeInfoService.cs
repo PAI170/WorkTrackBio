@@ -4,6 +4,8 @@ using WorkTrackBio.API.DataTransferObjects.EmployeeInfo;
 using WorkTrackBio.API.Repositories.EmployeeInfoRepository;
 using WorkTrackBio.API.Repositories.StateRepository;
 using WorkTrackBio.API.Repositories.DocumentTypeRepository;
+using WorkTrackBio.API.Validators.DocumentValidator;
+using WorkTrackBio.API.Validators.PhoneNumberFormatter;
 using System.Linq;
 
 namespace WorkTrackBio.API.Services.EmployeeInfoService
@@ -13,17 +15,23 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
         private readonly IEmployeeInfoRepository _employeeInfoRepository;
         private readonly IStateRepository _stateRepository;
         private readonly IDocumentTypeRepository _documentTypeRepository;
+        private readonly IDocumentValidator _documentValidator;
+        private readonly IPhoneNumberFormatter _phoneNumberFormatter;
         private readonly IMapper _mapper;
 
         public EmployeeInfoService(
             IEmployeeInfoRepository employeeInfoRepository,
             IStateRepository stateRepository,
             IDocumentTypeRepository documentTypeRepository,
+            IDocumentValidator documentValidator,
+            IPhoneNumberFormatter phoneNumberFormatter,
             IMapper mapper)
         {
             _employeeInfoRepository = employeeInfoRepository ?? throw new ArgumentNullException(nameof(employeeInfoRepository));
             _stateRepository = stateRepository ?? throw new ArgumentNullException(nameof(stateRepository));
             _documentTypeRepository = documentTypeRepository ?? throw new ArgumentNullException(nameof(documentTypeRepository));
+            _documentValidator = documentValidator ?? throw new ArgumentNullException(nameof(documentValidator));
+            _phoneNumberFormatter = phoneNumberFormatter ?? throw new ArgumentNullException(nameof(phoneNumberFormatter));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -118,7 +126,7 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 throw new ArgumentException($"No existe un tipo de documento con ID {createDto.DocumentTypeId}", nameof(createDto.DocumentTypeId));
 
             // Validar formato del documento según su tipo
-            var documentValidation = DocumentValidator.ValidateDocument(createDto.DocumentNumber, createDto.DocumentTypeId);
+            var documentValidation = await _documentValidator.ValidateDocumentAsync(createDto.DocumentNumber, createDto.DocumentTypeId);
             if (!documentValidation.IsValid)
                 throw new InvalidOperationException($"Error en el formato del documento: {documentValidation.ErrorMessage}");
 
@@ -144,9 +152,9 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
             var employee = _mapper.Map<WorkTrackBio.API.Data.Models.EmployeeInfo>(createDto);
             
             // Formatear números según las restricciones de la base de datos
-            employee.DocumentNumber = PhoneNumberFormatter.CleanDocumentNumber(employee.DocumentNumber) ?? employee.DocumentNumber;
-            employee.PhoneNumber = PhoneNumberFormatter.FormatPhoneNumber(employee.PhoneNumber);
-            employee.EmergencyContactPhoneNumber = PhoneNumberFormatter.FormatPhoneNumber(employee.EmergencyContactPhoneNumber);
+            employee.DocumentNumber = _phoneNumberFormatter.CleanDocumentNumber(employee.DocumentNumber) ?? employee.DocumentNumber;
+            employee.PhoneNumber = _phoneNumberFormatter.FormatPhoneNumber(employee.PhoneNumber);
+            employee.EmergencyContactPhoneNumber = _phoneNumberFormatter.FormatPhoneNumber(employee.EmergencyContactPhoneNumber);
             
             var createdEmployee = await _employeeInfoRepository.CreateAsync(employee);
 
@@ -185,7 +193,7 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 var documentTypeIdForValidation = updateDto.DocumentTypeId ?? existingEmployee.DocumentTypeId;
                 
                 // Validar formato del documento según su tipo
-                var documentValidation = DocumentValidator.ValidateDocument(updateDto.DocumentNumber!, documentTypeIdForValidation);
+                var documentValidation = await _documentValidator.ValidateDocumentAsync(updateDto.DocumentNumber!, documentTypeIdForValidation);
                 if (!documentValidation.IsValid)
                     throw new InvalidOperationException($"Error en el formato del documento: {documentValidation.ErrorMessage}");
 
@@ -203,7 +211,7 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                         throw new InvalidOperationException($"Ya existe otro empleado con el número de documento '{updateDto.DocumentNumber}' del mismo tipo");
                 }
 
-                var cleanedDocumentNumber = PhoneNumberFormatter.CleanDocumentNumber(updateDto.DocumentNumber!);
+                var cleanedDocumentNumber = _phoneNumberFormatter.CleanDocumentNumber(updateDto.DocumentNumber!);
                 if (!string.Equals(existingEmployee.DocumentNumber, cleanedDocumentNumber, StringComparison.OrdinalIgnoreCase))
                 {
                     existingEmployee.DocumentNumber = cleanedDocumentNumber ?? updateDto.DocumentNumber!;
@@ -273,7 +281,7 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 else
                 {
                     // Campo con valor, formatear y actualizar
-                    var formattedPhoneNumber = PhoneNumberFormatter.FormatPhoneNumber(updateDto.PhoneNumber);
+                    var formattedPhoneNumber = _phoneNumberFormatter.FormatPhoneNumber(updateDto.PhoneNumber);
                     if (existingEmployee.PhoneNumber != formattedPhoneNumber)
                     {
                         existingEmployee.PhoneNumber = formattedPhoneNumber;
@@ -300,7 +308,7 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 else
                 {
                     // Campo con valor, formatear y actualizar
-                    var formattedEmergencyPhone = PhoneNumberFormatter.FormatPhoneNumber(updateDto.EmergencyContactPhoneNumber);
+                    var formattedEmergencyPhone = _phoneNumberFormatter.FormatPhoneNumber(updateDto.EmergencyContactPhoneNumber);
                     if (existingEmployee.EmergencyContactPhoneNumber != formattedEmergencyPhone)
                     {
                         existingEmployee.EmergencyContactPhoneNumber = formattedEmergencyPhone;

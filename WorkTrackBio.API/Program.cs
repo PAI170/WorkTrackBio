@@ -15,6 +15,11 @@ using WorkTrackBio.API.Validators.DocumentTypeValidator;
 using WorkTrackBio.API.Repositories.EmployeeInfoRepository;
 using WorkTrackBio.API.Services.EmployeeInfoService;
 using WorkTrackBio.API.Validators.EmployeeInfoValidator;
+using WorkTrackBio.API.Validators.DocumentValidator;
+using WorkTrackBio.API.Validators.PhoneNumberFormatter;
+using WorkTrackBio.API.Repositories.InternUserRepository;
+using WorkTrackBio.API.Services.InternUserService;
+using WorkTrackBio.API.Validators.InternUserValidator;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
@@ -45,6 +50,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
         builder.Services.AddScoped<IDocumentTypeRepository, DocumentTypeRepository>();
         builder.Services.AddScoped<IEmployeeInfoRepository, EmployeeInfoRepository>();
+        builder.Services.AddScoped<IInternUserRepository, InternUserRepository>();
 
         // Register Validators
         builder.Services.AddScoped<IStateValidator, StateValidator>();
@@ -52,6 +58,9 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddScoped<IProjectValidator, ProjectValidator>();
         builder.Services.AddScoped<IDocumentTypeValidator, DocumentTypeValidator>();
         builder.Services.AddScoped<IEmployeeInfoValidator, EmployeeInfoValidator>();
+        builder.Services.AddScoped<IDocumentValidator, DocumentValidator>();
+        builder.Services.AddScoped<IPhoneNumberFormatter, PhoneNumberFormatter>();
+        builder.Services.AddScoped<IInternUserValidator, InternUserValidator>();
 
         // Register Services
         builder.Services.AddScoped<IStateService, StateService>();
@@ -59,6 +68,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddScoped<IProjectService, ProjectService>();
         builder.Services.AddScoped<IDocumentTypeService, DocumentTypeService>();
         builder.Services.AddScoped<IEmployeeInfoService, EmployeeInfoService>();
+        builder.Services.AddScoped<IInternUserService, InternUserService>();
 
 var app = builder.Build();
 

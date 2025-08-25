@@ -183,3 +183,4 @@ builder.Services.AddScoped<IStateService, StateService>();     // Depende de Rep
 3. **Crear validators** para otros componentes
 4. **Implementar validaciones** de integridad referencial
 
+

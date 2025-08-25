@@ -1,16 +1,17 @@
-namespace WorkTrackBio.API.Common
+namespace WorkTrackBio.API.Validators.PhoneNumberFormatter
 {
     /// <summary>
+    /// Implementación del formateador de números de teléfono
     /// Utilidades para formatear números de teléfono según el patrón requerido por la base de datos
     /// </summary>
-    public static class PhoneNumberFormatter
+    public class PhoneNumberFormatter : IPhoneNumberFormatter
     {
         /// <summary>
         /// Formatea un número de teléfono al patrón requerido: nnnn-nnnn (4 dígitos, guión, 4 dígitos)
         /// </summary>
         /// <param name="phoneNumber">Número de teléfono a formatear (puede contener guiones, espacios, etc.)</param>
         /// <returns>Número formateado o null si el input es null o vacío</returns>
-        public static string? FormatPhoneNumber(string? phoneNumber)
+        public string? FormatPhoneNumber(string? phoneNumber)
         {
             if (string.IsNullOrWhiteSpace(phoneNumber))
                 return null;
@@ -31,7 +32,7 @@ namespace WorkTrackBio.API.Common
         /// </summary>
         /// <param name="documentNumber">Número de documento a limpiar</param>
         /// <returns>Número limpio o null si el input es null o vacío</returns>
-        public static string? CleanDocumentNumber(string? documentNumber)
+        public string? CleanDocumentNumber(string? documentNumber)
         {
             if (string.IsNullOrWhiteSpace(documentNumber))
                 return null;
