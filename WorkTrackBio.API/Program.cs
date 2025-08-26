@@ -20,6 +20,9 @@ using WorkTrackBio.API.Validators.PhoneNumberFormatter;
 using WorkTrackBio.API.Repositories.InternUserRepository;
 using WorkTrackBio.API.Services.InternUserService;
 using WorkTrackBio.API.Validators.InternUserValidator;
+using WorkTrackBio.API.Repositories.ProjectMaintenanceRepository;
+using WorkTrackBio.API.Services.ProjectMaintenanceService;
+using WorkTrackBio.API.Validators.ProjectMaintenanceValidator;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
@@ -51,6 +54,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddScoped<IDocumentTypeRepository, DocumentTypeRepository>();
         builder.Services.AddScoped<IEmployeeInfoRepository, EmployeeInfoRepository>();
         builder.Services.AddScoped<IInternUserRepository, InternUserRepository>();
+        builder.Services.AddScoped<IProjectMaintenanceRepository, ProjectMaintenanceRepository>();
 
         // Register Validators
         builder.Services.AddScoped<IStateValidator, StateValidator>();
@@ -61,6 +65,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddScoped<IDocumentValidator, DocumentValidator>();
         builder.Services.AddScoped<IPhoneNumberFormatter, PhoneNumberFormatter>();
         builder.Services.AddScoped<IInternUserValidator, InternUserValidator>();
+        builder.Services.AddScoped<IProjectMaintenanceValidator, ProjectMaintenanceValidator>();
 
         // Register Services
         builder.Services.AddScoped<IStateService, StateService>();
@@ -69,6 +74,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddScoped<IDocumentTypeService, DocumentTypeService>();
         builder.Services.AddScoped<IEmployeeInfoService, EmployeeInfoService>();
         builder.Services.AddScoped<IInternUserService, InternUserService>();
+        builder.Services.AddScoped<IProjectMaintenanceService, ProjectMaintenanceService>();
 
 var app = builder.Build();
 
