@@ -38,6 +38,14 @@ namespace WorkTrackBio.API.Data.Models
         public int StateId { get; set; }
         
         public DateTime? LastLogin { get; set; }
+
+        // Campos de documento (igual que EmployeeInfo)
+        [StringLength(50)]
+        public string? DocumentNumber { get; set; }
+        
+        public int? DocumentTypeId { get; set; }
+        
+        public DateOnly? DocumentExpire { get; set; }
         
         // Navigation properties
         [ForeignKey("RolId")]
@@ -45,5 +53,8 @@ namespace WorkTrackBio.API.Data.Models
         
         [ForeignKey("StateId")]
         public virtual State State { get; set; } = null!;
+        
+        [ForeignKey("DocumentTypeId")]
+        public virtual DocumentType? DocumentType { get; set; }
     }
 }

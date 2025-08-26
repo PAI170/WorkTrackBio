@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WorkTrackBio.API.Data.Context;
 
@@ -11,9 +12,11 @@ using WorkTrackBio.API.Data.Context;
 namespace WorkTrackBio.API.Migrations
 {
     [DbContext(typeof(WorkTrackBioDbContext))]
-    partial class WorkTrackBioDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250826180535_AddDocumentFieldsToInternUser")]
+    partial class AddDocumentFieldsToInternUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

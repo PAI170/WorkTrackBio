@@ -8,6 +8,8 @@ namespace WorkTrackBio.API.Repositories.InternUserRepository
         Task<IEnumerable<InternUser>> GetAllAsync();
         Task<InternUser?> GetByIdAsync(int id);
         Task<InternUser?> GetByEmailAsync(string email);
+        Task<InternUser?> GetByDocumentAsync(string documentNumber);
+        Task<InternUser?> GetByIdentifierAsync(string identifier);
         Task<IEnumerable<InternUser>> GetByRoleAsync(int roleId);
         Task<IEnumerable<InternUser>> GetByStateAsync(int stateId);
         Task<bool> ExistsByEmailAsync(string email);
@@ -19,3 +21,4 @@ namespace WorkTrackBio.API.Repositories.InternUserRepository
         Task<int> SaveChangesAsync();
     }
 }
+

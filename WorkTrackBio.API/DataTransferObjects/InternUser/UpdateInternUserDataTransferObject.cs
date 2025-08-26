@@ -8,5 +8,11 @@ namespace WorkTrackBio.API.DataTransferObjects.InternUser
         public string? LastName { get; set; }
         public int? RolId { get; set; }
         public int? StateId { get; set; }
+        
+        // Campos de documento
+        public string? DocumentNumber { get; set; }
+        public int? DocumentTypeId { get; set; }
+        public DateOnly? DocumentExpire { get; set; }
     }
 }
+

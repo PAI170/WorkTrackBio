@@ -6,9 +6,6 @@ using WorkTrackBio.API.Validators.InternUserValidator;
 
 namespace WorkTrackBio.API.Controllers
 {
-    /// <summary>
-    /// Controlador para gestionar usuarios internos del sistema
-    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -28,12 +25,6 @@ namespace WorkTrackBio.API.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Obtiene todos los usuarios internos
-        /// </summary>
-        /// <returns>Lista de usuarios internos</returns>
-        /// <response code="200">Lista de usuarios obtenida exitosamente</response>
-        /// <response code="500">Error interno del servidor</response>
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<InternUserDataTransferObject>>), 200)]
         [ProducesResponseType(typeof(ApiResponse<object>), 500)]
@@ -41,15 +32,15 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                _logger.LogInformation("Obteniendo todos los usuarios internos");
+                _logger.LogInformation("Obteniendo todos los usuarios");
                 
                 var internUsers = await _internUserService.GetAllInternUsersAsync();
                 
-                _logger.LogInformation("Se obtuvieron {Count} usuarios internos", internUsers.Count());
+                _logger.LogInformation("Se obtuvieron {Count} usuarios", internUsers.Count());
                 
                 return Ok(ApiResponse<IEnumerable<InternUserDataTransferObject>>.SuccessResponse(
                     internUsers, 
-                    "Usuarios internos obtenidos exitosamente"));
+                    "Usuarios obtenidos exitosamente"));
             }
             catch (Exception ex)
             {
@@ -59,15 +50,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene un usuario interno por su ID
-        /// </summary>
-        /// <param name="id">ID del usuario interno</param>
-        /// <returns>Usuario interno encontrado</returns>
-        /// <response code="200">Usuario interno obtenido exitosamente</response>
-        /// <response code="400">ID inválido</response>
-        /// <response code="404">Usuario interno no encontrado</response>
-        /// <response code="500">Error interno del servidor</response>
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(ApiResponse<InternUserDataTransferObject>), 200)]
         [ProducesResponseType(typeof(ApiResponse<object>), 400)]
@@ -79,43 +61,34 @@ namespace WorkTrackBio.API.Controllers
             {
                 if (id <= 0)
                 {
-                    _logger.LogWarning("Se intentó obtener usuario interno con ID inválido: {Id}", id);
+                    _logger.LogWarning("Se intentó obtener usuario con ID inválido: {Id}", id);
                     return BadRequest(ApiResponse<object>.ErrorResponse("El ID debe ser mayor que 0"));
                 }
 
-                _logger.LogInformation("Obteniendo usuario interno con ID: {Id}", id);
+                _logger.LogInformation("Obteniendo usuario con ID: {Id}", id);
                 
                 var internUser = await _internUserService.GetInternUserByIdAsync(id);
                 
                 if (internUser == null)
                 {
                     _logger.LogWarning("No se encontró usuario interno con ID: {Id}", id);
-                    return NotFound(ApiResponse<object>.ErrorResponse($"No se encontró un usuario interno con ID {id}"));
+                    return NotFound(ApiResponse<object>.ErrorResponse($"No se encontró un usuario con ID {id}"));
                 }
                 
-                _logger.LogInformation("Usuario interno obtenido exitosamente con ID: {Id}", id);
+                _logger.LogInformation("Usuario obtenido exitosamente con ID: {Id}", id);
                 
                 return Ok(ApiResponse<object>.SuccessResponse(
                     internUser, 
-                    "Usuario interno obtenido exitosamente"));
+                    "Usuario obtenido exitosamente"));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener usuario interno con ID: {Id}", id);
+                _logger.LogError(ex, "Error al obtener usuario con ID: {Id}", id);
                 return StatusCode(500, ApiResponse<object>.ErrorResponse(
                     "Error interno del servidor al obtener el usuario interno"));
             }
         }
 
-        /// <summary>
-        /// Obtiene un usuario interno por su email
-        /// </summary>
-        /// <param name="email">Email del usuario interno</param>
-        /// <returns>Usuario interno encontrado</returns>
-        /// <response code="200">Usuario interno obtenido exitosamente</response>
-        /// <response code="400">Email inválido</response>
-        /// <response code="404">Usuario interno no encontrado</response>
-        /// <response code="500">Error interno del servidor</response>
         [HttpGet("email/{email}")]
         [ProducesResponseType(typeof(ApiResponse<InternUserDataTransferObject>), 200)]
         [ProducesResponseType(typeof(ApiResponse<object>), 400)]
@@ -127,42 +100,82 @@ namespace WorkTrackBio.API.Controllers
             {
                 if (string.IsNullOrWhiteSpace(email))
                 {
-                    _logger.LogWarning("Se intentó obtener usuario interno con email vacío");
+                    _logger.LogWarning("Se intentó obtener usuario con email vacío");
                     return BadRequest(ApiResponse<object>.ErrorResponse("El email no puede estar vacío"));
                 }
 
-                _logger.LogInformation("Obteniendo usuario interno con email: {Email}", email);
+                _logger.LogInformation("Obteniendo usuario con email: {Email}", email);
                 
                 var internUser = await _internUserService.GetInternUserByEmailAsync(email);
                 
                 if (internUser == null)
                 {
-                    _logger.LogWarning("No se encontró usuario interno con email: {Email}", email);
-                    return NotFound(ApiResponse<object>.ErrorResponse($"No se encontró un usuario interno con email '{email}'"));
+                    _logger.LogWarning("No se encontró usuario con email: {Email}", email);
+                    return NotFound(ApiResponse<object>.ErrorResponse($"No se encontró un usuario con email '{email}'"));
                 }
                 
-                _logger.LogInformation("Usuario interno obtenido exitosamente con email: {Email}", email);
+                _logger.LogInformation("Usuario obtenido exitosamente con email: {Email}", email);
                 
                 return Ok(ApiResponse<object>.SuccessResponse(
                     internUser, 
-                    "Usuario interno obtenido exitosamente"));
+                    "Usuario obtenido exitosamente"));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener usuario interno con email: {Email}", email);
+                _logger.LogError(ex, "Error al obtener usuario con email: {Email}", email);
                 return StatusCode(500, ApiResponse<object>.ErrorResponse(
-                    "Error interno del servidor al obtener el usuario interno"));
+                    "Error interno del servidor al obtener el usuario"));
             }
         }
 
         /// <summary>
-        /// Obtiene usuarios internos por rol
+        /// Obtiene un usuario interno por ID o número de documento
         /// </summary>
-        /// <param name="roleId">ID del rol</param>
-        /// <returns>Lista de usuarios internos del rol especificado</returns>
-        /// <response code="200">Usuarios internos obtenidos exitosamente</response>
-        /// <response code="400">ID de rol inválido</response>
+        /// <param name="identifier">ID del usuario o número de documento</param>
+        /// <returns>Usuario interno encontrado</returns>
+        /// <response code="200">Usuario interno obtenido exitosamente</response>
+        /// <response code="400">Identificador inválido</response>
+        /// <response code="404">Usuario interno no encontrado</response>
         /// <response code="500">Error interno del servidor</response>
+        [HttpGet("search/{identifier}")]
+        [ProducesResponseType(typeof(ApiResponse<InternUserDataTransferObject>), 200)]
+        [ProducesResponseType(typeof(ApiResponse<object>), 400)]
+        [ProducesResponseType(typeof(ApiResponse<object>), 404)]
+        [ProducesResponseType(typeof(ApiResponse<object>), 500)]
+        public async Task<ActionResult<ApiResponse<InternUserDataTransferObject>>> GetInternUserByIdentifier(string identifier)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(identifier))
+                {
+                    _logger.LogWarning("Se intentó obtener usuario con identificador vacío");
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El identificador no puede estar vacío"));
+                }
+
+                _logger.LogInformation("Buscando usuario con identificador: {Identifier}", identifier);
+                
+                var internUser = await _internUserService.GetInternUserByIdentifierAsync(identifier);
+                
+                if (internUser == null)
+                {
+                    _logger.LogWarning("No se encontró usuario con identificador: {Identifier}", identifier);
+                    return NotFound(ApiResponse<object>.ErrorResponse($"No se encontró un usuario con el identificador '{identifier}'"));
+                }
+                
+                _logger.LogInformation("Usuario obtenido exitosamente con identificador: {Identifier}", identifier);
+                
+                return Ok(ApiResponse<InternUserDataTransferObject>.SuccessResponse(
+                    internUser, 
+                    "Usuario obtenido exitosamente"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener usuario con identificador: {Identifier}", identifier);
+                return StatusCode(500, ApiResponse<object>.ErrorResponse(
+                    "Error interno del servidor al obtener el usuario"));
+            }
+        }
+
         [HttpGet("role/{roleId:int}")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<InternUserDataTransferObject>>), 200)]
         [ProducesResponseType(typeof(ApiResponse<object>), 400)]
@@ -173,42 +186,34 @@ namespace WorkTrackBio.API.Controllers
             {
                 if (roleId <= 0)
                 {
-                    _logger.LogWarning("Se intentó obtener usuarios internos con ID de rol inválido: {RoleId}", roleId);
+                    _logger.LogWarning("Se intentó obtener usuarios con ID de rol inválido: {RoleId}", roleId);
                     return BadRequest(ApiResponse<object>.ErrorResponse("El ID del rol debe ser mayor que 0"));
                 }
 
-                _logger.LogInformation("Obteniendo usuarios internos del rol con ID: {RoleId}", roleId);
+                _logger.LogInformation("Obteniendo usuarios del rol con ID: {RoleId}", roleId);
                 
                 var internUsers = await _internUserService.GetInternUsersByRoleAsync(roleId);
                 
-                _logger.LogInformation("Se obtuvieron {Count} usuarios internos del rol con ID: {RoleId}", 
+                _logger.LogInformation("Se obtuvieron {Count} usuarios del rol con ID: {RoleId}", 
                     internUsers.Count(), roleId);
                 
                 return Ok(ApiResponse<object>.SuccessResponse(
                     internUsers, 
-                    $"Usuarios internos del rol {roleId} obtenidos exitosamente"));
+                    $"Usuarios del rol {roleId} obtenidos exitosamente"));
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Argumento inválido al obtener usuarios internos por rol: {RoleId}", roleId);
+                _logger.LogWarning(ex, "Argumento inválido al obtener usuarios por rol: {RoleId}", roleId);
                 return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener usuarios internos del rol con ID: {RoleId}", roleId);
+                _logger.LogError(ex, "Error al obtener usuarios del rol con ID: {RoleId}", roleId);
                 return StatusCode(500, ApiResponse<object>.ErrorResponse(
-                    "Error interno del servidor al obtener usuarios internos por rol"));
+                    "Error interno del servidor al obtener usuarios por rol"));
             }
         }
 
-        /// <summary>
-        /// Obtiene usuarios internos por estado
-        /// </summary>
-        /// <param name="stateId">ID del estado</param>
-        /// <returns>Lista de usuarios internos del estado especificado</returns>
-        /// <response code="200">Usuarios internos obtenidos exitosamente</response>
-        /// <response code="400">ID de estado inválido</response>
-        /// <response code="500">Error interno del servidor</response>
         [HttpGet("state/{stateId:int}")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<InternUserDataTransferObject>>), 200)]
         [ProducesResponseType(typeof(ApiResponse<object>), 400)]
@@ -219,43 +224,34 @@ namespace WorkTrackBio.API.Controllers
             {
                 if (stateId <= 0)
                 {
-                    _logger.LogWarning("Se intentó obtener usuarios internos con ID de estado inválido: {StateId}", stateId);
+                    _logger.LogWarning("Se intentó obtener usuarios con ID de estado inválido: {StateId}", stateId);
                     return BadRequest(ApiResponse<object>.ErrorResponse("El ID del estado debe ser mayor que 0"));
                 }
 
-                _logger.LogInformation("Obteniendo usuarios internos del estado con ID: {StateId}", stateId);
+                _logger.LogInformation("Obteniendo usuarios del estado con ID: {StateId}", stateId);
                 
                 var internUsers = await _internUserService.GetInternUsersByStateAsync(stateId);
                 
-                _logger.LogInformation("Se obtuvieron {Count} usuarios internos del estado con ID: {StateId}", 
+                _logger.LogInformation("Se obtuvieron {Count} usuarios del estado con ID: {StateId}", 
                     internUsers.Count(), stateId);
                 
                 return Ok(ApiResponse<object>.SuccessResponse(
                     internUsers, 
-                    $"Usuarios internos del estado {stateId} obtenidos exitosamente"));
+                    $"Usuarios del estado {stateId} obtenidos exitosamente"));
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Argumento inválido al obtener usuarios internos por estado: {StateId}", stateId);
+                _logger.LogWarning(ex, "Argumento inválido al obtener usuarios por estado: {StateId}", stateId);
                 return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener usuarios internos del estado con ID: {StateId}", stateId);
+                _logger.LogError(ex, "Error al obtener usuarios del estado con ID: {StateId}", stateId);
                 return StatusCode(500, ApiResponse<object>.ErrorResponse(
-                    "Error interno del servidor al obtener usuarios internos por estado"));
+                    "Error interno del servidor al obtener usuarios por estado"));
             }
         }
 
-        /// <summary>
-        /// Crea un nuevo usuario interno
-        /// </summary>
-        /// <param name="createDto">Datos para crear el usuario interno</param>
-        /// <returns>Usuario interno creado</returns>
-        /// <response code="201">Usuario interno creado exitosamente</response>
-        /// <response code="400">Datos inválidos o validación fallida</response>
-        /// <response code="409">Conflicto (email ya existe)</response>
-        /// <response code="500">Error interno del servidor</response>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse<InternUserDataTransferObject>), 201)]
         [ProducesResponseType(typeof(ApiResponse<object>), 400)]
@@ -267,61 +263,49 @@ namespace WorkTrackBio.API.Controllers
             {
                 if (createDto == null)
                 {
-                    _logger.LogWarning("Se intentó crear usuario interno con DTO nulo");
-                    return BadRequest(ApiResponse<object>.ErrorResponse("Los datos del usuario interno no pueden ser nulos"));
+                    _logger.LogWarning("Se intentó crear usuario con DTO nulo");
+                    return BadRequest(ApiResponse<object>.ErrorResponse("Los datos del usuario no pueden estar vacios"));
                 }
 
-                _logger.LogInformation("Creando nuevo usuario interno con email: {Email}", createDto.Email);
+                _logger.LogInformation("Creando nuevo usuario con email: {Email}", createDto.Email);
                 
-                // Validar DTO antes de crear
                 var validationResult = await _internUserValidator.ValidateCreateAsync(createDto);
                 if (!validationResult.IsValid)
                 {
                     var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                    _logger.LogWarning("Validación fallida al crear usuario interno: {Errors}", errors);
+                    _logger.LogWarning("Validación fallida al crear usuario: {Errors}", errors);
                     return BadRequest(ApiResponse<object>.ErrorResponse($"Validación fallida: {errors}"));
                 }
                 
                 var createdInternUser = await _internUserService.CreateInternUserAsync(createDto);
                 
-                _logger.LogInformation("Usuario interno creado exitosamente con ID: {Id}", createdInternUser.Id);
+                _logger.LogInformation("Usuario creado exitosamente con ID: {Id}", createdInternUser.Id);
                 
                 return CreatedAtAction(
                     nameof(GetInternUserById), 
                     new { id = createdInternUser.Id },
                     ApiResponse<object>.SuccessResponse(
                         createdInternUser, 
-                        "Usuario interno creado exitosamente"));
+                        "Usuario creado exitosamente"));
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Conflicto al crear usuario interno con email: {Email}", createDto?.Email);
+                _logger.LogWarning(ex, "Conflicto al crear usuario con email: {Email}", createDto?.Email);
                 return Conflict(ApiResponse<object>.ErrorResponse(ex.Message));
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Argumento inválido al crear usuario interno");
+                _logger.LogWarning(ex, "Argumento inválido al crear usuario");
                 return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear usuario interno con email: {Email}", createDto?.Email);
+                _logger.LogError(ex, "Error al crear usuario con email: {Email}", createDto?.Email);
                 return StatusCode(500, ApiResponse<object>.ErrorResponse(
-                    "Error interno del servidor al crear el usuario interno"));
+                    "Error interno del servidor al crear el usuario"));
             }
         }
 
-        /// <summary>
-        /// Actualiza un usuario interno existente
-        /// </summary>
-        /// <param name="id">ID del usuario interno a actualizar</param>
-        /// <param name="updateDto">Datos para actualizar el usuario interno</param>
-        /// <returns>Usuario interno actualizado</returns>
-        /// <response code="200">Usuario interno actualizado exitosamente</response>
-        /// <response code="400">Datos inválidos o validación fallida</response>
-        /// <response code="404">Usuario interno no encontrado</response>
-        /// <response code="409">Conflicto (email ya existe)</response>
-        /// <response code="500">Error interno del servidor</response>
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(ApiResponse<InternUserDataTransferObject>), 200)]
         [ProducesResponseType(typeof(ApiResponse<object>), 400)]
@@ -334,8 +318,8 @@ namespace WorkTrackBio.API.Controllers
             {
                 if (updateDto == null)
                 {
-                    _logger.LogWarning("Se intentó actualizar usuario interno con DTO nulo");
-                    return BadRequest(ApiResponse<object>.ErrorResponse("Los datos de actualización no pueden ser nulos"));
+                    _logger.LogWarning("Se intentó actualizar usuario con DTO nulo");
+                    return BadRequest(ApiResponse<object>.ErrorResponse("Campos necesarios para la actualizacion"));
                 }
 
                 if (id != updateDto.Id)
@@ -344,14 +328,14 @@ namespace WorkTrackBio.API.Controllers
                     return BadRequest(ApiResponse<object>.ErrorResponse("El ID en la ruta debe coincidir con el ID en el cuerpo de la petición"));
                 }
 
-                _logger.LogInformation("Actualizando usuario interno con ID: {Id}", id);
+                _logger.LogInformation("Actualizando usuario con ID: {Id}", id);
                 
                 // Validar DTO antes de actualizar
                 var validationResult = await _internUserValidator.ValidateUpdateAsync(updateDto);
                 if (!validationResult.IsValid)
                 {
                     var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                    _logger.LogWarning("Validación fallida al actualizar usuario interno con ID: {Id}. Errores: {Errors}", id, errors);
+                    _logger.LogWarning("Validación fallida al actualizar usuario con ID: {Id}. Errores: {Errors}", id, errors);
                     return BadRequest(ApiResponse<object>.ErrorResponse($"Validación fallida: {errors}"));
                 }
                 
@@ -359,44 +343,34 @@ namespace WorkTrackBio.API.Controllers
                 
                 if (updatedInternUser == null)
                 {
-                    _logger.LogWarning("No se encontró usuario interno para actualizar con ID: {Id}", id);
-                    return NotFound(ApiResponse<object>.ErrorResponse($"No se encontró un usuario interno con ID {id}"));
+                    _logger.LogWarning("No se encontró usuario para actualizar con ID: {Id}", id);
+                    return NotFound(ApiResponse<object>.ErrorResponse($"No se encontró un usuario con ID {id}"));
                 }
                 
-                _logger.LogInformation("Usuario interno actualizado exitosamente con ID: {Id}", id);
+                _logger.LogInformation("Usuario actualizado exitosamente con ID: {Id}", id);
                 
                 return Ok(ApiResponse<object>.SuccessResponse(
                     updatedInternUser, 
-                    "Usuario interno actualizado exitosamente"));
+                    "Usuario actualizado exitosamente"));
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Conflicto al actualizar usuario interno con ID: {Id}", id);
+                _logger.LogWarning(ex, "Conflicto al actualizar usuario con ID: {Id}", id);
                 return Conflict(ApiResponse<object>.ErrorResponse(ex.Message));
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning(ex, "Argumento inválido al actualizar usuario interno con ID: {Id}", id);
+                _logger.LogWarning(ex, "Argumento inválido al actualizar usuario con ID: {Id}", id);
                 return BadRequest(ApiResponse<object>.ErrorResponse(ex.Message));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al actualizar usuario interno con ID: {Id}", id);
+                _logger.LogError(ex, "Error al actualizar usuario con ID: {Id}", id);
                 return StatusCode(500, ApiResponse<object>.ErrorResponse(
-                    "Error interno del servidor al actualizar el usuario interno"));
+                    "Error interno del servidor al actualizar el usuario"));
             }
         }
 
-        /// <summary>
-        /// Elimina un usuario interno
-        /// </summary>
-        /// <param name="id">ID del usuario interno a eliminar</param>
-        /// <returns>Confirmación de eliminación</returns>
-        /// <response code="200">Usuario interno eliminado exitosamente</response>
-        /// <response code="400">ID inválido</response>
-        /// <response code="404">Usuario interno no encontrado</response>
-        /// <response code="409">No se puede eliminar (tiene dependencias)</response>
-        /// <response code="500">Error interno del servidor</response>
         [HttpDelete("{id:int}")]
         [ProducesResponseType(typeof(ApiResponse<object>), 200)]
         [ProducesResponseType(typeof(ApiResponse<object>), 400)]
@@ -409,35 +383,35 @@ namespace WorkTrackBio.API.Controllers
             {
                 if (id <= 0)
                 {
-                    _logger.LogWarning("Se intentó eliminar usuario interno con ID inválido: {Id}", id);
+                    _logger.LogWarning("Se intentó eliminar usuario con ID inválido: {Id}", id);
                     return BadRequest(ApiResponse<object>.ErrorResponse("El ID debe ser mayor que 0"));
                 }
 
-                _logger.LogInformation("Eliminando usuario interno con ID: {Id}", id);
+                _logger.LogInformation("Eliminando usuario con ID: {Id}", id);
                 
                 var deleted = await _internUserService.DeleteInternUserAsync(id);
                 
                 if (!deleted)
                 {
-                    _logger.LogWarning("No se encontró usuario interno para eliminar con ID: {Id}", id);
-                    return NotFound(ApiResponse<object>.ErrorResponse($"No se encontró un usuario interno con ID {id}"));
+                    _logger.LogWarning("No se encontró usuario para eliminar con ID: {Id}", id);
+                    return NotFound(ApiResponse<object>.ErrorResponse($"No se encontró un usuario con ID {id}"));
                 }
                 
-                _logger.LogInformation("Usuario interno eliminado exitosamente con ID: {Id}", id);
+                _logger.LogInformation("Usuario eliminado exitosamente con ID: {Id}", id);
                 
                 return Ok(ApiResponse<object>.SuccessResponse(
-                    "Usuario interno eliminado exitosamente"));
+                    "Usuario eliminado exitosamente"));
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "No se puede eliminar usuario interno con ID: {Id} - Tiene dependencias", id);
+                _logger.LogWarning(ex, "No se puede eliminar usuario con ID: {Id} - Tiene dependencias", id);
                 return Conflict(ApiResponse<object>.ErrorResponse(ex.Message));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al eliminar usuario interno con ID: {Id}", id);
+                _logger.LogError(ex, "Error al eliminar usuario con ID: {Id}", id);
                 return StatusCode(500, ApiResponse<object>.ErrorResponse(
-                    "Error interno del servidor al eliminar el usuario interno"));
+                    "Error interno del servidor al eliminar el usuario"));
             }
         }
     }

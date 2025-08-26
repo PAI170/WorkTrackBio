@@ -72,6 +72,13 @@ namespace WorkTrackBio.API.Data.Context
                 .HasForeignKey(u => u.StateId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Nueva relación con DocumentType para validaciones
+            modelBuilder.Entity<InternUser>()
+                .HasOne(u => u.DocumentType)
+                .WithMany()
+                .HasForeignKey(u => u.DocumentTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Projects
             modelBuilder.Entity<Project>()
                 .HasOne(p => p.State)

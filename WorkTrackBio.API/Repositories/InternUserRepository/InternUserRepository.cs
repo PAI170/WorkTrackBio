@@ -41,6 +41,33 @@ namespace WorkTrackBio.API.Repositories.InternUserRepository
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         }
 
+        public async Task<InternUser?> GetByDocumentAsync(string documentNumber)
+        {
+            if (string.IsNullOrWhiteSpace(documentNumber))
+                return null;
+
+            return await _context.InternUsers
+                .Include(u => u.Role)
+                .Include(u => u.State)
+                .Include(u => u.DocumentType)
+                .FirstOrDefaultAsync(u => u.DocumentNumber == documentNumber);
+        }
+
+        public async Task<InternUser?> GetByIdentifierAsync(string identifier)
+        {
+            if (string.IsNullOrWhiteSpace(identifier))
+                return null;
+
+            // Si es un número, buscar por ID
+            if (int.TryParse(identifier, out int id))
+            {
+                return await GetByIdAsync(id);
+            }
+            
+            // Si no, buscar por documento
+            return await GetByDocumentAsync(identifier);
+        }
+
         public async Task<IEnumerable<InternUser>> GetByRoleAsync(int roleId)
         {
             return await _context.InternUsers
@@ -120,6 +147,16 @@ namespace WorkTrackBio.API.Repositories.InternUserRepository
             if (internUser.StateId > 0 && existingUser.StateId != internUser.StateId)
                 existingUser.StateId = internUser.StateId;
 
+            // Actualizar campos de documento si se proporcionan
+            if (!string.IsNullOrWhiteSpace(internUser.DocumentNumber) && existingUser.DocumentNumber != internUser.DocumentNumber)
+                existingUser.DocumentNumber = internUser.DocumentNumber;
+
+            if (internUser.DocumentTypeId.HasValue && existingUser.DocumentTypeId != internUser.DocumentTypeId)
+                existingUser.DocumentTypeId = internUser.DocumentTypeId;
+
+            if (internUser.DocumentExpire.HasValue && existingUser.DocumentExpire != internUser.DocumentExpire)
+                existingUser.DocumentExpire = internUser.DocumentExpire;
+
             _context.InternUsers.Update(existingUser);
             await _context.SaveChangesAsync();
 
@@ -156,3 +193,4 @@ namespace WorkTrackBio.API.Repositories.InternUserRepository
         }
     }
 }
+

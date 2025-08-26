@@ -20,3 +20,4 @@ namespace WorkTrackBio.API.Validators.PhoneNumberFormatter
         string? CleanDocumentNumber(string? documentNumber);
     }
 }
+

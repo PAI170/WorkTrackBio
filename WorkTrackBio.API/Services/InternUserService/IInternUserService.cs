@@ -7,6 +7,7 @@ namespace WorkTrackBio.API.Services.InternUserService
         Task<IEnumerable<InternUserDataTransferObject>> GetAllInternUsersAsync();
         Task<InternUserDataTransferObject?> GetInternUserByIdAsync(int id);
         Task<InternUserDataTransferObject?> GetInternUserByEmailAsync(string email);
+        Task<InternUserDataTransferObject?> GetInternUserByIdentifierAsync(string identifier);
         Task<IEnumerable<InternUserDataTransferObject>> GetInternUsersByRoleAsync(int roleId);
         Task<IEnumerable<InternUserDataTransferObject>> GetInternUsersByStateAsync(int stateId);
         Task<bool> InternUserExistsAsync(int id);
@@ -16,3 +17,4 @@ namespace WorkTrackBio.API.Services.InternUserService
         Task<bool> DeleteInternUserAsync(int id);
     }
 }
+
