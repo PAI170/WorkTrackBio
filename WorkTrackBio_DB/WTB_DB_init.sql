@@ -74,7 +74,12 @@ BEGIN
 	CreationDate DATETIME2 NOT NULL DEFAULT GETDATE(),
 	StateId INT NOT NULL,
 	CONSTRAINT FK_InternUsers_StateId FOREIGN KEY (StateId) REFERENCES States(Id),
-	LastLogin DATETIME2 NULL
+	LastLogin DATETIME2 NULL,
+	-- Nuevas columnas para documentos (igual que EmployeeInfo)
+	DocumentNumber NVARCHAR(50) NULL,
+	DocumentTypeId INT NULL,
+	CONSTRAINT FK_InternUsers_DocumentTypeId FOREIGN KEY (DocumentTypeId) REFERENCES DocumentType(Id),
+	DocumentExpire DATE NULL
 	);
 	PRINT '✅ Tabla InternUsers creada';
 END
@@ -328,8 +333,20 @@ END
 
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_InternUsers_RolId' AND object_id = OBJECT_ID('InternUsers'))
 BEGIN
-    CREATE NONCLUSTERED INDEX IX_InternUsers_RolId
-    ON InternUsers (RolId);
+	CREATE NONCLUSTERED INDEX IX_InternUsers_RolId
+	ON InternUsers (RolId);
+END
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_InternUsers_DocumentNumber' AND object_id = OBJECT_ID('InternUsers'))
+BEGIN
+	CREATE NONCLUSTERED INDEX IX_InternUsers_DocumentNumber
+	ON InternUsers (DocumentNumber);
+END
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_InternUsers_DocumentTypeId' AND object_id = OBJECT_ID('InternUsers'))
+BEGIN
+	CREATE NONCLUSTERED INDEX IX_InternUsers_DocumentTypeId
+	ON InternUsers (DocumentTypeId);
 END
 
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Projects_ProjectName' AND object_id = OBJECT_ID('Projects'))
@@ -534,8 +551,23 @@ END
 
 IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_InternUsers_PasswordSalt_NotEmpty')
 BEGIN
-    ALTER TABLE InternUsers
-    ADD CONSTRAINT CK_InternUsers_PasswordSalt_NotEmpty CHECK (LEN(LTRIM(RTRIM(PasswordSalt))) >= 8);
+	ALTER TABLE InternUsers
+	ADD CONSTRAINT CK_InternUsers_PasswordSalt_NotEmpty CHECK (LEN(LTRIM(RTRIM(PasswordSalt))) >= 8);
+END
+
+-- Validaciones para las nuevas columnas de documento en InternUsers
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_InternUsers_DocumentNumber_Format')
+BEGIN
+	ALTER TABLE InternUsers
+	ADD CONSTRAINT CK_InternUsers_DocumentNumber_Format 
+	CHECK (DocumentNumber IS NULL OR LEN(LTRIM(RTRIM(DocumentNumber))) > 0);
+END
+
+IF NOT EXISTS (SELECT * FROM sys.check_constraints WHERE name = 'CK_InternUsers_DocumentExpire_Future')
+BEGIN
+	ALTER TABLE InternUsers
+	ADD CONSTRAINT CK_InternUsers_DocumentExpire_Future 
+	CHECK (DocumentExpire IS NULL OR DocumentExpire >= CAST(GETDATE() AS DATE));
 END
 
 -- 4. TABLA PROJECTS - Validaciones básicas
@@ -760,6 +792,53 @@ PRINT '📱 Los datos de prueba se han movido al archivo WTB_DB_TestData.sql par
 PRINT 'ℹ️ Ejecuta ese archivo después de este script si deseas insertar datos de prueba';
 
 -- =====================================================
+-- 7. MIGRACIÓN PARA BASES DE DATOS EXISTENTES
+-- =====================================================
+
+PRINT '🔄 Verificando y aplicando migraciones para bases de datos existentes...';
+
+-- Agregar columnas de documento a InternUsers si no existen (para bases de datos existentes)
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('InternUsers') AND name = 'DocumentNumber')
+BEGIN
+    ALTER TABLE InternUsers ADD DocumentNumber NVARCHAR(50) NULL;
+    PRINT '✅ Columna DocumentNumber agregada a InternUsers';
+END
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('InternUsers') AND name = 'DocumentTypeId')
+BEGIN
+    ALTER TABLE InternUsers ADD DocumentTypeId INT NULL;
+    PRINT '✅ Columna DocumentTypeId agregada a InternUsers';
+END
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('InternUsers') AND name = 'DocumentExpire')
+BEGIN
+    ALTER TABLE InternUsers ADD DocumentExpire DATE NULL;
+    PRINT '✅ Columna DocumentExpire agregada a InternUsers';
+END
+
+-- Agregar FK para DocumentTypeId si no existe
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_InternUsers_DocumentTypeId')
+BEGIN
+    ALTER TABLE InternUsers 
+    ADD CONSTRAINT FK_InternUsers_DocumentTypeId 
+    FOREIGN KEY (DocumentTypeId) REFERENCES DocumentType(Id);
+    PRINT '✅ FK DocumentTypeId agregada a InternUsers';
+END
+
+-- Crear índices si no existen (para bases de datos existentes)
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_InternUsers_DocumentNumber' AND object_id = OBJECT_ID('InternUsers'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_InternUsers_DocumentNumber ON InternUsers (DocumentNumber);
+    PRINT '✅ Índice IX_InternUsers_DocumentNumber creado';
+END
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_InternUsers_DocumentTypeId' AND object_id = OBJECT_ID('InternUsers'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_InternUsers_DocumentTypeId ON InternUsers (DocumentTypeId);
+    PRINT '✅ Índice IX_InternUsers_DocumentTypeId creado';
+END
+
+-- =====================================================
 -- 8. VERIFICACIÓN FINAL
 -- =====================================================
 
@@ -833,6 +912,7 @@ PRINT '📊 RESUMEN:';
 PRINT '   - Base de datos WTB_DB inicializada';
 PRINT '   - 16 tablas principales creadas';
 PRINT '   - Tablas de dispositivos y sesiones agregadas';
+PRINT '   - Columnas de documento agregadas a InternUsers';
 PRINT '   - Índices optimizados para consultas frecuentes';
 PRINT '   - Validaciones de integridad aplicadas';
 PRINT '   - Procedimientos almacenados creados';
@@ -845,6 +925,7 @@ PRINT '   - Formato de IBAN CR (22 caracteres)';
 PRINT '   - Validaciones de fechas lógicas';
 PRINT '   - Validaciones de campos no vacíos';
 PRINT '   - Validaciones de costos no negativos';
+PRINT '   - Validaciones de documentos para InternUsers';
 PRINT '';
 PRINT '🚀 La base de datos está lista para usar!';
 GO
