@@ -23,6 +23,12 @@ using WorkTrackBio.API.Validators.InternUserValidator;
 using WorkTrackBio.API.Repositories.ProjectMaintenanceRepository;
 using WorkTrackBio.API.Services.ProjectMaintenanceService;
 using WorkTrackBio.API.Validators.ProjectMaintenanceValidator;
+using WorkTrackBio.API.Repositories.AssistanceRepository;
+using WorkTrackBio.API.Services.AssistanceService;
+using WorkTrackBio.API.Validators.AssistanceValidator;
+using WorkTrackBio.API.Repositories.ProjectWarrantyRepository;
+using WorkTrackBio.API.Services.ProjectWarrantyService;
+using WorkTrackBio.API.Validators.ProjectWarrantyValidator;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
@@ -47,6 +53,22 @@ builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+// Add CORS for development (Angular)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevelopmentPolicy", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:4200",     // Angular default port
+                "http://localhost:3000",     // Alternative port
+                "http://localhost:8080"      // Another common port
+            )
+            .AllowAnyMethod()                // GET, POST, PUT, DELETE, etc.
+            .AllowAnyHeader()                // Content-Type, Authorization, etc.
+            .AllowCredentials();             // Allow cookies and auth headers
+    });
+});
+
         // Register Repositories
         builder.Services.AddScoped<IStateRepository, StateRepository>();
         builder.Services.AddScoped<IRoleRepository, RoleRepository>();
@@ -55,6 +77,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddScoped<IEmployeeInfoRepository, EmployeeInfoRepository>();
         builder.Services.AddScoped<IInternUserRepository, InternUserRepository>();
         builder.Services.AddScoped<IProjectMaintenanceRepository, ProjectMaintenanceRepository>();
+        builder.Services.AddScoped<IAssistanceRepository, AssistanceRepository>();
+        builder.Services.AddScoped<IProjectWarrantyRepository, ProjectWarrantyRepository>();
 
         // Register Validators
         builder.Services.AddScoped<IStateValidator, StateValidator>();
@@ -66,6 +90,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddScoped<IPhoneNumberFormatter, PhoneNumberFormatter>();
         builder.Services.AddScoped<IInternUserValidator, InternUserValidator>();
         builder.Services.AddScoped<IProjectMaintenanceValidator, ProjectMaintenanceValidator>();
+        builder.Services.AddScoped<IAssistanceValidator, AssistanceValidator>();
+        builder.Services.AddScoped<IProjectWarrantyValidator, ProjectWarrantyValidator>();
 
         // Register Services
         builder.Services.AddScoped<IStateService, StateService>();
@@ -75,6 +101,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddScoped<IEmployeeInfoService, EmployeeInfoService>();
         builder.Services.AddScoped<IInternUserService, InternUserService>();
         builder.Services.AddScoped<IProjectMaintenanceService, ProjectMaintenanceService>();
+        builder.Services.AddScoped<IAssistanceService, AssistanceService>();
+        builder.Services.AddScoped<IProjectWarrantyService, ProjectWarrantyService>();
 
 var app = builder.Build();
 
@@ -84,6 +112,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Use CORS - IMPORTANTE: debe ir antes de UseRouting y MapControllers
+app.UseCors("DevelopmentPolicy");
 
 // Deshabilitar completamente la redirección HTTPS para desarrollo
 app.Use(async (context, next) =>
