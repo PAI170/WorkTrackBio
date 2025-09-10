@@ -1,0 +1,39 @@
+header {
+    width: 100%;
+}
+
+.navbar-main {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo-content {
+    width: 10%;
+    img {
+        max-width: 100%;
+    }
+}
+
+.search-content {
+
+}
+
+.user-profile-content {
+    display: flex;
+    gap: 1rem;
+}
+
+.user-profile-content {
+    .profile-image {
+        width: 10%;
+    }
+    img {
+        max-width: 100%;
+        border-radius: 50px;
+    }
+
+}
