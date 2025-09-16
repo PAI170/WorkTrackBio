@@ -1,5 +1,10 @@
+@import 'theme';
+
 header {
     width: 100%;
+    padding-bottom: 15px;
+    padding-top: 15px;
+    box-shadow: 4px 10px 10px rgba(20, 25, 38, 0.05);
 }
 
 .navbar-main {
@@ -7,33 +12,48 @@ header {
     width: 100%;
     margin: 0 auto;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: space-between;
 }
 
 .logo-content {
-    width: 10%;
+    min-width: 120px;
     img {
         max-width: 100%;
     }
 }
 
 .search-content {
-
+    flex: 1;
+    max-width: 600px;
+    input {
+        width: 100%;
+        padding: 13px 15px;
+        border-radius: 10px;
+        outline: none;
+        border: 1px solid #ecf0f4;
+    }
 }
 
 .user-profile-content {
     display: flex;
-    gap: 1rem;
-}
-
-.user-profile-content {
-    .profile-image {
-        width: 10%;
-    }
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
     img {
         max-width: 100%;
         border-radius: 50px;
+    }
+    h3 {
+        font-family: $main-title;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    span{
+        color: $secundary-color;
+        font-family: $main-title;
+        font-weight: 400;
+        font-size: 0.8rem;
     }
 
 }
