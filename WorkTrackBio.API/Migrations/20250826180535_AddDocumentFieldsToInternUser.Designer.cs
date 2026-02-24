@@ -15,7 +15,6 @@ namespace WorkTrackBio.API.Migrations
     [Migration("20250826180535_AddDocumentFieldsToInternUser")]
     partial class AddDocumentFieldsToInternUser
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

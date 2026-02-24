@@ -4,10 +4,6 @@ using WorkTrackBio.API.Repositories.DocumentTypeRepository;
 
 namespace WorkTrackBio.API.Validators.DocumentValidator
 {
-    /// <summary>
-    /// Implementación del validator de documentos siguiendo el patrón establecido
-    /// Valida diferentes tipos de documentos según las reglas específicas de Costa Rica
-    /// </summary>
     public class DocumentValidator : IDocumentValidator
     {
         private readonly IDocumentTypeRepository _documentTypeRepository;
@@ -17,9 +13,6 @@ namespace WorkTrackBio.API.Validators.DocumentValidator
             _documentTypeRepository = documentTypeRepository ?? throw new ArgumentNullException(nameof(documentTypeRepository));
         }
 
-        /// <summary>
-        /// Valida el formato de un documento según su tipo usando la BD
-        /// </summary>
         public async Task<DocumentValidationResult> ValidateDocumentAsync(string documentNumber, int documentTypeId)
         {
             if (string.IsNullOrWhiteSpace(documentNumber))
@@ -37,9 +30,6 @@ namespace WorkTrackBio.API.Validators.DocumentValidator
             return ValidateDocumentByTypeName(cleanDocument, documentType.DocumentName);
         }
 
-        /// <summary>
-        /// Valida el formato de un documento según su nombre de tipo
-        /// </summary>
         public DocumentValidationResult ValidateDocumentByTypeName(string documentNumber, string documentTypeName)
         {
             if (string.IsNullOrWhiteSpace(documentNumber))
@@ -58,9 +48,6 @@ namespace WorkTrackBio.API.Validators.DocumentValidator
             };
         }
 
-        /// <summary>
-        /// Valida que el tipo de documento exista en la BD
-        /// </summary>
         public async Task<ValidationResult> ValidateDocumentTypeExistsAsync(int documentTypeId)
         {
             var result = new ValidationResult();
@@ -80,9 +67,6 @@ namespace WorkTrackBio.API.Validators.DocumentValidator
             return result;
         }
 
-        /// <summary>
-        /// Valida formato de Cédula de Identidad costarricense (9 dígitos)
-        /// </summary>
         private static DocumentValidationResult ValidateCedula(string documentNumber)
         {
             if (documentNumber.Length != 9)
@@ -98,9 +82,6 @@ namespace WorkTrackBio.API.Validators.DocumentValidator
             return new DocumentValidationResult { IsValid = true };
         }
 
-        /// <summary>
-        /// Valida formato de Pasaporte (1 o 2 letras + números)
-        /// </summary>
         private static DocumentValidationResult ValidatePasaporte(string documentNumber)
         {
             if (documentNumber.Length < 6 || documentNumber.Length > 9)
@@ -119,9 +100,7 @@ namespace WorkTrackBio.API.Validators.DocumentValidator
             return new DocumentValidationResult { IsValid = true };
         }
 
-        /// <summary>
-        /// Valida formato de DIMEX (12 dígitos)
-        /// </summary>
+        // Valida formato de DIMEX (12 dígitos)
         private static DocumentValidationResult ValidateDimex(string documentNumber)
         {
             if (documentNumber.Length != 12)
@@ -137,9 +116,7 @@ namespace WorkTrackBio.API.Validators.DocumentValidator
             return new DocumentValidationResult { IsValid = true };
         }
 
-        /// <summary>
-        /// Valida formato de Permiso de Trabajo (12 números)
-        /// </summary>
+        // Valida formato de Permiso de Trabajo (12 números)
         private static DocumentValidationResult ValidatePermisoTrabajo(string documentNumber)
         {
             if (documentNumber.Length != 12)

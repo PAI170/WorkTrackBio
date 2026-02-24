@@ -7,9 +7,6 @@ using WorkTrackBio.API.Repositories.AssistanceRepository;
 
 namespace WorkTrackBio.API.Validators.AssistanceValidator
 {
-    /// <summary>
-    /// Implementación del validador para Assistance
-    /// </summary>
     public class AssistanceValidator : IAssistanceValidator
     {
         private readonly IEmployeeInfoRepository _employeeRepository;
@@ -58,7 +55,7 @@ namespace WorkTrackBio.API.Validators.AssistanceValidator
             if (!result.IsValid)
                 return result;
 
-            // Validaciones adicionales de negocio solo si se están actualizando ciertos campos
+            // Validaciones parciales
             if (updateDto.EmployeeId.HasValue)
             {
                 var employeeValidation = await ValidateEmployeeExistsAsync(updateDto.EmployeeId.Value);
@@ -127,7 +124,6 @@ namespace WorkTrackBio.API.Validators.AssistanceValidator
 
             if (checkOut.HasValue)
             {
-                // Si se está haciendo CheckOut, verificar que no haya otro CheckIn abierto
                 var hasOpenCheckIn = await _assistanceRepository.HasOpenCheckInAsync(employeeId);
                 if (hasOpenCheckIn)
                 {
@@ -138,10 +134,6 @@ namespace WorkTrackBio.API.Validators.AssistanceValidator
             return result;
         }
     }
-
-    /// <summary>
-    /// Validador para CreateAssistanceDataTransferObject
-    /// </summary>
     public class CreateAssistanceValidator : AbstractValidator<CreateAssistanceDataTransferObject>
     {
         public CreateAssistanceValidator()
@@ -180,9 +172,6 @@ namespace WorkTrackBio.API.Validators.AssistanceValidator
         }
     }
 
-    /// <summary>
-    /// Validador para UpdateAssistanceDataTransferObject
-    /// </summary>
     public class UpdateAssistanceValidator : AbstractValidator<UpdateAssistanceDataTransferObject>
     {
         public UpdateAssistanceValidator()

@@ -61,7 +61,7 @@ namespace WorkTrackBio.API.Services.StateService
             if (createDto == null)
                 throw new ArgumentNullException(nameof(createDto));
 
-            // Verificar si ya existe un estado con el mismo nombre (case-insensitive)
+            // Verificar si ya existe un estado con el mismo nombre
             var existingState = await _stateRepository.GetAllAsync();
             if (existingState.Any(s => string.Equals(s.StateName, createDto.StateName, StringComparison.OrdinalIgnoreCase)))
                 throw new InvalidOperationException($"Ya existe un estado con el nombre '{createDto.StateName}' (ignorando mayúsculas/minúsculas)");
@@ -89,13 +89,12 @@ namespace WorkTrackBio.API.Services.StateService
             if (existingState == null)
                 return null;
 
-            // Lógica de "Partial Update": Solo actualizar campos que realmente cambiaron
             bool hasChanges = false;
 
             // Actualizar StateName solo si se proporcionó un nuevo valor
             if (!string.IsNullOrWhiteSpace(updateDto.StateName))
             {
-                // Verificar si el nuevo nombre ya existe en otro estado (case-insensitive)
+                // Verificar si el nuevo nombre ya existe en otro estado
                 var allStates = await _stateRepository.GetAllAsync();
                 if (allStates.Any(s => string.Equals(s.StateName, updateDto.StateName, StringComparison.OrdinalIgnoreCase) && 
                     s.Id != updateDto.Id))
@@ -120,7 +119,7 @@ namespace WorkTrackBio.API.Services.StateService
             }
 
             // Actualizar Description solo si se proporcionó un nuevo valor
-            if (updateDto.Description != null) // null significa "sin cambios"
+            if (updateDto.Description != null)
             {
                 if (!string.Equals(existingState.Description ?? "", updateDto.Description))
                 {
@@ -128,7 +127,6 @@ namespace WorkTrackBio.API.Services.StateService
                     hasChanges = true;
                 }
             }
-            // Si updateDto.Description es null, no se modifica (mantiene el valor original)
 
             // Si no hay cambios, retornar el estado existente sin modificar
             if (!hasChanges)
@@ -165,7 +163,6 @@ namespace WorkTrackBio.API.Services.StateService
         private async Task<bool> IsStateInUseAsync(int stateId)
         {
             // Verificar si hay entidades que dependen de este estado
-            // Esto es una implementación básica - puedes expandirla según tus necesidades
             var hasDependencies = await _stateRepository.HasDependenciesAsync(stateId);
             return hasDependencies;
         }

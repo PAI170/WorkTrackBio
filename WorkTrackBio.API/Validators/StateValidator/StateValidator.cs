@@ -5,15 +5,11 @@ using WorkTrackBio.API.Repositories.StateRepository;
 
 namespace WorkTrackBio.API.Validators.StateValidator
 {
-    /// <summary>
-    /// Validator para la entidad State usando FluentValidation con validaciones de base de datos
-    /// </summary>
     public class StateValidator : IStateValidator
     {
         private readonly IValidator<CreateStateDataTransferObject> _createValidator;
         private readonly IValidator<UpdateStateDataTransferObject> _updateValidator;
         private readonly IStateRepository _stateRepository;
-
         public StateValidator(IStateRepository stateRepository)
         {
             _stateRepository = stateRepository ?? throw new ArgumentNullException(nameof(stateRepository));
@@ -21,10 +17,6 @@ namespace WorkTrackBio.API.Validators.StateValidator
             _updateValidator = new UpdateStateValidator();
         }
 
-        /// <summary>
-        /// Valida los datos para crear un estado
-        /// Incluye validación de duplicados de nombre
-        /// </summary>
         public async Task<ValidationResult> ValidateCreateAsync(CreateStateDataTransferObject createDto)
         {
             if (createDto == null)
@@ -55,10 +47,6 @@ namespace WorkTrackBio.API.Validators.StateValidator
             return basicValidation;
         }
 
-        /// <summary>
-        /// Valida los datos para actualizar un estado
-        /// Incluye validación de existencia del ID y duplicados de nombre
-        /// </summary>
         public async Task<ValidationResult> ValidateUpdateAsync(UpdateStateDataTransferObject updateDto)
         {
             if (updateDto == null)
@@ -103,10 +91,6 @@ namespace WorkTrackBio.API.Validators.StateValidator
 
             return basicValidation;
         }
-
-        /// <summary>
-        /// Valida el ID de un estado
-        /// </summary>
         public ValidationResult ValidateId(int id)
         {
             var result = new ValidationResult();
@@ -118,10 +102,6 @@ namespace WorkTrackBio.API.Validators.StateValidator
 
             return result;
         }
-
-        /// <summary>
-        /// Valida el nombre de un estado
-        /// </summary>
         public ValidationResult ValidateStateName(string stateName)
         {
             var result = new ValidationResult();
@@ -137,10 +117,6 @@ namespace WorkTrackBio.API.Validators.StateValidator
 
             return result;
         }
-
-        /// <summary>
-        /// Valida el tipo de estado según las restricciones reales de la BD
-        /// </summary>
         public ValidationResult ValidateStateType(string stateType)
         {
             var result = new ValidationResult();
@@ -165,10 +141,6 @@ namespace WorkTrackBio.API.Validators.StateValidator
 
             return result;
         }
-
-        /// <summary>
-        /// Valida si un ID de estado existe en la base de datos
-        /// </summary>
         public async Task<ValidationResult> ValidateStateExistsAsync(int id)
         {
             var result = new ValidationResult();
@@ -194,10 +166,6 @@ namespace WorkTrackBio.API.Validators.StateValidator
 
             return result;
         }
-
-        /// <summary>
-        /// Valida si un nombre de estado ya existe (para evitar duplicados)
-        /// </summary>
         public async Task<ValidationResult> ValidateStateNameUniqueAsync(string stateName, int? excludeId = null)
         {
             var result = new ValidationResult();
@@ -244,11 +212,6 @@ namespace WorkTrackBio.API.Validators.StateValidator
             return result;
         }
     }
-
-    /// <summary>
-    /// Validator específico para crear estados
-    /// Valida formato y restricciones de base de datos
-    /// </summary>
     public class CreateStateValidator : AbstractValidator<CreateStateDataTransferObject>
     {
         public CreateStateValidator()
@@ -268,12 +231,6 @@ namespace WorkTrackBio.API.Validators.StateValidator
                 .When(x => !string.IsNullOrWhiteSpace(x.Description));
         }
     }
-
-    /// <summary>
-    /// Validator específico para actualizar estados
-    /// Valida formato, restricciones de base de datos y existencia
-    /// Permite campos opcionales para "Partial Updates"
-    /// </summary>
     public class UpdateStateValidator : AbstractValidator<UpdateStateDataTransferObject>
     {
         public UpdateStateValidator()

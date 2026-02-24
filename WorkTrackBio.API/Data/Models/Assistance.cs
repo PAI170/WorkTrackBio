@@ -33,11 +33,9 @@ namespace WorkTrackBio.API.Data.Models
         [StringLength(50)]
         public string RegisterType { get; set; } = string.Empty;
         
-        // Computed property
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateOnly CheckInDateOnly { get; set; }
         
-        // Navigation properties
         [ForeignKey("EmployeeId")]
         public virtual EmployeeInfo Employee { get; set; } = null!;
         

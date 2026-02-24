@@ -5,10 +5,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace WorkTrackBio.API.Migrations
 {
-    /// <inheritdoc />
     public partial class AddDocumentFieldsToInternUser : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<DateOnly>(
@@ -43,8 +41,6 @@ namespace WorkTrackBio.API.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
         }
-
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

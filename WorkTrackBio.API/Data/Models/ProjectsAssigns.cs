@@ -18,7 +18,6 @@ namespace WorkTrackBio.API.Data.Models
         
         public DateTime? EndDate { get; set; }
         
-        // Navigation properties
         [ForeignKey("EmployeeId")]
         public virtual EmployeeInfo Employee { get; set; } = null!;
         

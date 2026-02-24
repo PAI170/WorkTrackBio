@@ -1,8 +1,5 @@
 namespace WorkTrackBio.API.DataTransferObjects.ProjectWarranty
 {
-    /// <summary>
-    /// DTO para actualizaciones parciales de garantías de proyectos
-    /// </summary>
     public class UpdateProjectWarrantyDataTransferObject
     {
         public int? IdProject { get; set; }

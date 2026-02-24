@@ -3,9 +3,6 @@ using WorkTrackBio.API.DataTransferObjects.ProjectWarranty;
 
 namespace WorkTrackBio.API.Validators.ProjectWarrantyValidator
 {
-    /// <summary>
-    /// Validador de FluentValidation para CreateProjectWarrantyDataTransferObject
-    /// </summary>
     public class CreateProjectWarrantyValidator : AbstractValidator<CreateProjectWarrantyDataTransferObject>
     {
         public CreateProjectWarrantyValidator()

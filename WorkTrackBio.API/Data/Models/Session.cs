@@ -40,7 +40,6 @@ namespace WorkTrackBio.API.Data.Models
         
         public DateTime? LoggedOutAt { get; set; }
         
-        // Navigation property
         [ForeignKey("UserId")]
         public virtual InternUser User { get; set; } = null!;
     }

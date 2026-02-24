@@ -8,9 +8,6 @@ using WorkTrackBio.API.Validators.InternUserValidator;
 
 namespace WorkTrackBio.API.Services.InternUserService
 {
-    /// <summary>
-    /// Servicio para gestionar usuarios internos del sistema
-    /// </summary>
     public class InternUserService : IInternUserService
     {
         private readonly IInternUserRepository _internUserRepository;

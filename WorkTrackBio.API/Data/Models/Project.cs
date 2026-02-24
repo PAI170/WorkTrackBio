@@ -18,7 +18,6 @@ namespace WorkTrackBio.API.Data.Models
         [Required]
         public int StateId { get; set; }
         
-        // Navigation property
         [ForeignKey("StateId")]
         public virtual State State { get; set; } = null!;
     }

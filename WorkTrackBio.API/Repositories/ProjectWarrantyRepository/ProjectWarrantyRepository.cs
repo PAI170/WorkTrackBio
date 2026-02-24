@@ -4,9 +4,6 @@ using WorkTrackBio.API.Data.Models;
 
 namespace WorkTrackBio.API.Repositories.ProjectWarrantyRepository
 {
-    /// <summary>
-    /// Implementación del repositorio para ProjectWarranty
-    /// </summary>
     public class ProjectWarrantyRepository : IProjectWarrantyRepository
     {
         private readonly WorkTrackBioDbContext _context;
@@ -135,8 +132,6 @@ namespace WorkTrackBio.API.Repositories.ProjectWarrantyRepository
 
         public Task<bool> HasDependenciesAsync(int projectWarrantyId)
         {
-            // Por ahora no hay dependencias directas de ProjectWarranty
-            // Se puede expandir en el futuro si se agregan más entidades relacionadas
             return Task.FromResult(false);
         }
 

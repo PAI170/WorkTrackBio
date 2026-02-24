@@ -10,8 +10,6 @@ namespace WorkTrackBio.API.DataTransferObjects.ProjectMaintenance
         public decimal? MaintenanceCost { get; set; }
         public string? AdditionalInfo { get; set; }
         public int StateId { get; set; }
-        
-        // Navigation properties
         public string? ProjectName { get; set; }
         public string? MadeByName { get; set; }
         public string? StateName { get; set; }

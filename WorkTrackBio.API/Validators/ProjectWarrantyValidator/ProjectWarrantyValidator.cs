@@ -6,9 +6,6 @@ using WorkTrackBio.API.Repositories.StateRepository;
 
 namespace WorkTrackBio.API.Validators.ProjectWarrantyValidator
 {
-    /// <summary>
-    /// Implementación del validador para ProjectWarranty
-    /// </summary>
     public class ProjectWarrantyValidator : IProjectWarrantyValidator
     {
         private readonly IProjectRepository _projectRepository;

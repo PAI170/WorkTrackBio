@@ -4,9 +4,6 @@ using WorkTrackBio.API.Data.Models;
 
 namespace WorkTrackBio.API.Repositories.AssistanceRepository
 {
-    /// <summary>
-    /// Implementación del repositorio para Assistance
-    /// </summary>
     public class AssistanceRepository : IAssistanceRepository
     {
         private readonly WorkTrackBioDbContext _context;
@@ -136,7 +133,6 @@ namespace WorkTrackBio.API.Repositories.AssistanceRepository
             _context.Assistances.Add(assistance);
             await SaveChangesAsync();
 
-            // Retornar el registro creado con las entidades relacionadas
             return await _context.Assistances
                 .Include(a => a.Employee)
                 .Include(a => a.Project)
@@ -148,13 +144,11 @@ namespace WorkTrackBio.API.Repositories.AssistanceRepository
             if (assistance == null)
                 throw new ArgumentNullException(nameof(assistance));
 
-            // Establecer la fecha de modificación
             assistance.ModifiedDate = DateTime.UtcNow;
 
             _context.Assistances.Update(assistance);
             await SaveChangesAsync();
 
-            // Retornar el registro actualizado con las entidades relacionadas
             return await _context.Assistances
                 .Include(a => a.Employee)
                 .Include(a => a.Project)
@@ -174,7 +168,6 @@ namespace WorkTrackBio.API.Repositories.AssistanceRepository
 
         public async Task<bool> HasDependenciesAsync(int assistanceId)
         {
-            // Verificar si hay registros de auditoría que dependan de esta asistencia
             return await _context.AuditRegisters.AnyAsync(ar => ar.AssistanceId == assistanceId);
         }
 

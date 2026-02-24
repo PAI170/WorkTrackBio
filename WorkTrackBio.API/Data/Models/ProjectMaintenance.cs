@@ -28,7 +28,6 @@ namespace WorkTrackBio.API.Data.Models
         [Required]
         public int StateId { get; set; }
         
-        // Navigation properties
         [ForeignKey("IdProject")]
         public virtual Project Project { get; set; } = null!;
         

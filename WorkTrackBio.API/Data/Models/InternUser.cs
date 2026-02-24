@@ -39,7 +39,6 @@ namespace WorkTrackBio.API.Data.Models
         
         public DateTime? LastLogin { get; set; }
 
-        // Campos de documento (igual que EmployeeInfo)
         [StringLength(50)]
         public string? DocumentNumber { get; set; }
         
@@ -47,7 +46,6 @@ namespace WorkTrackBio.API.Data.Models
         
         public DateOnly? DocumentExpire { get; set; }
         
-        // Navigation properties
         [ForeignKey("RolId")]
         public virtual Role Role { get; set; } = null!;
         

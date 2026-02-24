@@ -15,7 +15,6 @@ namespace WorkTrackBio.API.Migrations
     [Migration("20250820235256_InitialCreate")]
     partial class InitialCreate
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

@@ -8,8 +8,6 @@ namespace WorkTrackBio.API.Data.Context
         public WorkTrackBioDbContext(DbContextOptions<WorkTrackBioDbContext> options) : base(options)
         {
         }
-
-        // DbSets para las entidades
         public DbSet<State> States { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<InternUser> InternUsers { get; set; }
@@ -57,7 +55,6 @@ namespace WorkTrackBio.API.Data.Context
 
         private void ConfigureRelationships(ModelBuilder modelBuilder)
         {
-            // Configurar relaciones y comportamientos de cascada
             
             // InternUsers
             modelBuilder.Entity<InternUser>()
@@ -72,7 +69,6 @@ namespace WorkTrackBio.API.Data.Context
                 .HasForeignKey(u => u.StateId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Nueva relación con DocumentType para validaciones
             modelBuilder.Entity<InternUser>()
                 .HasOne(u => u.DocumentType)
                 .WithMany()
@@ -200,7 +196,6 @@ namespace WorkTrackBio.API.Data.Context
 
         private void ConfigureIndexes(ModelBuilder modelBuilder)
         {
-            // Configurar índices únicos básicos
             
             // States
             modelBuilder.Entity<State>()
@@ -241,7 +236,6 @@ namespace WorkTrackBio.API.Data.Context
 
         private void ConfigureConstraints(ModelBuilder modelBuilder)
         {
-            // Configurar constraints básicos usando la nueva sintaxis
             
             // Projects - validación de fechas
             modelBuilder.Entity<Project>()
@@ -256,9 +250,6 @@ namespace WorkTrackBio.API.Data.Context
 
         private void ConfigureComputedColumns(ModelBuilder modelBuilder)
         {
-            // Configurar columnas computadas
-            
-            // Assistance CheckInDateOnly como columna computada
             modelBuilder.Entity<Assistance>()
                 .Property(a => a.CheckInDateOnly)
                 .HasComputedColumnSql("CAST([CheckIn] AS DATE)", stored: true);

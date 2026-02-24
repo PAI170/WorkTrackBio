@@ -7,9 +7,6 @@ using WorkTrackBio.API.Validators.AssistanceValidator;
 
 namespace WorkTrackBio.API.Services.AssistanceService
 {
-    /// <summary>
-    /// Implementación del servicio para Assistance
-    /// </summary>
     public class AssistanceService : IAssistanceService
     {
         private readonly IAssistanceRepository _assistanceRepository;

@@ -19,10 +19,6 @@ namespace WorkTrackBio.API.Controllers
             _stateValidator = stateValidator ?? throw new ArgumentNullException(nameof(stateValidator));
         }
 
-        /// <summary>
-        /// Obtiene todos los estados
-        /// </summary>
-        /// <returns>Lista de todos los estados</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -49,11 +45,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene un estado por su ID
-        /// </summary>
-        /// <param name="id">ID del estado</param>
-        /// <returns>Estado encontrado o NotFound</returns>
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -63,7 +54,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar ID
                 var idValidation = _stateValidator.ValidateId(id);
                 if (!idValidation.IsValid)
                 {
@@ -108,11 +98,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene estados por tipo
-        /// </summary>
-        /// <param name="stateType">Tipo de estado</param>
-        /// <returns>Lista de estados del tipo especificado</returns>
         [HttpGet("type/{stateType}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -121,7 +106,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar tipo de estado
                 var typeValidation = _stateValidator.ValidateStateType(stateType);
                 if (!typeValidation.IsValid)
                 {
@@ -157,11 +141,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Crea un nuevo estado
-        /// </summary>
-        /// <param name="createDto">Datos del estado a crear</param>
-        /// <returns>Estado creado</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -179,7 +158,6 @@ namespace WorkTrackBio.API.Controllers
                     return BadRequest(response);
                 }
 
-                // Validar datos de entrada
                 var validation = await _stateValidator.ValidateCreateAsync(createDto);
                 if (!validation.IsValid)
                 {
@@ -227,12 +205,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Actualiza un estado existente
-        /// </summary>
-        /// <param name="id">ID del estado a actualizar</param>
-        /// <param name="updateDto">Datos actualizados del estado</param>
-        /// <returns>Estado actualizado o NotFound</returns>
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -259,7 +231,6 @@ namespace WorkTrackBio.API.Controllers
                     return BadRequest(response);
                 }
 
-                // Validar datos de entrada
                 var validation = await _stateValidator.ValidateUpdateAsync(updateDto);
                 if (!validation.IsValid)
                 {
@@ -311,11 +282,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Elimina un estado
-        /// </summary>
-        /// <param name="id">ID del estado a eliminar</param>
-        /// <returns>NoContent si se eliminó correctamente</returns>
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -325,7 +291,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar ID
                 var idValidation = _stateValidator.ValidateId(id);
                 if (!idValidation.IsValid)
                 {
@@ -369,11 +334,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Verifica si un estado existe
-        /// </summary>
-        /// <param name="id">ID del estado</param>
-        /// <returns>True si existe, False si no</returns>
         [HttpGet("{id:int}/exists")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -382,7 +342,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar ID
                 var idValidation = _stateValidator.ValidateId(id);
                 if (!idValidation.IsValid)
                 {
@@ -411,11 +370,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Verifica si existe un estado con un nombre específico
-        /// </summary>
-        /// <param name="stateName">Nombre del estado</param>
-        /// <returns>True si existe, False si no</returns>
         [HttpGet("name/{stateName}/exists")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -424,7 +378,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar nombre del estado
                 var nameValidation = _stateValidator.ValidateStateName(stateName);
                 if (!nameValidation.IsValid)
                 {

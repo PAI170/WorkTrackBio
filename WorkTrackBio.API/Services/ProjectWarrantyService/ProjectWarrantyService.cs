@@ -7,9 +7,6 @@ using WorkTrackBio.API.Validators.ProjectWarrantyValidator;
 
 namespace WorkTrackBio.API.Services.ProjectWarrantyService
 {
-    /// <summary>
-    /// Implementación del servicio para ProjectWarranty
-    /// </summary>
     public class ProjectWarrantyService : IProjectWarrantyService
     {
         private readonly IProjectWarrantyRepository _projectWarrantyRepository;

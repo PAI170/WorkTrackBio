@@ -19,10 +19,6 @@ namespace WorkTrackBio.API.Controllers
             _roleValidator = roleValidator ?? throw new ArgumentNullException(nameof(roleValidator));
         }
 
-        /// <summary>
-        /// Obtiene todos los roles
-        /// </summary>
-        /// <returns>Lista de todos los roles</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -49,11 +45,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene un rol por su ID
-        /// </summary>
-        /// <param name="id">ID del rol</param>
-        /// <returns>Rol encontrado o NotFound</returns>
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -63,7 +54,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar ID
                 var idValidation = _roleValidator.ValidateId(id);
                 if (!idValidation.IsValid)
                 {
@@ -108,11 +98,7 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Obtiene un rol por su nombre
-        /// </summary>
-        /// <param name="roleName">Nombre del rol</param>
-        /// <returns>Rol encontrado o NotFound</returns>
+
         [HttpGet("name/{roleName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -122,7 +108,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar nombre del rol
                 var nameValidation = _roleValidator.ValidateRoleName(roleName);
                 if (!nameValidation.IsValid)
                 {
@@ -167,11 +152,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Crea un nuevo rol
-        /// </summary>
-        /// <param name="createDto">Datos del rol a crear</param>
-        /// <returns>Rol creado</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -189,7 +169,6 @@ namespace WorkTrackBio.API.Controllers
                     return BadRequest(response);
                 }
 
-                // Validar datos de entrada
                 var validation = await _roleValidator.ValidateCreateAsync(createDto);
                 if (!validation.IsValid)
                 {
@@ -237,12 +216,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Actualiza un rol existente
-        /// </summary>
-        /// <param name="id">ID del rol a actualizar</param>
-        /// <param name="updateDto">Datos actualizados del rol</param>
-        /// <returns>Rol actualizado o NotFound</returns>
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -269,7 +242,6 @@ namespace WorkTrackBio.API.Controllers
                     return BadRequest(response);
                 }
 
-                // Validar datos de entrada
                 var validation = await _roleValidator.ValidateUpdateAsync(updateDto);
                 if (!validation.IsValid)
                 {
@@ -321,11 +293,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Elimina un rol
-        /// </summary>
-        /// <param name="id">ID del rol a eliminar</param>
-        /// <returns>Confirmación de eliminación</returns>
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -336,7 +303,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar ID
                 var idValidation = _roleValidator.ValidateId(id);
                 if (!idValidation.IsValid)
                 {
@@ -380,11 +346,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Verifica si un rol existe
-        /// </summary>
-        /// <param name="id">ID del rol</param>
-        /// <returns>True si existe, False si no</returns>
         [HttpGet("{id:int}/exists")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -393,7 +354,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar ID
                 var idValidation = _roleValidator.ValidateId(id);
                 if (!idValidation.IsValid)
                 {
@@ -422,11 +382,6 @@ namespace WorkTrackBio.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Verifica si existe un rol con un nombre específico
-        /// </summary>
-        /// <param name="roleName">Nombre del rol</param>
-        /// <returns>True si existe, False si no</returns>
         [HttpGet("name/{roleName}/exists")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -435,7 +390,6 @@ namespace WorkTrackBio.API.Controllers
         {
             try
             {
-                // Validar nombre del rol
                 var nameValidation = _roleValidator.ValidateRoleName(roleName);
                 if (!nameValidation.IsValid)
                 {

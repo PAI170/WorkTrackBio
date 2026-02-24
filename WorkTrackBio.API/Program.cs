@@ -34,42 +34,34 @@ using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add Controllers - NECESARIO para que funcionen los controladores
 builder.Services.AddControllers();
 
-// Configurar Entity Framework
 builder.Services.AddDbContext<WorkTrackBioDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Add FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Add CORS for development (Angular)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevelopmentPolicy", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:4200",     // Angular default port
-                "http://localhost:3000",     // Alternative port
-                "http://localhost:8080"      // Another common port
+                "http://localhost:4200",
+                "http://localhost:3000",
+                "http://localhost:8080"
             )
-            .AllowAnyMethod()                // GET, POST, PUT, DELETE, etc.
-            .AllowAnyHeader()                // Content-Type, Authorization, etc.
-            .AllowCredentials();             // Allow cookies and auth headers
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
-        // Register Repositories
         builder.Services.AddScoped<IStateRepository, StateRepository>();
         builder.Services.AddScoped<IRoleRepository, RoleRepository>();
         builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
@@ -80,7 +72,6 @@ builder.Services.AddCors(options =>
         builder.Services.AddScoped<IAssistanceRepository, AssistanceRepository>();
         builder.Services.AddScoped<IProjectWarrantyRepository, ProjectWarrantyRepository>();
 
-        // Register Validators
         builder.Services.AddScoped<IStateValidator, StateValidator>();
         builder.Services.AddScoped<IRoleValidator, RoleValidator>();
         builder.Services.AddScoped<IProjectValidator, ProjectValidator>();
@@ -93,7 +84,6 @@ builder.Services.AddCors(options =>
         builder.Services.AddScoped<IAssistanceValidator, AssistanceValidator>();
         builder.Services.AddScoped<IProjectWarrantyValidator, ProjectWarrantyValidator>();
 
-        // Register Services
         builder.Services.AddScoped<IStateService, StateService>();
         builder.Services.AddScoped<IRoleService, RoleService>();
         builder.Services.AddScoped<IProjectService, ProjectService>();
@@ -106,27 +96,20 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Use CORS - IMPORTANTE: debe ir antes de UseRouting y MapControllers
 app.UseCors("DevelopmentPolicy");
 
-// Deshabilitar completamente la redirección HTTPS para desarrollo
 app.Use(async (context, next) =>
 {
     context.Request.Scheme = "http";
     await next();
 });
 
-// Map Controllers - NECESARIO para que funcionen las rutas de los controladores
 app.MapControllers();
-
-// Remover el ejemplo de WeatherForecast ya que no lo necesitamos
-// app.MapGet("/weatherforecast", () => { ... });
 
 app.Run();

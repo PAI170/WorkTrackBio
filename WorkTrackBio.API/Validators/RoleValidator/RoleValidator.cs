@@ -5,9 +5,6 @@ using WorkTrackBio.API.Repositories.RoleRepository;
 
 namespace WorkTrackBio.API.Validators.RoleValidator
 {
-    /// <summary>
-    /// Validator para la entidad Role usando FluentValidation con validaciones de base de datos
-    /// </summary>
     public class RoleValidator : IRoleValidator
     {
         private readonly IValidator<CreateRoleDataTransferObject> _createValidator;
@@ -21,10 +18,6 @@ namespace WorkTrackBio.API.Validators.RoleValidator
             _updateValidator = new UpdateRoleValidator();
         }
 
-        /// <summary>
-        /// Valida los datos para crear un rol
-        /// Incluye validación de duplicados de nombre
-        /// </summary>
         public async Task<ValidationResult> ValidateCreateAsync(CreateRoleDataTransferObject createDto)
         {
             if (createDto == null)
@@ -54,11 +47,6 @@ namespace WorkTrackBio.API.Validators.RoleValidator
 
             return basicValidation;
         }
-
-        /// <summary>
-        /// Valida los datos para actualizar un rol
-        /// Incluye validación de existencia del ID y duplicados de nombre
-        /// </summary>
         public async Task<ValidationResult> ValidateUpdateAsync(UpdateRoleDataTransferObject updateDto)
         {
             if (updateDto == null)
@@ -104,9 +92,6 @@ namespace WorkTrackBio.API.Validators.RoleValidator
             return basicValidation;
         }
 
-        /// <summary>
-        /// Valida el ID de un rol
-        /// </summary>
         public ValidationResult ValidateId(int id)
         {
             var result = new ValidationResult();
@@ -119,9 +104,6 @@ namespace WorkTrackBio.API.Validators.RoleValidator
             return result;
         }
 
-        /// <summary>
-        /// Valida el nombre de un rol
-        /// </summary>
         public ValidationResult ValidateRoleName(string roleName)
         {
             var result = new ValidationResult();
@@ -138,9 +120,6 @@ namespace WorkTrackBio.API.Validators.RoleValidator
             return result;
         }
 
-        /// <summary>
-        /// Valida si un ID de rol existe en la base de datos
-        /// </summary>
         public async Task<ValidationResult> ValidateRoleExistsAsync(int id)
         {
             var result = new ValidationResult();
@@ -167,9 +146,6 @@ namespace WorkTrackBio.API.Validators.RoleValidator
             return result;
         }
 
-        /// <summary>
-        /// Valida si un nombre de rol ya existe (para evitar duplicados)
-        /// </summary>
         public async Task<ValidationResult> ValidateRoleNameUniqueAsync(string roleName, int? excludeId = null)
         {
             var result = new ValidationResult();
@@ -217,10 +193,6 @@ namespace WorkTrackBio.API.Validators.RoleValidator
         }
     }
 
-    /// <summary>
-    /// Validator específico para crear roles
-    /// Valida formato y restricciones de base de datos
-    /// </summary>
     public class CreateRoleValidator : AbstractValidator<CreateRoleDataTransferObject>
     {
         public CreateRoleValidator()
@@ -236,11 +208,6 @@ namespace WorkTrackBio.API.Validators.RoleValidator
         }
     }
 
-    /// <summary>
-    /// Validator específico para actualizar roles
-    /// Valida formato, restricciones de base de datos y existencia
-    /// Permite campos opcionales para "Partial Updates"
-    /// </summary>
     public class UpdateRoleValidator : AbstractValidator<UpdateRoleDataTransferObject>
     {
         public UpdateRoleValidator()

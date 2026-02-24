@@ -4,9 +4,6 @@ using WorkTrackBio.API.DataTransferObjects.Assistance;
 
 namespace WorkTrackBio.API.Mappers
 {
-    /// <summary>
-    /// Perfil de AutoMapper para Assistance
-    /// </summary>
     public class AssistanceMapperProfile : Profile
     {
         public AssistanceMapperProfile()
@@ -27,7 +24,7 @@ namespace WorkTrackBio.API.Mappers
                 .ForMember(dest => dest.Employee, opt => opt.Ignore())
                 .ForMember(dest => dest.Project, opt => opt.Ignore());
 
-            // Update DTO -> Model (para actualizaciones parciales)
+            // Update DTO -> Model
             CreateMap<UpdateAssistanceDataTransferObject, Assistance>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())

@@ -23,7 +23,6 @@ namespace WorkTrackBio.API.Data.Models
         [Required]
         public int AdminId { get; set; }
         
-        // Navigation properties
         [ForeignKey("AssistanceId")]
         public virtual Assistance Assistance { get; set; } = null!;
         
