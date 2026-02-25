@@ -6,7 +6,6 @@ using WorkTrackBio.API.Repositories.StateRepository;
 using WorkTrackBio.API.Repositories.DocumentTypeRepository;
 using WorkTrackBio.API.Validators.DocumentValidator;
 using WorkTrackBio.API.Validators.PhoneNumberFormatter;
-using System.Linq;
 
 namespace WorkTrackBio.API.Services.EmployeeInfoService
 {
@@ -35,180 +34,177 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<IEnumerable<EmployeeInfoDataTransferObject>> GetAllEmployeesAsync()
+        public async Task<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>> GetAllEmployeesAsync()
         {
             var employees = await _employeeInfoRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<EmployeeInfoDataTransferObject>>(employees);
+            var result = _mapper.Map<IEnumerable<EmployeeInfoDataTransferObject>>(employees);
+            return ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>.SuccessResponse(result, "Empleados obtenidos exitosamente");
         }
 
-        public async Task<EmployeeInfoDataTransferObject?> GetEmployeeByIdAsync(int id)
+        public async Task<ApiResponse<EmployeeInfoDataTransferObject>> GetEmployeeByIdAsync(int id)
         {
             if (id <= 0)
-                throw new ArgumentException("El ID debe ser mayor que 0", nameof(id));
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var employee = await _employeeInfoRepository.GetByIdAsync(id);
-            return _mapper.Map<EmployeeInfoDataTransferObject>(employee);
+
+            if (employee == null)
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"No se encontró un empleado con ID {id}", 404);
+
+            var result = _mapper.Map<EmployeeInfoDataTransferObject>(employee);
+            return ApiResponse<EmployeeInfoDataTransferObject>.SuccessResponse(result, "Empleado obtenido exitosamente");
         }
 
-        public async Task<EmployeeInfoDataTransferObject?> GetEmployeeByDocumentNumberAsync(string documentNumber, int documentTypeId)
+        public async Task<ApiResponse<EmployeeInfoDataTransferObject>> GetEmployeeByDocumentNumberAsync(string documentNumber, int documentTypeId)
         {
             if (string.IsNullOrWhiteSpace(documentNumber))
-                throw new ArgumentException("El número de documento no puede estar vacío", nameof(documentNumber));
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("El número de documento no puede estar vacío", 400);
 
             if (documentTypeId <= 0)
-                throw new ArgumentException("El ID del tipo de documento debe ser mayor que 0", nameof(documentTypeId));
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("El ID del tipo de documento debe ser mayor que 0", 400);
 
             var employee = await _employeeInfoRepository.GetByDocumentNumberAsync(documentNumber, documentTypeId);
-            return _mapper.Map<EmployeeInfoDataTransferObject>(employee);
+
+            if (employee == null)
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"No se encontró un empleado con el número de documento '{documentNumber}'", 404);
+
+            var result = _mapper.Map<EmployeeInfoDataTransferObject>(employee);
+            return ApiResponse<EmployeeInfoDataTransferObject>.SuccessResponse(result, "Empleado obtenido exitosamente");
         }
 
-        public async Task<bool> EmployeeExistsAsync(int id)
+        public async Task<ApiResponse<bool>> EmployeeExistsAsync(int id)
         {
             if (id <= 0)
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var employee = await _employeeInfoRepository.GetByIdAsync(id);
-            return employee != null;
+            var exists = employee != null;
+            return ApiResponse<bool>.SuccessResponse(exists, exists ? "El empleado existe" : "El empleado no existe");
         }
 
-        public async Task<bool> EmployeeDocumentExistsAsync(string documentNumber, int documentTypeId)
+        public async Task<ApiResponse<bool>> EmployeeDocumentExistsAsync(string documentNumber, int documentTypeId)
         {
             if (string.IsNullOrWhiteSpace(documentNumber))
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El número de documento no puede estar vacío", 400);
 
             if (documentTypeId <= 0)
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El ID del tipo de documento debe ser mayor que 0", 400);
 
-            return await _employeeInfoRepository.ExistsByDocumentNumberAsync(documentNumber, documentTypeId);
+            var exists = await _employeeInfoRepository.ExistsByDocumentNumberAsync(documentNumber, documentTypeId);
+            return ApiResponse<bool>.SuccessResponse(exists, exists ? "El documento ya está registrado" : "El documento no está registrado");
         }
 
-        public async Task<IEnumerable<EmployeeInfoDataTransferObject>> GetEmployeesByStateAsync(int stateId)
+        public async Task<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>> GetEmployeesByStateAsync(int stateId)
         {
             if (stateId <= 0)
-                throw new ArgumentException("El ID del estado debe ser mayor que 0", nameof(stateId));
+                return ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>.ErrorResponse("El ID del estado debe ser mayor que 0", 400);
 
-            // Verificar que el estado exista
             var stateExists = await _stateRepository.GetByIdAsync(stateId);
             if (stateExists == null)
-                throw new ArgumentException($"No existe un estado con ID {stateId}", nameof(stateId));
+                return ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>.ErrorResponse($"No existe un estado con ID {stateId}", 404);
 
             var employees = await _employeeInfoRepository.GetByStateAsync(stateId);
-            return _mapper.Map<IEnumerable<EmployeeInfoDataTransferObject>>(employees);
+            var result = _mapper.Map<IEnumerable<EmployeeInfoDataTransferObject>>(employees);
+            return ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>.SuccessResponse(result, $"Se encontraron {result.Count()} empleado(s) con el estado {stateId}");
         }
 
-        public async Task<IEnumerable<EmployeeInfoDataTransferObject>> GetEmployeesByDocumentTypeAsync(int documentTypeId)
+        public async Task<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>> GetEmployeesByDocumentTypeAsync(int documentTypeId)
         {
             if (documentTypeId <= 0)
-                throw new ArgumentException("El ID del tipo de documento debe ser mayor que 0", nameof(documentTypeId));
+                return ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>.ErrorResponse("El ID del tipo de documento debe ser mayor que 0", 400);
 
-            // Verificar que el tipo de documento exista
             var documentTypeExists = await _documentTypeRepository.GetByIdAsync(documentTypeId);
             if (documentTypeExists == null)
-                throw new ArgumentException($"No existe un tipo de documento con ID {documentTypeId}", nameof(documentTypeId));
+                return ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>.ErrorResponse($"No existe un tipo de documento con ID {documentTypeId}", 404);
 
             var employees = await _employeeInfoRepository.GetByDocumentTypeAsync(documentTypeId);
-            return _mapper.Map<IEnumerable<EmployeeInfoDataTransferObject>>(employees);
+            var result = _mapper.Map<IEnumerable<EmployeeInfoDataTransferObject>>(employees);
+            return ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>.SuccessResponse(result, $"Se encontraron {result.Count()} empleado(s) con el tipo de documento {documentTypeId}");
         }
 
-        public async Task<EmployeeInfoDataTransferObject> CreateEmployeeAsync(CreateEmployeeInfoDataTransferObject createDto)
+        public async Task<ApiResponse<EmployeeInfoDataTransferObject>> CreateEmployeeAsync(CreateEmployeeInfoDataTransferObject createDto)
         {
             if (createDto == null)
-                throw new ArgumentNullException(nameof(createDto));
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("Los datos del empleado no pueden estar vacíos", 400);
 
-            // Verificar que el estado exista
             var stateExists = await _stateRepository.GetByIdAsync(createDto.StateId);
             if (stateExists == null)
-                throw new ArgumentException($"No existe un estado con ID {createDto.StateId}", nameof(createDto.StateId));
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"No existe un estado con ID {createDto.StateId}", 400);
 
-            // Verificar que el tipo de documento exista
             var documentTypeExists = await _documentTypeRepository.GetByIdAsync(createDto.DocumentTypeId);
             if (documentTypeExists == null)
-                throw new ArgumentException($"No existe un tipo de documento con ID {createDto.DocumentTypeId}", nameof(createDto.DocumentTypeId));
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"No existe un tipo de documento con ID {createDto.DocumentTypeId}", 400);
 
-            // Validar formato del documento según su tipo
             var documentValidation = await _documentValidator.ValidateDocumentAsync(createDto.DocumentNumber, createDto.DocumentTypeId);
             if (!documentValidation.IsValid)
-                throw new InvalidOperationException($"Error en el formato del documento: {documentValidation.ErrorMessage}");
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"Error en el formato del documento: {documentValidation.ErrorMessage}", 400);
 
-            // Verificar que no exista otro empleado con el mismo número de documento y tipo
             var existingEmployee = await _employeeInfoRepository.GetByDocumentNumberAsync(createDto.DocumentNumber, createDto.DocumentTypeId);
             if (existingEmployee != null)
-                throw new InvalidOperationException($"Ya existe un empleado con el número de documento '{createDto.DocumentNumber}' del tipo '{documentTypeExists.DocumentName}'");
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"Ya existe un empleado con el número de documento '{createDto.DocumentNumber}' del tipo '{documentTypeExists.DocumentName}'", 409);
 
-            // Validar fechas
             if (createDto.DocumentExpire.HasValue && createDto.DocumentExpire.Value < DateOnly.FromDateTime(DateTime.Today))
-                throw new InvalidOperationException("La fecha de expiración del documento no puede ser anterior a hoy");
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("La fecha de expiración del documento no puede ser anterior a hoy", 400);
 
             if (createDto.Birthday > DateOnly.FromDateTime(DateTime.Today))
-                throw new InvalidOperationException("La fecha de nacimiento no puede ser futura");
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("La fecha de nacimiento no puede ser futura", 400);
 
             if (createDto.Birthday < DateOnly.FromDateTime(DateTime.Today.AddYears(-100)))
-                throw new InvalidOperationException("La fecha de nacimiento no puede ser anterior a 100 años");
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("La fecha de nacimiento no puede ser anterior a 100 años", 400);
 
-            // Validar costo por hora
             if (createDto.CostPerHour.HasValue && createDto.CostPerHour.Value < 0)
-                throw new InvalidOperationException("El costo por hora no puede ser negativo");
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("El costo por hora no puede ser negativo", 400);
 
             var employee = _mapper.Map<WorkTrackBio.API.Data.Models.EmployeeInfo>(createDto);
-            
-            // Formatear números según las restricciones de la base de datos
             employee.DocumentNumber = _phoneNumberFormatter.CleanDocumentNumber(employee.DocumentNumber) ?? employee.DocumentNumber;
             employee.PhoneNumber = _phoneNumberFormatter.FormatPhoneNumber(employee.PhoneNumber);
             employee.EmergencyContactPhoneNumber = _phoneNumberFormatter.FormatPhoneNumber(employee.EmergencyContactPhoneNumber);
-            
-            var createdEmployee = await _employeeInfoRepository.CreateAsync(employee);
 
-            return _mapper.Map<EmployeeInfoDataTransferObject>(createdEmployee);
+            var createdEmployee = await _employeeInfoRepository.CreateAsync(employee);
+            var result = _mapper.Map<EmployeeInfoDataTransferObject>(createdEmployee);
+            return ApiResponse<EmployeeInfoDataTransferObject>.SuccessResponse(result, "Empleado creado exitosamente", 201);
         }
 
-        public async Task<EmployeeInfoDataTransferObject?> UpdateEmployeeAsync(UpdateEmployeeInfoDataTransferObject updateDto)
+        public async Task<ApiResponse<EmployeeInfoDataTransferObject>> UpdateEmployeeAsync(UpdateEmployeeInfoDataTransferObject updateDto)
         {
             if (updateDto == null)
-                throw new ArgumentNullException(nameof(updateDto));
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("Los datos del empleado no pueden estar vacíos", 400);
 
             if (updateDto.Id <= 0)
-                throw new ArgumentException("El ID debe ser mayor que 0", nameof(updateDto.Id));
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var existingEmployee = await _employeeInfoRepository.GetByIdAsync(updateDto.Id);
             if (existingEmployee == null)
-                return null;
+                return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"No se encontró un empleado con ID {updateDto.Id}", 404);
 
             bool hasChanges = false;
 
-            // Crear un diccionario para rastrear qué campos fueron explícitamente enviados
             var sentFields = new HashSet<string>();
             var updateDtoType = typeof(UpdateEmployeeInfoDataTransferObject);
             foreach (var property in updateDtoType.GetProperties())
             {
                 if (property.Name != "Id" && property.GetValue(updateDto) != null)
-                {
                     sentFields.Add(property.Name);
-                }
             }
 
-            // Validar y actualizar número de documento
             if (sentFields.Contains("DocumentNumber"))
             {
-                // Determinar el tipo de documento a usar para la validación
                 var documentTypeIdForValidation = updateDto.DocumentTypeId ?? existingEmployee.DocumentTypeId;
-                
-                // Validar formato del documento según su tipo
                 var documentValidation = await _documentValidator.ValidateDocumentAsync(updateDto.DocumentNumber!, documentTypeIdForValidation);
                 if (!documentValidation.IsValid)
-                    throw new InvalidOperationException($"Error en el formato del documento: {documentValidation.ErrorMessage}");
+                    return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"Error en el formato del documento: {documentValidation.ErrorMessage}", 400);
 
                 if (updateDto.DocumentTypeId.HasValue)
                 {
-                    var newDocumentTypeId = updateDto.DocumentTypeId.Value;
-                    var otherEmployee = await _employeeInfoRepository.GetByDocumentNumberAsync(updateDto.DocumentNumber!, newDocumentTypeId);
+                    var otherEmployee = await _employeeInfoRepository.GetByDocumentNumberAsync(updateDto.DocumentNumber!, updateDto.DocumentTypeId.Value);
                     if (otherEmployee != null && otherEmployee.Id != updateDto.Id)
-                        throw new InvalidOperationException($"Ya existe otro empleado con el número de documento '{updateDto.DocumentNumber}' del tipo especificado");
+                        return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"Ya existe otro empleado con el número de documento '{updateDto.DocumentNumber}' del tipo especificado", 409);
                 }
                 else
                 {
                     var otherEmployee = await _employeeInfoRepository.GetByDocumentNumberAsync(updateDto.DocumentNumber!, existingEmployee.DocumentTypeId);
                     if (otherEmployee != null && otherEmployee.Id != updateDto.Id)
-                        throw new InvalidOperationException($"Ya existe otro empleado con el número de documento '{updateDto.DocumentNumber}' del mismo tipo");
+                        return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"Ya existe otro empleado con el número de documento '{updateDto.DocumentNumber}' del mismo tipo", 409);
                 }
 
                 var cleanedDocumentNumber = _phoneNumberFormatter.CleanDocumentNumber(updateDto.DocumentNumber!);
@@ -219,21 +215,19 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 }
             }
 
-            // Validar y actualizar tipo de documento
             if (sentFields.Contains("DocumentTypeId") && updateDto.DocumentTypeId.HasValue)
             {
                 var documentTypeExists = await _documentTypeRepository.GetByIdAsync(updateDto.DocumentTypeId.Value);
                 if (documentTypeExists == null)
-                    throw new ArgumentException($"No existe un tipo de documento con ID {updateDto.DocumentTypeId.Value}", nameof(updateDto.DocumentTypeId));
+                    return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"No existe un tipo de documento con ID {updateDto.DocumentTypeId.Value}", 400);
 
                 if (existingEmployee.DocumentTypeId != updateDto.DocumentTypeId.Value)
                 {
-                    // Verificar que no haya conflicto con el nuevo tipo de documento
                     if (sentFields.Contains("DocumentNumber") && updateDto.DocumentNumber != null)
                     {
                         var otherEmployee = await _employeeInfoRepository.GetByDocumentNumberAsync(updateDto.DocumentNumber, updateDto.DocumentTypeId.Value);
                         if (otherEmployee != null && otherEmployee.Id != updateDto.Id)
-                            throw new InvalidOperationException($"Ya existe otro empleado con el número de documento '{updateDto.DocumentNumber}' del tipo '{documentTypeExists.DocumentName}'");
+                            return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"Ya existe otro empleado con el número de documento '{updateDto.DocumentNumber}' del tipo '{documentTypeExists.DocumentName}'", 409);
                     }
 
                     existingEmployee.DocumentTypeId = updateDto.DocumentTypeId.Value;
@@ -241,11 +235,10 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 }
             }
 
-            // Validar y actualizar fecha de expiración
             if (sentFields.Contains("DocumentExpire") && updateDto.DocumentExpire.HasValue)
             {
                 if (updateDto.DocumentExpire.Value < DateOnly.FromDateTime(DateTime.Today))
-                    throw new InvalidOperationException("La fecha de expiración del documento no puede ser anterior a hoy");
+                    return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("La fecha de expiración del documento no puede ser anterior a hoy", 400);
 
                 if (existingEmployee.DocumentExpire != updateDto.DocumentExpire.Value)
                 {
@@ -254,7 +247,6 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 }
             }
 
-            // Validar y actualizar nombres
             if (sentFields.Contains("FirstName") && updateDto.FirstName != null &&
                 !string.Equals(existingEmployee.FirstName, updateDto.FirstName, StringComparison.OrdinalIgnoreCase))
             {
@@ -269,18 +261,15 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 hasChanges = true;
             }
 
-            // Validar y actualizar teléfono
             if (sentFields.Contains("PhoneNumber"))
             {
                 if (updateDto.PhoneNumber == null)
                 {
-                    // Campo explícitamente enviado como null
                     existingEmployee.PhoneNumber = null;
                     hasChanges = true;
                 }
                 else
                 {
-                    // Campo con valor, formatear y actualizar
                     var formattedPhoneNumber = _phoneNumberFormatter.FormatPhoneNumber(updateDto.PhoneNumber);
                     if (existingEmployee.PhoneNumber != formattedPhoneNumber)
                     {
@@ -290,7 +279,6 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 }
             }
 
-            // Validar y actualizar contacto de emergencia
             if (sentFields.Contains("EmergencyContact"))
             {
                 existingEmployee.EmergencyContact = updateDto.EmergencyContact;
@@ -301,13 +289,11 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
             {
                 if (updateDto.EmergencyContactPhoneNumber == null)
                 {
-                    // Campo explícitamente enviado como null
                     existingEmployee.EmergencyContactPhoneNumber = null;
                     hasChanges = true;
                 }
                 else
                 {
-                    // Campo con valor, formatear y actualizar
                     var formattedEmergencyPhone = _phoneNumberFormatter.FormatPhoneNumber(updateDto.EmergencyContactPhoneNumber);
                     if (existingEmployee.EmergencyContactPhoneNumber != formattedEmergencyPhone)
                     {
@@ -317,14 +303,13 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 }
             }
 
-            // Validar y actualizar fecha de nacimiento
             if (sentFields.Contains("Birthday") && updateDto.Birthday.HasValue)
             {
                 if (updateDto.Birthday.Value > DateOnly.FromDateTime(DateTime.Today))
-                    throw new InvalidOperationException("La fecha de nacimiento no puede ser futura");
+                    return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("La fecha de nacimiento no puede ser futura", 400);
 
                 if (updateDto.Birthday.Value < DateOnly.FromDateTime(DateTime.Today.AddYears(-100)))
-                    throw new InvalidOperationException("La fecha de nacimiento no puede ser anterior a 100 años");
+                    return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("La fecha de nacimiento no puede ser anterior a 100 años", 400);
 
                 if (existingEmployee.Birthday != updateDto.Birthday.Value)
                 {
@@ -333,11 +318,10 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 }
             }
 
-            // Validar y actualizar costo por hora
             if (sentFields.Contains("CostPerHour") && updateDto.CostPerHour.HasValue)
             {
                 if (updateDto.CostPerHour.Value < 0)
-                    throw new InvalidOperationException("El costo por hora no puede ser negativo");
+                    return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("El costo por hora no puede ser negativo", 400);
 
                 if (existingEmployee.CostPerHour != updateDto.CostPerHour.Value)
                 {
@@ -346,12 +330,11 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 }
             }
 
-            // Validar y actualizar estado
             if (sentFields.Contains("StateId") && updateDto.StateId.HasValue)
             {
                 var stateExists = await _stateRepository.GetByIdAsync(updateDto.StateId.Value);
                 if (stateExists == null)
-                    throw new ArgumentException($"No existe un estado con ID {updateDto.StateId.Value}", nameof(updateDto.StateId));
+                    return ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse($"No existe un estado con ID {updateDto.StateId.Value}", 400);
 
                 if (existingEmployee.StateId != updateDto.StateId.Value)
                 {
@@ -360,14 +343,12 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
                 }
             }
 
-            // Validar y actualizar dirección
             if (sentFields.Contains("Address"))
             {
                 existingEmployee.Address = updateDto.Address;
                 hasChanges = true;
             }
 
-            // Validar y actualizar IBAN
             if (sentFields.Contains("IBAN"))
             {
                 existingEmployee.IBAN = updateDto.IBAN;
@@ -376,33 +357,30 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
 
             if (!hasChanges)
             {
-                return _mapper.Map<EmployeeInfoDataTransferObject>(existingEmployee);
+                var unchanged = _mapper.Map<EmployeeInfoDataTransferObject>(existingEmployee);
+                return ApiResponse<EmployeeInfoDataTransferObject>.SuccessResponse(unchanged, "No se detectaron cambios");
             }
 
             var updatedEmployee = await _employeeInfoRepository.UpdateAsync(existingEmployee);
-            return _mapper.Map<EmployeeInfoDataTransferObject>(updatedEmployee);
+            var updatedResult = _mapper.Map<EmployeeInfoDataTransferObject>(updatedEmployee);
+            return ApiResponse<EmployeeInfoDataTransferObject>.SuccessResponse(updatedResult, "Empleado actualizado exitosamente");
         }
 
-        public async Task<bool> DeleteEmployeeAsync(int id)
+        public async Task<ApiResponse<bool>> DeleteEmployeeAsync(int id)
         {
             if (id <= 0)
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var employee = await _employeeInfoRepository.GetByIdAsync(id);
             if (employee == null)
-                return false;
+                return ApiResponse<bool>.ErrorResponse($"No se encontró un empleado con ID {id}", 404);
 
-            var isEmployeeInUse = await IsEmployeeInUseAsync(id);
-            if (isEmployeeInUse)
-                throw new InvalidOperationException($"No se puede eliminar el empleado '{employee.FirstName} {employee.LastName}' porque está siendo usado por otras entidades del sistema");
+            var isInUse = await _employeeInfoRepository.HasDependenciesAsync(id);
+            if (isInUse)
+                return ApiResponse<bool>.ErrorResponse($"No se puede eliminar el empleado '{employee.FirstName} {employee.LastName}' porque está siendo usado por otras entidades del sistema", 409);
 
-            return await _employeeInfoRepository.DeleteAsync(id);
-        }
-
-        private async Task<bool> IsEmployeeInUseAsync(int employeeInfoId)
-        {
-            var hasDependencies = await _employeeInfoRepository.HasDependenciesAsync(employeeInfoId);
-            return hasDependencies;
+            await _employeeInfoRepository.DeleteAsync(id);
+            return ApiResponse<bool>.SuccessResponse(true, "Empleado eliminado exitosamente");
         }
     }
 }

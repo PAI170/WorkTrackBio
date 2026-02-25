@@ -1,4 +1,5 @@
 using AutoMapper;
+using WorkTrackBio.API.Common;
 using WorkTrackBio.API.DataTransferObjects.DocumentType;
 using WorkTrackBio.API.Repositories.DocumentTypeRepository;
 
@@ -15,82 +16,93 @@ namespace WorkTrackBio.API.Services.DocumentTypeService
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<IEnumerable<DocumentTypeDataTransferObject>> GetAllDocumentTypesAsync()
+        public async Task<ApiResponse<IEnumerable<DocumentTypeDataTransferObject>>> GetAllDocumentTypesAsync()
         {
             var documentTypes = await _documentTypeRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<DocumentTypeDataTransferObject>>(documentTypes);
+            var result = _mapper.Map<IEnumerable<DocumentTypeDataTransferObject>>(documentTypes);
+            return ApiResponse<IEnumerable<DocumentTypeDataTransferObject>>.SuccessResponse(result, "Tipos de documento obtenidos exitosamente");
         }
 
-        public async Task<DocumentTypeDataTransferObject?> GetDocumentTypeByIdAsync(int id)
+        public async Task<ApiResponse<DocumentTypeDataTransferObject>> GetDocumentTypeByIdAsync(int id)
         {
             if (id <= 0)
-                throw new ArgumentException("El ID debe ser mayor que 0", nameof(id));
+                return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var documentType = await _documentTypeRepository.GetByIdAsync(id);
-            return _mapper.Map<DocumentTypeDataTransferObject>(documentType);
+
+            if (documentType == null)
+                return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse($"No se encontró un tipo de documento con ID {id}", 404);
+
+            var result = _mapper.Map<DocumentTypeDataTransferObject>(documentType);
+            return ApiResponse<DocumentTypeDataTransferObject>.SuccessResponse(result, "Tipo de documento obtenido exitosamente");
         }
 
-        public async Task<DocumentTypeDataTransferObject?> GetDocumentTypeByNameAsync(string documentName)
+        public async Task<ApiResponse<DocumentTypeDataTransferObject>> GetDocumentTypeByNameAsync(string documentName)
         {
             if (string.IsNullOrWhiteSpace(documentName))
-                throw new ArgumentException("El nombre del tipo de documento no puede estar vacío", nameof(documentName));
+                return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse("El nombre del tipo de documento no puede estar vacío", 400);
 
             var documentType = await _documentTypeRepository.GetByNameAsync(documentName);
-            return _mapper.Map<DocumentTypeDataTransferObject>(documentType);
+
+            if (documentType == null)
+                return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse($"No se encontró un tipo de documento con el nombre '{documentName}'", 404);
+
+            var result = _mapper.Map<DocumentTypeDataTransferObject>(documentType);
+            return ApiResponse<DocumentTypeDataTransferObject>.SuccessResponse(result, "Tipo de documento obtenido exitosamente");
         }
 
-        public async Task<bool> DocumentTypeExistsAsync(int id)
+        public async Task<ApiResponse<bool>> DocumentTypeExistsAsync(int id)
         {
             if (id <= 0)
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var documentType = await _documentTypeRepository.GetByIdAsync(id);
-            return documentType != null;
+            var exists = documentType != null;
+            return ApiResponse<bool>.SuccessResponse(exists, exists ? "El tipo de documento existe" : "El tipo de documento no existe");
         }
 
-        public async Task<bool> DocumentTypeNameExistsAsync(string documentName)
+        public async Task<ApiResponse<bool>> DocumentTypeNameExistsAsync(string documentName)
         {
             if (string.IsNullOrWhiteSpace(documentName))
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El nombre no puede estar vacío", 400);
 
-            return await _documentTypeRepository.ExistsByNameAsync(documentName);
+            var exists = await _documentTypeRepository.ExistsByNameAsync(documentName);
+            return ApiResponse<bool>.SuccessResponse(exists, exists ? $"Ya existe un tipo de documento con el nombre '{documentName}'" : $"No existe un tipo de documento con el nombre '{documentName}'");
         }
 
-        public async Task<DocumentTypeDataTransferObject> CreateDocumentTypeAsync(CreateDocumentTypeDataTransferObject createDto)
+        public async Task<ApiResponse<DocumentTypeDataTransferObject>> CreateDocumentTypeAsync(CreateDocumentTypeDataTransferObject createDto)
         {
             if (createDto == null)
-                throw new ArgumentNullException(nameof(createDto));
-
-            var existingDocumentTypes = await _documentTypeRepository.GetAllAsync();
-            if (existingDocumentTypes.Any(dt => string.Equals(dt.DocumentName, createDto.DocumentName, StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidOperationException($"Ya existe un tipo de documento con el nombre '{createDto.DocumentName}' (ignorando mayúsculas/minúsculas)");
+                return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse("Los datos del tipo de documento no pueden estar vacíos", 400);
+                
+            if (await _documentTypeRepository.ExistsByNameAsync(createDto.DocumentName))
+                return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse($"Ya existe un tipo de documento con el nombre '{createDto.DocumentName}'", 409);
 
             var documentType = _mapper.Map<WorkTrackBio.API.Data.Models.DocumentType>(createDto);
             var createdDocumentType = await _documentTypeRepository.CreateAsync(documentType);
+            var result = _mapper.Map<DocumentTypeDataTransferObject>(createdDocumentType);
 
-            return _mapper.Map<DocumentTypeDataTransferObject>(createdDocumentType);
+            return ApiResponse<DocumentTypeDataTransferObject>.SuccessResponse(result, "Tipo de documento creado exitosamente", 201);
         }
 
-        public async Task<DocumentTypeDataTransferObject?> UpdateDocumentTypeAsync(UpdateDocumentTypeDataTransferObject updateDto)
+        public async Task<ApiResponse<DocumentTypeDataTransferObject>> UpdateDocumentTypeAsync(UpdateDocumentTypeDataTransferObject updateDto)
         {
             if (updateDto == null)
-                throw new ArgumentNullException(nameof(updateDto));
+                return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse("Los datos del tipo de documento no pueden estar vacíos", 400);
 
             if (updateDto.Id <= 0)
-                throw new ArgumentException("El ID debe ser mayor que 0", nameof(updateDto.Id));
+                return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var existingDocumentType = await _documentTypeRepository.GetByIdAsync(updateDto.Id);
             if (existingDocumentType == null)
-                return null;
+                return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse($"No se encontró un tipo de documento con ID {updateDto.Id}", 404);
 
             bool hasChanges = false;
 
             if (!string.IsNullOrWhiteSpace(updateDto.DocumentName))
             {
-                var allDocumentTypes = await _documentTypeRepository.GetAllAsync();
-                if (allDocumentTypes.Any(dt => string.Equals(dt.DocumentName, updateDto.DocumentName, StringComparison.OrdinalIgnoreCase) &&
-                    dt.Id != updateDto.Id))
-                    throw new InvalidOperationException($"Ya existe un tipo de documento con el nombre '{updateDto.DocumentName}' (ignorando mayúsculas/minúsculas)");
+                if (await _documentTypeRepository.ExistsByNameAsync(updateDto.DocumentName) && existingDocumentType.DocumentName.ToLower() != updateDto.DocumentName.ToLower())
+                    return ApiResponse<DocumentTypeDataTransferObject>.ErrorResponse($"Ya existe un tipo de documento con el nombre '{updateDto.DocumentName}'", 409);
 
                 if (!string.Equals(existingDocumentType.DocumentName, updateDto.DocumentName, StringComparison.OrdinalIgnoreCase))
                 {
@@ -107,33 +119,30 @@ namespace WorkTrackBio.API.Services.DocumentTypeService
 
             if (!hasChanges)
             {
-                return _mapper.Map<DocumentTypeDataTransferObject>(existingDocumentType);
+                var unchanged = _mapper.Map<DocumentTypeDataTransferObject>(existingDocumentType);
+                return ApiResponse<DocumentTypeDataTransferObject>.SuccessResponse(unchanged, "No se detectaron cambios");
             }
 
             var updatedDocumentType = await _documentTypeRepository.UpdateAsync(existingDocumentType);
-            return _mapper.Map<DocumentTypeDataTransferObject>(updatedDocumentType);
+            var result = _mapper.Map<DocumentTypeDataTransferObject>(updatedDocumentType);
+            return ApiResponse<DocumentTypeDataTransferObject>.SuccessResponse(result, "Tipo de documento actualizado exitosamente");
         }
 
-        public async Task<bool> DeleteDocumentTypeAsync(int id)
+        public async Task<ApiResponse<bool>> DeleteDocumentTypeAsync(int id)
         {
             if (id <= 0)
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var documentType = await _documentTypeRepository.GetByIdAsync(id);
             if (documentType == null)
-                return false;
+                return ApiResponse<bool>.ErrorResponse($"No se encontró un tipo de documento con ID {id}", 404);
 
-            var isDocumentTypeInUse = await IsDocumentTypeInUseAsync(id);
-            if (isDocumentTypeInUse)
-                throw new InvalidOperationException($"No se puede eliminar el tipo de documento '{documentType.DocumentName}' porque está siendo usado por empleados del sistema");
+            var isInUse = await _documentTypeRepository.HasDependenciesAsync(id);
+            if (isInUse)
+                return ApiResponse<bool>.ErrorResponse($"No se puede eliminar el tipo de documento '{documentType.DocumentName}' porque está siendo usado por empleados", 409);
 
-            return await _documentTypeRepository.DeleteAsync(id);
-        }
-
-        private async Task<bool> IsDocumentTypeInUseAsync(int documentTypeId)
-        {
-            var hasDependencies = await _documentTypeRepository.HasDependenciesAsync(documentTypeId);
-            return hasDependencies;
+            await _documentTypeRepository.DeleteAsync(id);
+            return ApiResponse<bool>.SuccessResponse(true, "Tipo de documento eliminado exitosamente");
         }
     }
 }

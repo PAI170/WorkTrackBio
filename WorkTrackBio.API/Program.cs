@@ -100,15 +100,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
-
-app.UseCors("DevelopmentPolicy");
-
-app.Use(async (context, next) =>
+    app.Use(async (context, next) =>
 {
     context.Request.Scheme = "http";
     await next();
 });
+}
+
+app.UseCors("DevelopmentPolicy");
 
 app.MapControllers();
 

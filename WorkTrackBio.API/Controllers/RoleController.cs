@@ -24,196 +24,95 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<IEnumerable<RoleDataTransferObject>>>> GetAllRoles()
         {
-            try
-            {
-                var roles = await _roleService.GetAllRolesAsync();
-                var response = ApiResponse<IEnumerable<RoleDataTransferObject>>.SuccessResponse(
-                    roles, 
-                    "Roles obtenidos exitosamente", 
-                    StatusCodes.Status200OK);
-                
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                var response = ApiResponse<IEnumerable<RoleDataTransferObject>>.ErrorResponse(
-                    "Error interno del servidor", 
-                    StatusCodes.Status500InternalServerError, 
-                    new List<string> { ex.Message });
-                
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
+            var response = await _roleService.GetAllRolesAsync();
+            return Ok(response);
         }
 
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<RoleDataTransferObject>>> GetRoleById(int id)
         {
-            try
-            {
-                var idValidation = _roleValidator.ValidateId(id);
-                if (!idValidation.IsValid)
-                {
-                    var errors = idValidation.Errors.Select(e => e.ErrorMessage).ToList();
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        "ID inválido", 
-                        StatusCodes.Status400BadRequest, 
-                        errors);
-                    return BadRequest(response);
-                }
+            var response = await _roleService.GetRoleByIdAsync(id);
 
-                var role = await _roleService.GetRoleByIdAsync(id);
-                
-                if (role == null)
-                {
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        $"No se encontró un rol con ID {id}", 
-                        StatusCodes.Status404NotFound);
-                    return NotFound(response);
-                }
-
-                var successResponse = ApiResponse<RoleDataTransferObject>.SuccessResponse(
-                    role, 
-                    "Rol obtenido exitosamente", 
-                    StatusCodes.Status200OK);
-                return Ok(successResponse);
-            }
-            catch (ArgumentException ex)
+            if (!response.Success)
             {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    ex.Message, 
-                    StatusCodes.Status400BadRequest);
+                if (response.StatusCode == 404) return NotFound(response);
                 return BadRequest(response);
             }
-            catch (Exception ex)
-            {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    "Error interno del servidor", 
-                    StatusCodes.Status500InternalServerError, 
-                    new List<string> { ex.Message });
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
-        }
 
+            return Ok(response);
+        }
 
         [HttpGet("name/{roleName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<RoleDataTransferObject>>> GetRoleByName(string roleName)
         {
-            try
-            {
-                var nameValidation = _roleValidator.ValidateRoleName(roleName);
-                if (!nameValidation.IsValid)
-                {
-                    var errors = nameValidation.Errors.Select(e => e.ErrorMessage).ToList();
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        "Nombre de rol inválido", 
-                        StatusCodes.Status400BadRequest, 
-                        errors);
-                    return BadRequest(response);
-                }
+            var response = await _roleService.GetRoleByNameAsync(roleName);
 
-                var role = await _roleService.GetRoleByNameAsync(roleName);
-                
-                if (role == null)
-                {
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        $"No se encontró un rol con el nombre '{roleName}'", 
-                        StatusCodes.Status404NotFound);
-                    return NotFound(response);
-                }
-
-                var successResponse = ApiResponse<RoleDataTransferObject>.SuccessResponse(
-                    role, 
-                    "Rol obtenido exitosamente", 
-                    StatusCodes.Status200OK);
-                return Ok(successResponse);
-            }
-            catch (ArgumentException ex)
+            if (!response.Success)
             {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    ex.Message, 
-                    StatusCodes.Status400BadRequest);
+                if (response.StatusCode == 404) return NotFound(response);
                 return BadRequest(response);
             }
-            catch (Exception ex)
-            {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    "Error interno del servidor", 
-                    StatusCodes.Status500InternalServerError, 
-                    new List<string> { ex.Message });
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
+
+            return Ok(response);
+        }
+
+        [HttpGet("{id:int}/exists")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse<bool>>> RoleExists(int id)
+        {
+            var response = await _roleService.RoleExistsAsync(id);
+
+            if (!response.Success)
+                return BadRequest(response);
+
+            return Ok(response);
+        }
+
+        [HttpGet("name/{roleName}/exists")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse<bool>>> RoleNameExists(string roleName)
+        {
+            var response = await _roleService.RoleNameExistsAsync(roleName);
+
+            if (!response.Success)
+                return BadRequest(response);
+
+            return Ok(response);
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<RoleDataTransferObject>>> CreateRole([FromBody] CreateRoleDataTransferObject createDto)
         {
-            try
-            {
-                if (createDto == null)
-                {
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        "Los datos del rol no pueden estar vacíos", 
-                        StatusCodes.Status400BadRequest);
-                    return BadRequest(response);
-                }
+            if (createDto == null)
+                return BadRequest(ApiResponse<RoleDataTransferObject>.ErrorResponse("Los datos del rol no pueden estar vacíos", 400));
 
-                var validation = await _roleValidator.ValidateCreateAsync(createDto);
-                if (!validation.IsValid)
-                {
-                    var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        "Datos de entrada inválidos", 
-                        StatusCodes.Status400BadRequest, 
-                        errors);
-                    return BadRequest(response);
-                }
+            var validation = await _roleValidator.ValidateCreateAsync(createDto);
+            if (!validation.IsValid)
+            {
+                var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+                return BadRequest(ApiResponse<RoleDataTransferObject>.ErrorResponse("Datos de entrada inválidos", 400, errors));
+            }
 
-                var createdRole = await _roleService.CreateRoleAsync(createDto);
-                
-                var successResponse = ApiResponse<RoleDataTransferObject>.SuccessResponse(
-                    createdRole, 
-                    "Rol creado exitosamente", 
-                    StatusCodes.Status201Created);
-                
-                return CreatedAtAction(
-                    nameof(GetRoleById), 
-                    new { id = createdRole.Id }, 
-                    successResponse);
-            }
-            catch (InvalidOperationException ex)
+            var response = await _roleService.CreateRoleAsync(createDto);
+
+            if (!response.Success)
             {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    ex.Message, 
-                    StatusCodes.Status409Conflict);
-                return Conflict(response);
-            }
-            catch (ArgumentException ex)
-            {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    ex.Message, 
-                    StatusCodes.Status400BadRequest);
+                if (response.StatusCode == 409) return Conflict(response);
                 return BadRequest(response);
             }
-            catch (Exception ex)
-            {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    "Error interno del servidor", 
-                    StatusCodes.Status500InternalServerError, 
-                    new List<string> { ex.Message });
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
+
+            return CreatedAtAction(nameof(GetRoleById), new { id = response.Data!.Id }, response);
         }
 
         [HttpPut("{id:int}")]
@@ -221,76 +120,31 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<RoleDataTransferObject>>> UpdateRole(int id, [FromBody] UpdateRoleDataTransferObject updateDto)
         {
-            try
+            if (updateDto == null)
+                return BadRequest(ApiResponse<RoleDataTransferObject>.ErrorResponse("Los datos del rol no pueden estar vacíos", 400));
+
+            if (id != updateDto.Id)
+                return BadRequest(ApiResponse<RoleDataTransferObject>.ErrorResponse("El ID de la URL no coincide con el ID del rol", 400));
+
+            var validation = await _roleValidator.ValidateUpdateAsync(updateDto);
+            if (!validation.IsValid)
             {
-                if (updateDto == null)
-                {
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        "Los datos del rol no pueden estar vacíos", 
-                        StatusCodes.Status400BadRequest);
-                    return BadRequest(response);
-                }
-
-                if (id != updateDto.Id)
-                {
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        "El ID de la URL no coincide con el ID del rol", 
-                        StatusCodes.Status400BadRequest);
-                    return BadRequest(response);
-                }
-
-                var validation = await _roleValidator.ValidateUpdateAsync(updateDto);
-                if (!validation.IsValid)
-                {
-                    var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        "Datos de entrada inválidos", 
-                        StatusCodes.Status400BadRequest, 
-                        errors);
-                    return BadRequest(response);
-                }
-
-                var updatedRole = await _roleService.UpdateRoleAsync(updateDto);
-                
-                if (updatedRole == null)
-                {
-                    var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                        $"No se encontró un rol con ID {id}", 
-                        StatusCodes.Status404NotFound);
-                    return NotFound(response);
-                }
-
-                var successResponse = ApiResponse<RoleDataTransferObject>.SuccessResponse(
-                    updatedRole, 
-                    "Rol actualizado exitosamente", 
-                    StatusCodes.Status200OK);
-                return Ok(successResponse);
+                var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
+                return BadRequest(ApiResponse<RoleDataTransferObject>.ErrorResponse("Datos de entrada inválidos", 400, errors));
             }
-            catch (InvalidOperationException ex)
+
+            var response = await _roleService.UpdateRoleAsync(updateDto);
+
+            if (!response.Success)
             {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    ex.Message, 
-                    StatusCodes.Status409Conflict);
-                return Conflict(response);
-            }
-            catch (ArgumentException ex)
-            {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    ex.Message, 
-                    StatusCodes.Status400BadRequest);
+                if (response.StatusCode == 404) return NotFound(response);
+                if (response.StatusCode == 409) return Conflict(response);
                 return BadRequest(response);
             }
-            catch (Exception ex)
-            {
-                var response = ApiResponse<RoleDataTransferObject>.ErrorResponse(
-                    "Error interno del servidor", 
-                    StatusCodes.Status500InternalServerError, 
-                    new List<string> { ex.Message });
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
+
+            return Ok(response);
         }
 
         [HttpDelete("{id:int}")]
@@ -298,124 +152,19 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<object>>> DeleteRole(int id)
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteRole(int id)
         {
-            try
-            {
-                var idValidation = _roleValidator.ValidateId(id);
-                if (!idValidation.IsValid)
-                {
-                    var errors = idValidation.Errors.Select(e => e.ErrorMessage).ToList();
-                    var response = ApiResponse<object>.ErrorResponse(
-                        "ID inválido", 
-                        StatusCodes.Status400BadRequest, 
-                        errors);
-                    return BadRequest(response);
-                }
+            var response = await _roleService.DeleteRoleAsync(id);
 
-                var deleted = await _roleService.DeleteRoleAsync(id);
-                
-                if (!deleted)
-                {
-                    var response = ApiResponse<object>.ErrorResponse(
-                        $"No se encontró un rol con ID {id}", 
-                        StatusCodes.Status404NotFound);
-                    return NotFound(response);
-                }
+            if (!response.Success)
+            {
+                if (response.StatusCode == 404) return NotFound(response);
+                if (response.StatusCode == 409) return Conflict(response);
+                return BadRequest(response);
+            }
 
-                var successResponse = ApiResponse<object>.SuccessResponse(
-                    "Rol eliminado exitosamente", 
-                    StatusCodes.Status200OK);
-                return Ok(successResponse);
-            }
-            catch (InvalidOperationException ex)
-            {
-                var response = ApiResponse<object>.ErrorResponse(
-                    ex.Message, 
-                    StatusCodes.Status409Conflict);
-                return Conflict(response);
-            }
-            catch (Exception ex)
-            {
-                var response = ApiResponse<object>.ErrorResponse(
-                    "Error interno del servidor", 
-                    StatusCodes.Status500InternalServerError, 
-                    new List<string> { ex.Message });
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
+            return Ok(response);
         }
 
-        [HttpGet("{id:int}/exists")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<bool>>> RoleExists(int id)
-        {
-            try
-            {
-                var idValidation = _roleValidator.ValidateId(id);
-                if (!idValidation.IsValid)
-                {
-                    var errors = idValidation.Errors.Select(e => e.ErrorMessage).ToList();
-                    var response = ApiResponse<bool>.ErrorResponse(
-                        "ID inválido", 
-                        StatusCodes.Status400BadRequest, 
-                        errors);
-                    return BadRequest(response);
-                }
-
-                var exists = await _roleService.RoleExistsAsync(id);
-                var successResponse = ApiResponse<bool>.SuccessResponse(
-                    exists, 
-                    exists ? "El rol existe" : "El rol no existe", 
-                    StatusCodes.Status200OK);
-                return Ok(successResponse);
-            }
-            catch (Exception ex)
-            {
-                var response = ApiResponse<bool>.ErrorResponse(
-                    "Error interno del servidor", 
-                    StatusCodes.Status500InternalServerError, 
-                    new List<string> { ex.Message });
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
-        }
-
-        [HttpGet("name/{roleName}/exists")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ApiResponse<bool>>> RoleNameExists(string roleName)
-        {
-            try
-            {
-                var nameValidation = _roleValidator.ValidateRoleName(roleName);
-                if (!nameValidation.IsValid)
-                {
-                    var errors = nameValidation.Errors.Select(e => e.ErrorMessage).ToList();
-                    var response = ApiResponse<bool>.ErrorResponse(
-                        "Nombre de rol inválido", 
-                        StatusCodes.Status400BadRequest, 
-                        errors);
-                    return BadRequest(response);
-                }
-
-                var exists = await _roleService.RoleNameExistsAsync(roleName);
-                var successResponse = ApiResponse<bool>.SuccessResponse(
-                    exists, 
-                    exists ? "Ya existe un rol con ese nombre" : "No existe un rol con ese nombre", 
-                    StatusCodes.Status200OK);
-                return Ok(successResponse);
-            }
-            catch (Exception ex)
-            {
-                var response = ApiResponse<bool>.ErrorResponse(
-                    "Error interno del servidor", 
-                    StatusCodes.Status500InternalServerError, 
-                    new List<string> { ex.Message });
-                return StatusCode(StatusCodes.Status500InternalServerError, response);
-            }
-        }
     }
 }

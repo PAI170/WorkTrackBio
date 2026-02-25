@@ -1,4 +1,5 @@
 using AutoMapper;
+using WorkTrackBio.API.Common;
 using WorkTrackBio.API.DataTransferObjects.Role;
 using WorkTrackBio.API.Repositories.RoleRepository;
 
@@ -15,93 +16,96 @@ namespace WorkTrackBio.API.Services.RoleService
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<IEnumerable<RoleDataTransferObject>> GetAllRolesAsync()
+        public async Task<ApiResponse<IEnumerable<RoleDataTransferObject>>> GetAllRolesAsync()
         {
             var roles = await _roleRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<RoleDataTransferObject>>(roles);
+            var result = _mapper.Map<IEnumerable<RoleDataTransferObject>>(roles);
+            return ApiResponse<IEnumerable<RoleDataTransferObject>>.SuccessResponse(result, "Roles obtenidos exitosamente");
         }
 
-        public async Task<RoleDataTransferObject?> GetRoleByIdAsync(int id)
+        public async Task<ApiResponse<RoleDataTransferObject>> GetRoleByIdAsync(int id)
         {
             if (id <= 0)
-                throw new ArgumentException("El ID debe ser mayor que 0", nameof(id));
+                return ApiResponse<RoleDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var role = await _roleRepository.GetByIdAsync(id);
-            return _mapper.Map<RoleDataTransferObject>(role);
+
+            if (role == null)
+                return ApiResponse<RoleDataTransferObject>.ErrorResponse($"No se encontró un rol con ID {id}", 404);
+
+            var result = _mapper.Map<RoleDataTransferObject>(role);
+            return ApiResponse<RoleDataTransferObject>.SuccessResponse(result, "Rol obtenido exitosamente");
         }
 
-        public async Task<RoleDataTransferObject?> GetRoleByNameAsync(string roleName)
+        public async Task<ApiResponse<RoleDataTransferObject>> GetRoleByNameAsync(string roleName)
         {
             if (string.IsNullOrWhiteSpace(roleName))
-                throw new ArgumentException("El nombre del rol no puede estar vacío", nameof(roleName));
+                return ApiResponse<RoleDataTransferObject>.ErrorResponse("El nombre del rol no puede estar vacío", 400);
 
             var role = await _roleRepository.GetByNameAsync(roleName);
-            return _mapper.Map<RoleDataTransferObject>(role);
+
+            if (role == null)
+                return ApiResponse<RoleDataTransferObject>.ErrorResponse($"No se encontró un rol con el nombre '{roleName}'", 404);
+
+            var result = _mapper.Map<RoleDataTransferObject>(role);
+            return ApiResponse<RoleDataTransferObject>.SuccessResponse(result, "Rol obtenido exitosamente");
         }
 
-        public async Task<bool> RoleExistsAsync(int id)
+        public async Task<ApiResponse<bool>> RoleExistsAsync(int id)
         {
             if (id <= 0)
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var role = await _roleRepository.GetByIdAsync(id);
-            return role != null;
+            var exists = role != null;
+            return ApiResponse<bool>.SuccessResponse(exists, exists ? "El rol existe" : "El rol no existe");
         }
 
-        public async Task<bool> RoleNameExistsAsync(string roleName)
+        public async Task<ApiResponse<bool>> RoleNameExistsAsync(string roleName)
         {
             if (string.IsNullOrWhiteSpace(roleName))
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El nombre del rol no puede estar vacío", 400);
 
-            return await _roleRepository.ExistsByNameAsync(roleName);
+            var exists = await _roleRepository.ExistsByNameAsync(roleName);
+            return ApiResponse<bool>.SuccessResponse(exists, exists ? $"Ya existe un rol con el nombre '{roleName}'" : $"No existe un rol con el nombre '{roleName}'");
         }
 
-        public async Task<RoleDataTransferObject> CreateRoleAsync(CreateRoleDataTransferObject createDto)
+        public async Task<ApiResponse<RoleDataTransferObject>> CreateRoleAsync(CreateRoleDataTransferObject createDto)
         {
             if (createDto == null)
-                throw new ArgumentNullException(nameof(createDto));
+                return ApiResponse<RoleDataTransferObject>.ErrorResponse("Los datos del rol no pueden estar vacíos", 400);
 
-            // Verificar si ya existe un rol con el mismo nombre (case-insensitive)
             var existingRoles = await _roleRepository.GetAllAsync();
             if (existingRoles.Any(r => string.Equals(r.RoleName, createDto.RoleName, StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidOperationException($"Ya existe un rol con el nombre '{createDto.RoleName}' (ignorando mayúsculas/minúsculas)");
+                return ApiResponse<RoleDataTransferObject>.ErrorResponse($"Ya existe un rol con el nombre '{createDto.RoleName}'", 409);
 
-            // Mapear DTO a Model
             var role = _mapper.Map<WorkTrackBio.API.Data.Models.Role>(createDto);
-
-            // Crear el rol
             var createdRole = await _roleRepository.CreateAsync(role);
+            var result = _mapper.Map<RoleDataTransferObject>(createdRole);
 
-            // Mapear de vuelta a DTO y retornar
-            return _mapper.Map<RoleDataTransferObject>(createdRole);
+            return ApiResponse<RoleDataTransferObject>.SuccessResponse(result, "Rol creado exitosamente", 201);
         }
 
-        public async Task<RoleDataTransferObject?> UpdateRoleAsync(UpdateRoleDataTransferObject updateDto)
+        public async Task<ApiResponse<RoleDataTransferObject>> UpdateRoleAsync(UpdateRoleDataTransferObject updateDto)
         {
             if (updateDto == null)
-                throw new ArgumentNullException(nameof(updateDto));
+                return ApiResponse<RoleDataTransferObject>.ErrorResponse("Los datos del rol no pueden estar vacíos", 400);
 
             if (updateDto.Id <= 0)
-                throw new ArgumentException("El ID debe ser mayor que 0", nameof(updateDto.Id));
+                return ApiResponse<RoleDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
-            // Verificar si el rol existe
             var existingRole = await _roleRepository.GetByIdAsync(updateDto.Id);
             if (existingRole == null)
-                return null;
+                return ApiResponse<RoleDataTransferObject>.ErrorResponse($"No se encontró un rol con ID {updateDto.Id}", 404);
 
-            // Lógica de "Partial Update": Solo actualizar campos que realmente cambiaron
             bool hasChanges = false;
 
-            // Actualizar RoleName solo si se proporcionó un nuevo valor
             if (!string.IsNullOrWhiteSpace(updateDto.RoleName))
             {
-                // Verificar si el nuevo nombre ya existe en otro rol (case-insensitive)
                 var allRoles = await _roleRepository.GetAllAsync();
-                if (allRoles.Any(r => string.Equals(r.RoleName, updateDto.RoleName, StringComparison.OrdinalIgnoreCase) &&
-                    r.Id != updateDto.Id))
-                    throw new InvalidOperationException($"Ya existe un rol con el nombre '{updateDto.RoleName}' (ignorando mayúsculas/minúsculas)");
+                if (allRoles.Any(r => string.Equals(r.RoleName, updateDto.RoleName, StringComparison.OrdinalIgnoreCase) && r.Id != updateDto.Id))
+                    return ApiResponse<RoleDataTransferObject>.ErrorResponse($"Ya existe un rol con el nombre '{updateDto.RoleName}'", 409);
 
-                // Solo actualizar si realmente cambió
                 if (!string.Equals(existingRole.RoleName, updateDto.RoleName, StringComparison.OrdinalIgnoreCase))
                 {
                     existingRole.RoleName = updateDto.RoleName;
@@ -109,8 +113,7 @@ namespace WorkTrackBio.API.Services.RoleService
                 }
             }
 
-            // Actualizar Description solo si se proporcionó un nuevo valor
-            if (updateDto.Description != null) // null significa "sin cambios"
+            if (updateDto.Description != null)
             {
                 if (!string.Equals(existingRole.Description ?? "", updateDto.Description))
                 {
@@ -119,43 +122,32 @@ namespace WorkTrackBio.API.Services.RoleService
                 }
             }
 
-            // Si no hay cambios, retornar el rol existente sin modificar
             if (!hasChanges)
             {
-                return _mapper.Map<RoleDataTransferObject>(existingRole);
+                var unchanged = _mapper.Map<RoleDataTransferObject>(existingRole);
+                return ApiResponse<RoleDataTransferObject>.SuccessResponse(unchanged, "No se detectaron cambios");
             }
 
-            // Guardar cambios solo si hubo modificaciones
             var updatedRole = await _roleRepository.UpdateAsync(existingRole);
-
-            // Mapear de vuelta a DTO y retornar
-            return _mapper.Map<RoleDataTransferObject>(updatedRole);
+            var result = _mapper.Map<RoleDataTransferObject>(updatedRole);
+            return ApiResponse<RoleDataTransferObject>.SuccessResponse(result, "Rol actualizado exitosamente");
         }
 
-        public async Task<bool> DeleteRoleAsync(int id)
+        public async Task<ApiResponse<bool>> DeleteRoleAsync(int id)
         {
             if (id <= 0)
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
-            // Verificar si el rol existe
             var role = await _roleRepository.GetByIdAsync(id);
             if (role == null)
-                return false;
+                return ApiResponse<bool>.ErrorResponse($"No se encontró un rol con ID {id}", 404);
 
-            // Verificar si el rol está siendo usado por otras entidades
-            // Esto evita errores de Foreign Key constraint
-            var isRoleInUse = await IsRoleInUseAsync(id);
-            if (isRoleInUse)
-                throw new InvalidOperationException($"No se puede eliminar el rol '{role.RoleName}' porque está siendo usado por usuarios internos del sistema");
+            var isInUse = await _roleRepository.HasDependenciesAsync(id);
+            if (isInUse)
+                return ApiResponse<bool>.ErrorResponse($"No se puede eliminar el rol '{role.RoleName}' porque está siendo usado por usuarios del sistema", 409);
 
-            return await _roleRepository.DeleteAsync(id);
-        }
-
-        private async Task<bool> IsRoleInUseAsync(int roleId)
-        {
-            // Verificar si hay entidades que dependen de este rol
-            var hasDependencies = await _roleRepository.HasDependenciesAsync(roleId);
-            return hasDependencies;
+            await _roleRepository.DeleteAsync(id);
+            return ApiResponse<bool>.SuccessResponse(true, "Rol eliminado exitosamente");
         }
     }
 }
