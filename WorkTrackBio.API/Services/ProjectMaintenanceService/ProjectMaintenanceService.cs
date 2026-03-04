@@ -5,6 +5,7 @@ using WorkTrackBio.API.Repositories.ProjectMaintenanceRepository;
 using WorkTrackBio.API.Repositories.ProjectRepository;
 using WorkTrackBio.API.Repositories.EmployeeInfoRepository;
 using WorkTrackBio.API.Repositories.StateRepository;
+using WorkTrackBio.API.Common;
 
 namespace WorkTrackBio.API.Services.ProjectMaintenanceService
 {
@@ -30,13 +31,13 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<IEnumerable<ProjectMaintenanceDataTransferObject>> GetAllProjectMaintenancesAsync()
+        public async Task<ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>> GetAllProjectMaintenancesAsync()
         {
             var maintenances = await _projectMaintenanceRepository.GetAllAsync();
             return _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
         }
 
-        public async Task<ProjectMaintenanceDataTransferObject?> GetProjectMaintenanceByIdAsync(int id)
+        public async Task<ApiResponse<ProjectMaintenanceDataTransferObject>> GetProjectMaintenanceByIdAsync(int id)
         {
             if (id <= 0)
                 throw new ArgumentException("El ID debe ser mayor que 0", nameof(id));
@@ -45,7 +46,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             return _mapper.Map<ProjectMaintenanceDataTransferObject>(maintenance);
         }
 
-        public async Task<IEnumerable<ProjectMaintenanceDataTransferObject>> GetProjectMaintenancesByProjectAsync(int projectId)
+        public async Task<ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>> GetProjectMaintenancesByProjectAsync(int projectId)
         {
             if (projectId <= 0)
                 throw new ArgumentException("El ID del proyecto debe ser mayor que 0", nameof(projectId));
@@ -59,7 +60,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             return _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
         }
 
-        public async Task<IEnumerable<ProjectMaintenanceDataTransferObject>> GetProjectMaintenancesByEmployeeAsync(int employeeId)
+        public async Task<ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>> GetProjectMaintenancesByEmployeeAsync(int employeeId)
         {
             if (employeeId <= 0)
                 throw new ArgumentException("El ID del empleado debe ser mayor que 0", nameof(employeeId));
@@ -73,7 +74,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             return _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
         }
 
-        public async Task<IEnumerable<ProjectMaintenanceDataTransferObject>> GetProjectMaintenancesByStateAsync(int stateId)
+        public async Task<ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>> GetProjectMaintenancesByStateAsync(int stateId)
         {
             if (stateId <= 0)
                 throw new ArgumentException("El ID del estado debe ser mayor que 0", nameof(stateId));
@@ -87,25 +88,25 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             return _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
         }
 
-        public async Task<ProjectMaintenanceDataTransferObject> CreateProjectMaintenanceAsync(CreateProjectMaintenanceDataTransferObject createDto)
+        public async Task<ApiResponse<ProjectMaintenanceDataTransferObject>> CreateProjectMaintenanceAsync(CreateProjectMaintenanceDataTransferObject createDto)
         {
             if (createDto == null)
-                throw new ArgumentNullException(nameof(createDto));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("Mantenimiento realizado requerido", 400);
 
             // Verificar que el proyecto exista
             var projectExists = await _projectRepository.GetByIdAsync(createDto.IdProject);
             if (projectExists == null)
-                throw new ArgumentException($"No existe un proyecto con ID {createDto.IdProject}", nameof(createDto.IdProject));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("No existe el proyecto indicado", 400);
 
             // Verificar que el empleado exista
             var employeeExists = await _employeeInfoRepository.GetByIdAsync(createDto.MadeById);
             if (employeeExists == null)
-                throw new ArgumentException($"No existe un empleado con ID {createDto.MadeById}", nameof(createDto.MadeById));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("No existe el usuario indicado", 400);
 
             // Verificar que el estado exista
             var stateExists = await _stateRepository.GetByIdAsync(createDto.StateId);
             if (stateExists == null)
-                throw new ArgumentException($"No existe un estado con ID {createDto.StateId}", nameof(createDto.StateId));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("El estado indicado no existe", 400);
 
             var maintenance = _mapper.Map<ProjectMaintenance>(createDto);
             maintenance.MaintenanceDate = DateTime.UtcNow;
@@ -114,10 +115,10 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             return _mapper.Map<ProjectMaintenanceDataTransferObject>(createdMaintenance);
         }
 
-        public async Task<ProjectMaintenanceDataTransferObject?> UpdateProjectMaintenanceAsync(UpdateProjectMaintenanceDataTransferObject updateDto)
+        public async Task<ApiResponse<ProjectMaintenanceDataTransferObject>> UpdateProjectMaintenanceAsync(UpdateProjectMaintenanceDataTransferObject updateDto)
         {
             if (updateDto == null)
-                throw new ArgumentNullException(nameof(updateDto));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("No existe el proyecto seleccionado", 400);
 
             // Verificar que el mantenimiento exista
             var existingMaintenance = await _projectMaintenanceRepository.GetByIdAsync(updateDto.Id);
@@ -129,7 +130,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             {
                 var projectExists = await _projectRepository.GetByIdAsync(updateDto.IdProject.Value);
                 if (projectExists == null)
-                    throw new ArgumentException($"No existe un proyecto con ID {updateDto.IdProject.Value}", nameof(updateDto.IdProject));
+                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse($"No se encontró proyecto con ID {updateDto}");
             }
 
             // Verificar que el empleado exista si se está actualizando
@@ -137,7 +138,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             {
                 var employeeExists = await _employeeInfoRepository.GetByIdAsync(updateDto.MadeById.Value);
                 if (employeeExists == null)
-                    throw new ArgumentException($"No existe un empleado con ID {updateDto.MadeById.Value}", nameof(updateDto.MadeById));
+                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse($"No se encontró empleado con ID {updateDto}");
             }
 
             // Verificar que el estado exista si se está actualizando
@@ -154,7 +155,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             return updatedMaintenance != null ? _mapper.Map<ProjectMaintenanceDataTransferObject>(updatedMaintenance) : null;
         }
 
-        public async Task<bool> DeleteProjectMaintenanceAsync(int id)
+        public async Task<ApiResponse<bool>> DeleteProjectMaintenanceAsync(int id)
         {
             if (id <= 0)
                 return false;
@@ -167,7 +168,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             return await _projectMaintenanceRepository.DeleteAsync(id);
         }
 
-        public async Task<bool> ProjectMaintenanceExistsAsync(int id)
+        public async Task<ApiResponse<bool>> ProjectMaintenanceExistsAsync(int id)
         {
             if (id <= 0)
                 return false;

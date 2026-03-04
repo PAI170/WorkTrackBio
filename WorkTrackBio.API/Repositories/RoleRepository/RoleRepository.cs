@@ -29,7 +29,7 @@ namespace WorkTrackBio.API.Repositories.RoleRepository
                 return null;
 
             return await _context.Roles
-                .FirstOrDefaultAsync(r => r.RoleName.ToLower() == roleName.ToLower());
+                .FirstOrDefaultAsync(r => EF.Functions.Like(r.RoleName, roleName));
         }
 
         public async Task<bool> ExistsByNameAsync(string roleName)
@@ -38,7 +38,7 @@ namespace WorkTrackBio.API.Repositories.RoleRepository
                 return false;
 
             return await _context.Roles
-                .AnyAsync(r => r.RoleName.ToLower() == roleName.ToLower());
+                .AnyAsync(r => EF.Functions.Like(r.RoleName, roleName));
         }
 
         public async Task<Role> CreateAsync(Role role)

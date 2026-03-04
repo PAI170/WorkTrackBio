@@ -71,8 +71,7 @@ namespace WorkTrackBio.API.Services.StateService
             if (createDto == null)
                 return ApiResponse<StateDataTransferObject>.ErrorResponse("Los datos del estado no pueden estar vacíos", 400);
 
-            var existingStates = await _stateRepository.GetAllAsync();
-            if (existingStates.Any(s => string.Equals(s.StateName, createDto.StateName, StringComparison.OrdinalIgnoreCase)))
+            if (await _stateRepository.ExistsByNameAsync(createDto.StateName))
                 return ApiResponse<StateDataTransferObject>.ErrorResponse($"Ya existe un estado con el nombre '{createDto.StateName}'", 409);
 
             var state = _mapper.Map<WorkTrackBio.API.Data.Models.State>(createDto);
@@ -98,8 +97,7 @@ namespace WorkTrackBio.API.Services.StateService
 
             if (!string.IsNullOrWhiteSpace(updateDto.StateName))
             {
-                var allStates = await _stateRepository.GetAllAsync();
-                if (allStates.Any(s => string.Equals(s.StateName, updateDto.StateName, StringComparison.OrdinalIgnoreCase) && s.Id != updateDto.Id))
+                if (await _stateRepository.ExistsByNameAsync(updateDto.StateName) && existingState.StateName.ToLower() != updateDto.StateName.ToLower())
                     return ApiResponse<StateDataTransferObject>.ErrorResponse($"Ya existe un estado con el nombre '{updateDto.StateName}'", 409);
 
                 if (!string.Equals(existingState.StateName, updateDto.StateName, StringComparison.OrdinalIgnoreCase))

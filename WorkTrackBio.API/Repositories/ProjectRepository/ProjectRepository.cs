@@ -34,7 +34,7 @@ namespace WorkTrackBio.API.Repositories.ProjectRepository
 
             return await _context.Projects
                 .Include(p => p.State)
-                .FirstOrDefaultAsync(p => p.ProjectName.ToLower() == projectName.ToLower());
+                .FirstOrDefaultAsync(p => EF.Functions.Like(p.ProjectName, projectName));
         }
 
         public async Task<bool> ExistsByNameAsync(string projectName)
@@ -43,7 +43,7 @@ namespace WorkTrackBio.API.Repositories.ProjectRepository
                 return false;
 
             return await _context.Projects
-                .AnyAsync(p => p.ProjectName.ToLower() == projectName.ToLower());
+                .AnyAsync(p => EF.Functions.Like(p.ProjectName, projectName));
         }
 
         public async Task<IEnumerable<Project>> GetByStateAsync(int stateId)

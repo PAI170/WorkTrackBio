@@ -37,8 +37,8 @@ namespace WorkTrackBio.API.Repositories.EmployeeInfoRepository
             return await _context.EmployeeInfos
                 .Include(e => e.DocumentType)
                 .Include(e => e.State)
-                .FirstOrDefaultAsync(e => e.DocumentNumber.ToLower() == documentNumber.ToLower() && 
-                                        e.DocumentTypeId == documentTypeId);
+                .FirstOrDefaultAsync(e => EF.Functions.Like(e.DocumentNumber, documentNumber)
+                                     && e.DocumentTypeId == documentTypeId);
         }
 
         public async Task<bool> ExistsByDocumentNumberAsync(string documentNumber, int documentTypeId)
@@ -47,8 +47,8 @@ namespace WorkTrackBio.API.Repositories.EmployeeInfoRepository
                 return false;
 
             return await _context.EmployeeInfos
-                .AnyAsync(e => e.DocumentNumber.ToLower() == documentNumber.ToLower() && 
-                              e.DocumentTypeId == documentTypeId);
+                .AnyAsync(e => EF.Functions.Like(e.DocumentNumber, documentNumber)
+                          && e.DocumentTypeId == documentTypeId);
         }
 
         public async Task<IEnumerable<EmployeeInfo>> GetByStateAsync(int stateId)

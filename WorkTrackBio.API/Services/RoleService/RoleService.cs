@@ -75,8 +75,7 @@ namespace WorkTrackBio.API.Services.RoleService
             if (createDto == null)
                 return ApiResponse<RoleDataTransferObject>.ErrorResponse("Los datos del rol no pueden estar vacíos", 400);
 
-            var existingRoles = await _roleRepository.GetAllAsync();
-            if (existingRoles.Any(r => string.Equals(r.RoleName, createDto.RoleName, StringComparison.OrdinalIgnoreCase)))
+            if (await _roleRepository.ExistsByNameAsync(createDto.RoleName))
                 return ApiResponse<RoleDataTransferObject>.ErrorResponse($"Ya existe un rol con el nombre '{createDto.RoleName}'", 409);
 
             var role = _mapper.Map<WorkTrackBio.API.Data.Models.Role>(createDto);
@@ -102,8 +101,7 @@ namespace WorkTrackBio.API.Services.RoleService
 
             if (!string.IsNullOrWhiteSpace(updateDto.RoleName))
             {
-                var allRoles = await _roleRepository.GetAllAsync();
-                if (allRoles.Any(r => string.Equals(r.RoleName, updateDto.RoleName, StringComparison.OrdinalIgnoreCase) && r.Id != updateDto.Id))
+                if (await _roleRepository.ExistsByNameAsync(updateDto.RoleName) && existingRole.RoleName.ToLower() != updateDto.RoleName.ToLower())
                     return ApiResponse<RoleDataTransferObject>.ErrorResponse($"Ya existe un rol con el nombre '{updateDto.RoleName}'", 409);
 
                 if (!string.Equals(existingRole.RoleName, updateDto.RoleName, StringComparison.OrdinalIgnoreCase))

@@ -38,7 +38,7 @@ namespace WorkTrackBio.API.Repositories.InternUserRepository
             return await _context.InternUsers
                 .Include(u => u.Role)
                 .Include(u => u.State)
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+                .FirstOrDefaultAsync(i => EF.Functions.Like(i.Email, email));
         }
 
         public async Task<InternUser?> GetByDocumentAsync(string documentNumber)
@@ -94,7 +94,7 @@ namespace WorkTrackBio.API.Repositories.InternUserRepository
                 return false;
 
             return await _context.InternUsers
-                .AnyAsync(u => u.Email.ToLower() == email.ToLower());
+                .AnyAsync(i => EF.Functions.Like(i.Email, email));
         }
 
         public async Task<bool> ExistsByIdAsync(int id)

@@ -29,7 +29,7 @@ namespace WorkTrackBio.API.Repositories.DocumentTypeRepository
                 return null;
 
             return await _context.DocumentTypes
-                .FirstOrDefaultAsync(dt => dt.DocumentName.ToLower() == documentName.ToLower());
+                .FirstOrDefaultAsync(dt => EF.Functions.Like(dt.DocumentName, documentName));
         }
 
         public async Task<bool> ExistsByNameAsync(string documentName)
@@ -38,7 +38,7 @@ namespace WorkTrackBio.API.Repositories.DocumentTypeRepository
                 return false;
 
             return await _context.DocumentTypes
-                .AnyAsync(dt => dt.DocumentName.ToLower() == documentName.ToLower());
+                .AnyAsync(dt => EF.Functions.Like(dt.DocumentName, documentName));
         }
 
         public async Task<DocumentType> CreateAsync(DocumentType documentType)

@@ -47,7 +47,6 @@ namespace WorkTrackBio.API.Services.ProjectService
             if (stateId <= 0)
                 throw new ArgumentException("El ID del estado debe ser mayor que 0", nameof(stateId));
 
-            // Verificar que el estado exista antes de buscar proyectos
             var stateExists = await _stateRepository.GetByIdAsync(stateId);
             if (stateExists == null)
                 throw new ArgumentException($"No existe un estado con ID {stateId}", nameof(stateId));
@@ -73,48 +72,46 @@ namespace WorkTrackBio.API.Services.ProjectService
             return await _projectRepository.ExistsByNameAsync(projectName);
         }
 
-        public async Task<ProjectDataTransferObject> CreateProjectAsync(CreateProjectDataTransferObject createDto)
+        public async Task<ApiResponse<ProjectDataTransferObject>> CreateProjectAsync(CreateProjectDataTransferObject createDto)
         {
             if (createDto == null)
-                throw new ArgumentNullException(nameof(createDto));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("Nombre del Proyecto no puede estar vacio", 400);
 
-            var existingProjects = await _projectRepository.GetAllAsync();
-            if (existingProjects.Any(p => string.Equals(p.ProjectName, createDto.ProjectName, StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidOperationException($"Ya existe un proyecto con el nombre '{createDto.ProjectName}' (ignorando mayúsculas/minúsculas)");
+            if (await _projectRepository.ExistsByNameAsync(createDto.ProjectName))
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse($"Ya existe un proyecto con el nombre", 409);
 
             if (createDto.StartDate.HasValue && createDto.EndDate.HasValue)
             {
                 if (createDto.EndDate.Value < createDto.StartDate.Value)
-                    throw new InvalidOperationException("La fecha de finalización no puede ser anterior a la fecha de inicio");
+                    return ApiResponse<ProjectDataTransferObject>.ErrorResponse("La fecha de finalización no puede ser anterior a la fecha de inicio", 400);
             }
 
             var project = _mapper.Map<WorkTrackBio.API.Data.Models.Project>(createDto);
 
             var createdProject = await _projectRepository.CreateAsync(project);
 
-            return _mapper.Map<ProjectDataTransferObject>(createdProject);
+            var result = _mapper.Map<ProjectDataTransferObject>(createdProject);
+            return ApiResponse<ProjectDataTransferObject>.SuccessResponse(result, "Proyecto creado exitosamente", 201);
         }
 
-        public async Task<ProjectDataTransferObject?> UpdateProjectAsync(UpdateProjectDataTransferObject updateDto)
+        public async Task<ApiResponse<ProjectDataTransferObject>> UpdateProjectAsync(UpdateProjectDataTransferObject updateDto)
         {
             if (updateDto == null)
-                throw new ArgumentNullException(nameof(updateDto));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("Nombre del Proyecto no puede estar vacio", 400);
 
             if (updateDto.Id <= 0)
-                throw new ArgumentException("El ID debe ser mayor que 0", nameof(updateDto.Id));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("El ID tiene que ser mayor que 0", 400);
 
             var existingProject = await _projectRepository.GetByIdAsync(updateDto.Id);
             if (existingProject == null)
-                return null;
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse($"No se encontró un proyecto con ID {updateDto.Id}", 404);
 
             bool hasChanges = false;
 
             if (!string.IsNullOrWhiteSpace(updateDto.ProjectName))
             {
-                var allProjects = await _projectRepository.GetAllAsync();
-                if (allProjects.Any(p => string.Equals(p.ProjectName, updateDto.ProjectName, StringComparison.OrdinalIgnoreCase) &&
-                    p.Id != updateDto.Id))
-                    throw new InvalidOperationException($"Ya existe un proyecto con el nombre '{updateDto.ProjectName}' (ignorando mayúsculas/minúsculas)");
+                if (await _projectRepository.ExistsByNameAsync(updateDto.ProjectName) && existingProject.ProjectName.ToLower() != updateDto.ProjectName.ToLower())
+                    return ApiResponse<ProjectDataTransferObject>.ErrorResponse($"Ya existe un proyecto con el nombre", 409);
 
                 if (!string.Equals(existingProject.ProjectName, updateDto.ProjectName, StringComparison.OrdinalIgnoreCase))
                 {
@@ -153,17 +150,19 @@ namespace WorkTrackBio.API.Services.ProjectService
             if (existingProject.StartDate.HasValue && existingProject.EndDate.HasValue)
             {
                 if (existingProject.EndDate.Value < existingProject.StartDate.Value)
-                    throw new InvalidOperationException("La fecha de finalización no puede ser anterior a la fecha de inicio");
+                    return ApiResponse<ProjectDataTransferObject>.ErrorResponse("La fecha de finalización no puede ser anterior a la fecha de inicio", 400);
             }
 
             if (!hasChanges)
             {
-                return _mapper.Map<ProjectDataTransferObject>(existingProject);
+                var unchanged = _mapper.Map<ProjectDataTransferObject>(existingProject);
+                return ApiResponse<ProjectDataTransferObject>.SuccessResponse(unchanged, "No se detectaron cambios");
             }
 
             var updatedProject = await _projectRepository.UpdateAsync(existingProject);
 
-            return _mapper.Map<ProjectDataTransferObject>(updatedProject);
+            var result = _mapper.Map<ProjectDataTransferObject>(updatedProject);
+            return ApiResponse<ProjectDataTransferObject>.SuccessResponse(result, "Proyecto actualizado exitosamente");
         }
 
         public async Task<bool> DeleteProjectAsync(int id)
