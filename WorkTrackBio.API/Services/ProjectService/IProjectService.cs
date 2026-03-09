@@ -1,3 +1,4 @@
+using WorkTrackBio.API.Common;
 using WorkTrackBio.API.DataTransferObjects.Project;
 
 namespace WorkTrackBio.API.Services.ProjectService
@@ -10,8 +11,8 @@ namespace WorkTrackBio.API.Services.ProjectService
         Task<IEnumerable<ProjectDataTransferObject>> GetProjectsByStateAsync(int stateId);
         Task<bool> ProjectExistsAsync(int id);
         Task<bool> ProjectNameExistsAsync(string projectName);
-        Task<ProjectDataTransferObject> CreateProjectAsync(CreateProjectDataTransferObject createDto);
-        Task<ProjectDataTransferObject?> UpdateProjectAsync(UpdateProjectDataTransferObject updateDto);
+        Task<ApiResponse<ProjectDataTransferObject>> CreateProjectAsync(CreateProjectDataTransferObject createDto);
+        Task<ApiResponse<ProjectDataTransferObject>> UpdateProjectAsync(UpdateProjectDataTransferObject updateDto);
         Task<bool> DeleteProjectAsync(int id);
     }
 }

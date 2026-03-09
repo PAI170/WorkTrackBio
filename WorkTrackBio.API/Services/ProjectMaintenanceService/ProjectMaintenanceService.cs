@@ -91,34 +91,34 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
         public async Task<ApiResponse<ProjectMaintenanceDataTransferObject>> CreateProjectMaintenanceAsync(CreateProjectMaintenanceDataTransferObject createDto)
         {
             if (createDto == null)
-                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("Mantenimiento realizado requerido", 400);
+                return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse("Mantenimiento realizado requerido", 400);
 
             // Verificar que el proyecto exista
             var projectExists = await _projectRepository.GetByIdAsync(createDto.IdProject);
             if (projectExists == null)
-                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("No existe el proyecto indicado", 400);
+                return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse("No existe el proyecto indicado", 400);
 
             // Verificar que el empleado exista
             var employeeExists = await _employeeInfoRepository.GetByIdAsync(createDto.MadeById);
             if (employeeExists == null)
-                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("No existe el usuario indicado", 400);
+                return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse("No existe el usuario indicado", 400);
 
             // Verificar que el estado exista
             var stateExists = await _stateRepository.GetByIdAsync(createDto.StateId);
             if (stateExists == null)
-                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("El estado indicado no existe", 400);
+                return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse("El estado indicado no existe", 400);
 
             var maintenance = _mapper.Map<ProjectMaintenance>(createDto);
             maintenance.MaintenanceDate = DateTime.UtcNow;
 
             var createdMaintenance = await _projectMaintenanceRepository.CreateAsync(maintenance);
-            return _mapper.Map<ProjectMaintenanceDataTransferObject>(createdMaintenance);
+            var result = _mapper.Map<ProjectMaintenanceDataTransferObject>(createdMaintenance);
         }
 
         public async Task<ApiResponse<ProjectMaintenanceDataTransferObject>> UpdateProjectMaintenanceAsync(UpdateProjectMaintenanceDataTransferObject updateDto)
         {
             if (updateDto == null)
-                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("No existe el proyecto seleccionado", 400);
+                return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse("No existe el proyecto seleccionado", 400);
 
             // Verificar que el mantenimiento exista
             var existingMaintenance = await _projectMaintenanceRepository.GetByIdAsync(updateDto.Id);
@@ -130,7 +130,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             {
                 var projectExists = await _projectRepository.GetByIdAsync(updateDto.IdProject.Value);
                 if (projectExists == null)
-                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse($"No se encontró proyecto con ID {updateDto}");
+                    return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse($"No se encontró proyecto con ID {updateDto}");
             }
 
             // Verificar que el empleado exista si se está actualizando
@@ -138,7 +138,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             {
                 var employeeExists = await _employeeInfoRepository.GetByIdAsync(updateDto.MadeById.Value);
                 if (employeeExists == null)
-                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse($"No se encontró empleado con ID {updateDto}");
+                    return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse($"No se encontró empleado con ID {updateDto}");
             }
 
             // Verificar que el estado exista si se está actualizando
