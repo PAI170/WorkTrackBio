@@ -33,59 +33,71 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
 
         public async Task<ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>> GetAllProjectMaintenancesAsync()
         {
-            var maintenances = await _projectMaintenanceRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
+                var projectMaintenance = await _projectMaintenanceRepository.GetAllAsync();
+                var projectMaintenanceDtos = _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(projectMaintenance);
+
+                return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.SuccessResponse(projectMaintenanceDtos, 
+                    $"Se encontraron {projectMaintenanceDtos.Count()} mantenimientos de proyecto");
         }
 
         public async Task<ApiResponse<ProjectMaintenanceDataTransferObject>> GetProjectMaintenanceByIdAsync(int id)
         {
             if (id <= 0)
-                throw new ArgumentException("El ID debe ser mayor que 0", nameof(id));
+                return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var maintenance = await _projectMaintenanceRepository.GetByIdAsync(id);
-            return _mapper.Map<ProjectMaintenanceDataTransferObject>(maintenance);
+
+            if (maintenance == null)
+                return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse($"No se encontro el mantenimiento con el ID {id}", 404);
+
+            var result = _mapper.Map<ProjectMaintenanceDataTransferObject>(maintenance);
+            return ApiResponse<ProjectMaintenanceDataTransferObject>.SuccessResponse(result, "Mantenimiento obtenido exitosamente");
         }
 
         public async Task<ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>> GetProjectMaintenancesByProjectAsync(int projectId)
         {
             if (projectId <= 0)
-                throw new ArgumentException("El ID del proyecto debe ser mayor que 0", nameof(projectId));
+                return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             // Verificar que el proyecto exista
             var projectExists = await _projectRepository.GetByIdAsync(projectId);
             if (projectExists == null)
-                throw new ArgumentException($"No existe un proyecto con ID {projectId}", nameof(projectId));
+                return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.ErrorResponse($"No existe un proyecto con ID {projectId}", 404);
 
             var maintenances = await _projectMaintenanceRepository.GetByProjectAsync(projectId);
-            return _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
+            var result = _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
+            return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.SuccessResponse(result, "Mantenimiento obtenido exitosamente");
         }
 
         public async Task<ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>> GetProjectMaintenancesByEmployeeAsync(int employeeId)
         {
             if (employeeId <= 0)
-                throw new ArgumentException("El ID del empleado debe ser mayor que 0", nameof(employeeId));
+                return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             // Verificar que el empleado exista
             var employeeExists = await _employeeInfoRepository.GetByIdAsync(employeeId);
             if (employeeExists == null)
-                throw new ArgumentException($"No existe un empleado con ID {employeeId}", nameof(employeeId));
+                return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.ErrorResponse($"No existe un empleado con ID {employeeId}", 404);
 
             var maintenances = await _projectMaintenanceRepository.GetByEmployeeAsync(employeeId);
-            return _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
+            var result = _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
+            return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.SuccessResponse(result, "Mantenimiento por empleado obtenido exitosamente");
+
         }
 
         public async Task<ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>> GetProjectMaintenancesByStateAsync(int stateId)
         {
             if (stateId <= 0)
-                throw new ArgumentException("El ID del estado debe ser mayor que 0", nameof(stateId));
+                return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             // Verificar que el estado exista
             var stateExists = await _stateRepository.GetByIdAsync(stateId);
             if (stateExists == null)
-                throw new ArgumentException($"No existe un estado con ID {stateId}", nameof(stateId));
+                return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.ErrorResponse($"No existe un estado con ID {stateId}", 404);
 
             var maintenances = await _projectMaintenanceRepository.GetByStateAsync(stateId);
-            return _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
+            var result = _mapper.Map<IEnumerable<ProjectMaintenanceDataTransferObject>>(maintenances);
+            return ApiResponse<IEnumerable<ProjectMaintenanceDataTransferObject>>.SuccessResponse(result, "Mantenimiento por estado obtenido exitosamente");
         }
 
         public async Task<ApiResponse<ProjectMaintenanceDataTransferObject>> CreateProjectMaintenanceAsync(CreateProjectMaintenanceDataTransferObject createDto)
@@ -113,6 +125,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
 
             var createdMaintenance = await _projectMaintenanceRepository.CreateAsync(maintenance);
             var result = _mapper.Map<ProjectMaintenanceDataTransferObject>(createdMaintenance);
+            return ApiResponse<ProjectMaintenanceDataTransferObject>.SuccessResponse(result, "Mantenimiento creado exitosamente", 201);
         }
 
         public async Task<ApiResponse<ProjectMaintenanceDataTransferObject>> UpdateProjectMaintenanceAsync(UpdateProjectMaintenanceDataTransferObject updateDto)
