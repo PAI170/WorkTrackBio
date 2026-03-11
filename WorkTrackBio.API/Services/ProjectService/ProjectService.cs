@@ -1,5 +1,6 @@
 using AutoMapper;
 using WorkTrackBio.API.Common;
+using WorkTrackBio.API.Data.Models;
 using WorkTrackBio.API.DataTransferObjects.Project;
 using WorkTrackBio.API.Repositories.ProjectRepository;
 using WorkTrackBio.API.Repositories.StateRepository;
@@ -22,55 +23,49 @@ namespace WorkTrackBio.API.Services.ProjectService
         public async Task<IEnumerable<ProjectDataTransferObject>> GetAllProjectsAsync()
         {
             var projects = await _projectRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<ProjectDataTransferObject>>(projects);
+            var projectDto = _mapper.Map<IEnumerable><ProjectDataTransferObject>>(projects);
+
+            return ApiResponse<IEnumerable<ProjectDataTransferObject>>.SuccessResponse(projectDto,
+                    $"Se encontraron {projectDto.Count()} proyectos");
         }
 
         public async Task<ProjectDataTransferObject?> GetProjectByIdAsync(int id)
         {
             if (id <= 0)
-                throw new ArgumentException("El ID debe ser mayor que 0", nameof(id));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var project = await _projectRepository.GetByIdAsync(id);
-            return _mapper.Map<ProjectDataTransferObject>(project);
+           
+            if (project == null)
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse($"No se encontro el proyecto con el ID {id}", 404);
+
+            var result = _mapper.Map<ProjectDataTransferObject>(project);
+            return ApiResponse<ProjectDataTransferObject>.SuccessResponse(result, "Proyectos obtenido exitosamente")
         }
 
         public async Task<ProjectDataTransferObject?> GetProjectByNameAsync(string projectName)
         {
             if (string.IsNullOrWhiteSpace(projectName))
-                throw new ArgumentException("El nombre del proyecto no puede estar vacío", nameof(projectName));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("El nombre del proyecto no puede ir vacio", 400);
 
             var project = await _projectRepository.GetByNameAsync(projectName);
-            return _mapper.Map<ProjectDataTransferObject>(project);
+            var result = _mapper.Map<ProjectDataTransferObject>(project);
+            return ApiResponse<ProjectDataTransferObject>.SuccessResponse(result, "Proyectos obtenido exitosamente")
+
         }
 
         public async Task<IEnumerable<ProjectDataTransferObject>> GetProjectsByStateAsync(int stateId)
         {
             if (stateId <= 0)
-                throw new ArgumentException("El ID del estado debe ser mayor que 0", nameof(stateId));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var stateExists = await _stateRepository.GetByIdAsync(stateId);
             if (stateExists == null)
-                throw new ArgumentException($"No existe un estado con ID {stateId}", nameof(stateId));
+                return ApiResponse<ProjectDataTransferObject>.ErrorResponse($"No se encontro el proyecto con el ID {stateId}", 404);
 
             var projects = await _projectRepository.GetByStateAsync(stateId);
-            return _mapper.Map<IEnumerable<ProjectDataTransferObject>>(projects);
-        }
-
-        public async Task<bool> ProjectExistsAsync(int id)
-        {
-            if (id <= 0)
-                return false;
-
-            var project = await _projectRepository.GetByIdAsync(id);
-            return project != null;
-        }
-
-        public async Task<bool> ProjectNameExistsAsync(string projectName)
-        {
-            if (string.IsNullOrWhiteSpace(projectName))
-                return false;
-
-            return await _projectRepository.ExistsByNameAsync(projectName);
+            var result = _mapper.Map<IEnumerable<ProjectDataTransferObject>>(projects);
+            return ApiResponse<IEnumerable<ProjectDataTransferObject>>.SuccessResponse(result, "Proyectos obtenidos exitosamente")
         }
 
         public async Task<ApiResponse<ProjectDataTransferObject>> CreateProjectAsync(CreateProjectDataTransferObject createDto)
@@ -169,7 +164,7 @@ namespace WorkTrackBio.API.Services.ProjectService
         public async Task<bool> DeleteProjectAsync(int id)
         {
             if (id <= 0)
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             var project = await _projectRepository.GetByIdAsync(id);
             if (project == null)
@@ -177,16 +172,15 @@ namespace WorkTrackBio.API.Services.ProjectService
 
             var isProjectInUse = await IsProjectInUseAsync(id);
             if (isProjectInUse)
-                throw new InvalidOperationException($"No se puede eliminar el proyecto '{project.ProjectName}' porque está siendo usado por otras entidades del sistema");
+                return ApiResponse<bool>.ErrorResponse($"No se puede eliminar el proyecto porque está siendo usado por proyectos del sistema", 409);
 
-            return await _projectRepository.DeleteAsync(id);
+            await _projectRepository.DeleteAsync(id);
+            return ApiResponse<bool>.SuccessResponse(true, "Proyecto eliminado exitosamente");
         }
 
         private async Task<bool> IsProjectInUseAsync(int projectId)
         {
-
-            var hasDependencies = await _projectRepository.HasDependenciesAsync(projectId);
-            return hasDependencies;
+            return await _projectRepository.HasDependenciesAsync(projectId);
         }
     }
 }

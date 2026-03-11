@@ -136,14 +136,14 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             // Verificar que el mantenimiento exista
             var existingMaintenance = await _projectMaintenanceRepository.GetByIdAsync(updateDto.Id);
             if (existingMaintenance == null)
-                return null;
+                return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse($"No se encontró un mantenimiento con ID {updateDto.Id}", 404);
 
             // Verificar que el proyecto exista si se está actualizando
             if (updateDto.IdProject.HasValue)
             {
                 var projectExists = await _projectRepository.GetByIdAsync(updateDto.IdProject.Value);
                 if (projectExists == null)
-                    return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse($"No se encontró proyecto con ID {updateDto}");
+                    return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse($"No se encontró proyecto con ID {updateDto.IdProject.Value}", 404);
             }
 
             // Verificar que el empleado exista si se está actualizando
@@ -151,7 +151,7 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             {
                 var employeeExists = await _employeeInfoRepository.GetByIdAsync(updateDto.MadeById.Value);
                 if (employeeExists == null)
-                    return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse($"No se encontró empleado con ID {updateDto}");
+                    return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse($"No se encontró empleado con ID {updateDto.MadeById.Value}", 404);
             }
 
             // Verificar que el estado exista si se está actualizando
@@ -159,34 +159,27 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
             {
                 var stateExists = await _stateRepository.GetByIdAsync(updateDto.StateId.Value);
                 if (stateExists == null)
-                    throw new ArgumentException($"No existe un estado con ID {updateDto.StateId.Value}", nameof(updateDto.StateId));
+                    return ApiResponse<ProjectMaintenanceDataTransferObject>.ErrorResponse($"No se encontró estado con ID {updateDto.StateId.Value}", 404);
             }
 
             var maintenance = _mapper.Map<ProjectMaintenance>(updateDto);
             var updatedMaintenance = await _projectMaintenanceRepository.UpdateAsync(maintenance);
-            
-            return updatedMaintenance != null ? _mapper.Map<ProjectMaintenanceDataTransferObject>(updatedMaintenance) : null;
+            var result = _mapper.Map<ProjectMaintenanceDataTransferObject>(updatedMaintenance);
+            return ApiResponse<ProjectMaintenanceDataTransferObject>.SuccessResponse(result, "Mantenimiento actualizado exitosamente");
         }
 
         public async Task<ApiResponse<bool>> DeleteProjectMaintenanceAsync(int id)
         {
             if (id <= 0)
-                return false;
+                return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
             // Verificar que no tenga dependencias
             var hasDependencies = await _projectMaintenanceRepository.HasDependenciesAsync(id);
             if (hasDependencies)
-                throw new InvalidOperationException("No se puede eliminar el mantenimiento porque tiene dependencias");
+                return ApiResponse<bool>.ErrorResponse($"No se puede eliminar el mantenimiento porque está siendo usado por proyectos del sistema", 409);
 
-            return await _projectMaintenanceRepository.DeleteAsync(id);
-        }
-
-        public async Task<ApiResponse<bool>> ProjectMaintenanceExistsAsync(int id)
-        {
-            if (id <= 0)
-                return false;
-
-            return await _projectMaintenanceRepository.ExistsByIdAsync(id);
+            await _projectMaintenanceRepository.DeleteAsync(id);
+            return ApiResponse<bool>.SuccessResponse(true, "Mantenimiento eliminado exitosamente");
         }
     }
 }

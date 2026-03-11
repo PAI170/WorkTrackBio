@@ -5,14 +5,14 @@ namespace WorkTrackBio.API.Services.ProjectService
 {
     public interface IProjectService
     {
-        Task<IEnumerable<ProjectDataTransferObject>> GetAllProjectsAsync();
-        Task<ProjectDataTransferObject?> GetProjectByIdAsync(int id);
-        Task<ProjectDataTransferObject?> GetProjectByNameAsync(string projectName);
-        Task<IEnumerable<ProjectDataTransferObject>> GetProjectsByStateAsync(int stateId);
-        Task<bool> ProjectExistsAsync(int id);
-        Task<bool> ProjectNameExistsAsync(string projectName);
-        Task<ApiResponse<ProjectDataTransferObject>> CreateProjectAsync(CreateProjectDataTransferObject createDto);
+        Task<ApiResponse<IEnumerable<ProjectDataTransferObject>>> GetAllProjectsAsync();
+        Task<ApiResponse<ProjectDataTransferObject>> GetProjectByIdAsync(int id);
+        Task<ApiResponse<ProjectDataTransferObject>> GetProjectByNameAsync(string projectName);
+        Task<ApiResponse<IEnumerable<ProjectDataTransferObject>>> GetProjectsByStateAsync(int stateId);
+        Task<ApiResponse<bool>> ProjectExistsAsync(int id);
+        Task<ApiResponse<bool>> ProjectNameExistsAsync(string projectName);
+        Task<ApiResponse<ApiResponse<ProjectDataTransferObject>>> CreateProjectAsync(CreateProjectDataTransferObject createDto);
         Task<ApiResponse<ProjectDataTransferObject>> UpdateProjectAsync(UpdateProjectDataTransferObject updateDto);
-        Task<bool> DeleteProjectAsync(int id);
+        Task<ApiResponse<bool>> DeleteProjectAsync(int id);
     }
 }
