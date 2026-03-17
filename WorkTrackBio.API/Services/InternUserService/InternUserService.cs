@@ -1,4 +1,5 @@
 using AutoMapper;
+using WorkTrackBio.API.Common;
 using WorkTrackBio.API.Data.Models;
 using WorkTrackBio.API.DataTransferObjects.InternUser;
 using WorkTrackBio.API.Repositories.InternUserRepository;
@@ -30,16 +31,26 @@ namespace WorkTrackBio.API.Services.InternUserService
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        public async Task<IEnumerable<InternUserDataTransferObject>> GetAllInternUsersAsync()
+        public async Task<ApiResponse<IEnumerable<InternUserDataTransferObject>>> GetAllInternUsersAsync()
         {
             var internUsers = await _internUserRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<InternUserDataTransferObject>>(internUsers);
+            var result = _mapper.Map<IEnumerable<InternUserDataTransferObject>>(internUsers);
+
+            return ApiResponse<IEnumerable<InternUserDataTransferObject>>.SuccessResponse(result, $"Se encontraron {result.Count()} usuarios");
         }
 
-        public async Task<InternUserDataTransferObject?> GetInternUserByIdAsync(int id)
+        public async Task<ApiResponse<InternUserDataTransferObject>> GetInternUserByIdAsync(int id)
         {
+            if (id <= 0)
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
+
             var internUser = await _internUserRepository.GetByIdAsync(id);
-            return _mapper.Map<InternUserDataTransferObject>(internUser);
+
+            if (internUser == null)
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse($"No se encontro el usuario con el ID {id}", 404);
+
+            var result = _mapper.Map<InternUserDataTransferObject>(internUser);
+            return ApiResponse<InternUserDataTransferObject>.SuccessResponse(result, "Usuarios obtenidos exitosamente");
         }
 
         public async Task<InternUserDataTransferObject?> GetInternUserByEmailAsync(string email)
@@ -48,10 +59,18 @@ namespace WorkTrackBio.API.Services.InternUserService
             return _mapper.Map<InternUserDataTransferObject>(internUser);
         }
 
-        public async Task<InternUserDataTransferObject?> GetInternUserByDocumentAsync(string documentNumber)
+        public async Task<ApiResponse<InternUserDataTransferObject>> GetInternUserByDocumentAsync(string documentNumber)
         {
-            var internUser = await _internUserRepository.GetByDocumentAsync(documentNumber);
-            return _mapper.Map<InternUserDataTransferObject>(internUser);
+            if (string.IsNullOrWhiteSpace(documentNumber))
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse("El número de documento no puede estar vacío", 400);
+
+            var internUser = await _internUserRepository.GetInternUserByDocumentAsync(documentNumber);
+
+            if (internUser == null)
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse($"No se encontró un usuario con el número de documento '{documentNumber}'", 404);
+
+            var result = _mapper.Map<InternUserDataTransferObject>(internUser);
+            return ApiResponse<InternUserDataTransferObject>.SuccessResponse(result, "Usuario obtenido exitosamente");
         }
 
         public async Task<InternUserDataTransferObject?> GetInternUserByIdentifierAsync(string identifier)
