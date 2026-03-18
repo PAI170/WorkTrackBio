@@ -53,10 +53,18 @@ namespace WorkTrackBio.API.Services.InternUserService
             return ApiResponse<InternUserDataTransferObject>.SuccessResponse(result, "Usuarios obtenidos exitosamente");
         }
 
-        public async Task<InternUserDataTransferObject?> GetInternUserByEmailAsync(string email)
+        public async Task<ApiResponse<InternUserDataTransferObject>> GetInternUserByEmailAsync(string email)
         {
+            if (string.IsNullOrWhiteSpace(email))
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse("Correo Electronico Obligatorio", 400);
+
             var internUser = await _internUserRepository.GetByEmailAsync(email);
-            return _mapper.Map<InternUserDataTransferObject>(internUser);
+            
+            if (internUser == null)
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse($"No se encontró un usuario con el correo electronico '{email}'", 404);
+
+            var result = _mapper.Map<InternUserDataTransferObject>(internUser);
+            return ApiResponse<InternUserDataTransferObject>.SuccessResponse(result, "Usuario obtenido exitosamente");
         }
 
         public async Task<ApiResponse<InternUserDataTransferObject>> GetInternUserByDocumentAsync(string documentNumber)
