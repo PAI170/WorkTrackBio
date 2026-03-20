@@ -25,158 +25,86 @@ namespace WorkTrackBio.API.Services.ProjectWarrantyService
 
         public async Task<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>> GetAllProjectWarrantiesAsync()
         {
-            try
-            {
                 var projectWarranties = await _projectWarrantyRepository.GetAllAsync();
                 var projectWarrantyDtos = _mapper.Map<IEnumerable<ProjectWarrantyDataTransferObject>>(projectWarranties);
 
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(
-                    projectWarrantyDtos,
-                    $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse(
-                    $"Error al obtener las garantías de proyectos: {ex.Message}");
-            }
+                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(projectWarrantyDtos, $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto");
         }
 
         public async Task<ApiResponse<ProjectWarrantyDataTransferObject>> GetProjectWarrantyByIdAsync(int id)
         {
-            try
-            {
                 if (id <= 0)
-                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0");
+                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
                 var projectWarranty = await _projectWarrantyRepository.GetByIdAsync(id);
                 if (projectWarranty == null)
-                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse($"No se encontró una garantía de proyecto con ID {id}");
+                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse($"No se encontró una garantía de proyecto con ID {id}", 404);
 
                 var projectWarrantyDto = _mapper.Map<ProjectWarrantyDataTransferObject>(projectWarranty);
 
-                return ApiResponse<ProjectWarrantyDataTransferObject>.SuccessResponse(
-                    projectWarrantyDto,
-                    "Garantía de proyecto encontrada exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse(
-                    $"Error al obtener la garantía de proyecto: {ex.Message}");
-            }
+                return ApiResponse<ProjectWarrantyDataTransferObject>.SuccessResponse(projectWarrantyDto,"Garantía de proyecto encontrada exitosamente");
         }
 
         public async Task<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>> GetProjectWarrantiesByProjectAsync(int projectId)
         {
-            try
-            {
                 if (projectId <= 0)
-                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del proyecto debe ser mayor que 0");
+                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del proyecto debe ser mayor que 0", 400);
 
                 var projectWarranties = await _projectWarrantyRepository.GetByProjectAsync(projectId);
                 var projectWarrantyDtos = _mapper.Map<IEnumerable<ProjectWarrantyDataTransferObject>>(projectWarranties);
 
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(
-                    projectWarrantyDtos,
-                    $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto para el proyecto {projectId}");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse(
-                    $"Error al obtener las garantías de proyecto: {ex.Message}");
-            }
+                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(projectWarrantyDtos, $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto para el proyecto {projectId}");
         }
 
         public async Task<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>> GetProjectWarrantiesByEmployeeAsync(int employeeId)
         {
-            try
-            {
                 if (employeeId <= 0)
-                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del empleado debe ser mayor que 0");
+                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del empleado debe ser mayor que 0", 400);
 
                 var projectWarranties = await _projectWarrantyRepository.GetByEmployeeAsync(employeeId);
                 var projectWarrantyDtos = _mapper.Map<IEnumerable<ProjectWarrantyDataTransferObject>>(projectWarranties);
 
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(
-                    projectWarrantyDtos,
-                    $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto para el empleado {employeeId}");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse(
-                    $"Error al obtener las garantías de proyecto del empleado: {ex.Message}");
-            }
+                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(projectWarrantyDtos, $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto para el empleado {employeeId}");
         }
 
         public async Task<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>> GetProjectWarrantiesByStateAsync(int stateId)
         {
-            try
-            {
                 if (stateId <= 0)
-                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del estado debe ser mayor que 0");
+                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del estado debe ser mayor que 0", 400);
 
                 var projectWarranties = await _projectWarrantyRepository.GetByStateAsync(stateId);
                 var projectWarrantyDtos = _mapper.Map<IEnumerable<ProjectWarrantyDataTransferObject>>(projectWarranties);
 
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(
-                    projectWarrantyDtos,
-                    $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto para el estado {stateId}");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse(
-                    $"Error al obtener las garantías de proyecto del estado: {ex.Message}");
-            }
+                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(projectWarrantyDtos, $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto para el estado {stateId}");
         }
 
         public async Task<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>> GetProjectWarrantiesByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
-            try
-            {
                 if (startDate > endDate)
-                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("La fecha de inicio no puede ser posterior a la fecha de fin");
+                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("La fecha de inicio no puede ser posterior a la fecha de fin", 400);
 
                 var projectWarranties = await _projectWarrantyRepository.GetByDateRangeAsync(startDate, endDate);
                 var projectWarrantyDtos = _mapper.Map<IEnumerable<ProjectWarrantyDataTransferObject>>(projectWarranties);
 
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(
-                    projectWarrantyDtos,
-                    $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto entre {startDate:dd/MM/yyyy} y {endDate:dd/MM/yyyy}");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse(
-                    $"Error al obtener las garantías de proyecto por rango de fechas: {ex.Message}");
-            }
+                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(projectWarrantyDtos, $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto entre {startDate:dd/MM/yyyy} y {endDate:dd/MM/yyyy}");
         }
 
         public async Task<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>> GetProjectWarrantiesByProjectAndStateAsync(int projectId, int stateId)
         {
-            try
-            {
                 if (projectId <= 0)
-                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del proyecto debe ser mayor que 0");
+                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del proyecto debe ser mayor que 0", 400);
 
                 if (stateId <= 0)
-                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del estado debe ser mayor que 0");
+                    return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse("El ID del estado debe ser mayor que 0", 400);
 
                 var projectWarranties = await _projectWarrantyRepository.GetByProjectAndStateAsync(projectId, stateId);
                 var projectWarrantyDtos = _mapper.Map<IEnumerable<ProjectWarrantyDataTransferObject>>(projectWarranties);
 
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(
-                    projectWarrantyDtos,
-                    $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto para el proyecto {projectId} y estado {stateId}");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.ErrorResponse(
-                    $"Error al obtener las garantías de proyecto por proyecto y estado: {ex.Message}");
-            }
+                return ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>.SuccessResponse(projectWarrantyDtos, $"Se encontraron {projectWarrantyDtos.Count()} garantía(s) de proyecto para el proyecto {projectId} y estado {stateId}");
         }
 
         public async Task<ApiResponse<ProjectWarrantyDataTransferObject>> CreateProjectWarrantyAsync(CreateProjectWarrantyDataTransferObject createDto)
         {
-            try
-            {
                 // Validar el DTO
                 var validationResult = await _projectWarrantyValidator.ValidateCreateAsync(createDto);
                 if (!validationResult.IsValid)
@@ -192,28 +120,18 @@ namespace WorkTrackBio.API.Services.ProjectWarrantyService
                 var createdProjectWarranty = await _projectWarrantyRepository.CreateAsync(projectWarranty);
                 var projectWarrantyDto = _mapper.Map<ProjectWarrantyDataTransferObject>(createdProjectWarranty);
 
-                return ApiResponse<ProjectWarrantyDataTransferObject>.SuccessResponse(
-                    projectWarrantyDto,
-                    "Garantía de proyecto creada exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse(
-                    $"Error al crear la garantía de proyecto: {ex.Message}");
-            }
+                return ApiResponse<ProjectWarrantyDataTransferObject>.SuccessResponse(projectWarrantyDto,"Garantía de proyecto creada exitosamente");
         }
 
         public async Task<ApiResponse<ProjectWarrantyDataTransferObject>> UpdateProjectWarrantyAsync(int id, UpdateProjectWarrantyDataTransferObject updateDto)
         {
-            try
-            {
                 if (id <= 0)
-                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0");
+                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
                 // Obtener la garantía existente
                 var existingProjectWarranty = await _projectWarrantyRepository.GetByIdAsync(id);
                 if (existingProjectWarranty == null)
-                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse($"No se encontró una garantía de proyecto con ID {id}");
+                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse($"No se encontró una garantía de proyecto con ID {id}", 404);
 
                 // Validar el DTO
                 var validationResult = await _projectWarrantyValidator.ValidateUpdateAsync(id, updateDto);
@@ -275,55 +193,37 @@ namespace WorkTrackBio.API.Services.ProjectWarrantyService
 
                 if (!hasChanges)
                 {
-                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse("No se detectaron cambios para actualizar");
+                    return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse("No se detectaron cambios para actualizar", 400);
                 }
 
                 // Actualizar la garantía
                 var updatedProjectWarranty = await _projectWarrantyRepository.UpdateAsync(existingProjectWarranty);
                 var projectWarrantyDto = _mapper.Map<ProjectWarrantyDataTransferObject>(updatedProjectWarranty);
 
-                return ApiResponse<ProjectWarrantyDataTransferObject>.SuccessResponse(
-                    projectWarrantyDto,
-                    "Garantía de proyecto actualizada exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProjectWarrantyDataTransferObject>.ErrorResponse(
-                    $"Error al actualizar la garantía de proyecto: {ex.Message}");
-            }
+                return ApiResponse<ProjectWarrantyDataTransferObject>.SuccessResponse(projectWarrantyDto, "Garantía de proyecto actualizada exitosamente");
         }
 
         public async Task<ApiResponse<bool>> DeleteProjectWarrantyAsync(int id)
         {
-            try
-            {
                 if (id <= 0)
-                    return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0");
+                    return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
 
                 // Verificar que la garantía existe
                 var existingProjectWarranty = await _projectWarrantyRepository.GetByIdAsync(id);
                 if (existingProjectWarranty == null)
-                    return ApiResponse<bool>.ErrorResponse($"No se encontró una garantía de proyecto con ID {id}");
+                    return ApiResponse<bool>.ErrorResponse($"No se encontró una garantía de proyecto con ID {id}", 404);
 
                 // Verificar dependencias
                 var hasDependencies = await _projectWarrantyRepository.HasDependenciesAsync(id);
                 if (hasDependencies)
-                    return ApiResponse<bool>.ErrorResponse("No se puede eliminar la garantía de proyecto porque tiene dependencias (registros de auditoría)");
+                    return ApiResponse<bool>.ErrorResponse("No se puede eliminar la garantía de proyecto porque tiene dependencias (registros de auditoría)", 409);
 
                 // Eliminar la garantía
                 var deleted = await _projectWarrantyRepository.DeleteAsync(id);
                 if (!deleted)
-                    return ApiResponse<bool>.ErrorResponse("Error al eliminar la garantía de proyecto");
+                    return ApiResponse<bool>.ErrorResponse("Error al eliminar la garantía de proyecto", 500);
 
-                return ApiResponse<bool>.SuccessResponse(
-                    true,
-                    "Garantía de proyecto eliminada exitosamente");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<bool>.ErrorResponse(
-                    $"Error al eliminar la garantía de proyecto: {ex.Message}");
-            }
+                return ApiResponse<bool>.SuccessResponse(true,"Garantía de proyecto eliminada exitosamente");
         }
     }
 }

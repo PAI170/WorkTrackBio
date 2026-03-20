@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using AutoMapper;
 using WorkTrackBio.API.Common;
 using WorkTrackBio.API.Data.Models;
@@ -81,138 +82,128 @@ namespace WorkTrackBio.API.Services.InternUserService
             return ApiResponse<InternUserDataTransferObject>.SuccessResponse(result, "Usuario obtenido exitosamente");
         }
 
-        public async Task<InternUserDataTransferObject?> GetInternUserByIdentifierAsync(string identifier)
+        public async Task<ApiResponse<IEnumerable<InternUserDataTransferObject>>> GetInternUsersByRoleAsync(int roleId)
         {
-            var internUser = await _internUserRepository.GetByIdentifierAsync(identifier);
-            return _mapper.Map<InternUserDataTransferObject>(internUser);
-        }
+            if (roleId <= 0)
+                return ApiResponse<IEnumerable<InternUserDataTransferObject>>.ErrorResponse($"El ID debe ser mayor que 0", 400);
 
-        public async Task<IEnumerable<InternUserDataTransferObject>> GetInternUsersByRoleAsync(int roleId)
-        {
             var internUsers = await _internUserRepository.GetByRoleAsync(roleId);
-            return _mapper.Map<IEnumerable<InternUserDataTransferObject>>(internUsers);
+            var result = _mapper.Map<IEnumerable<InternUserDataTransferObject>>(internUsers);
+
+            return ApiResponse<IEnumerable<InternUserDataTransferObject>>.SuccessResponse(result, $"Se encontraron {result.Count()} usuarios con el ID provisionado");
         }
 
-        public async Task<IEnumerable<InternUserDataTransferObject>> GetInternUsersByStateAsync(int stateId)
+        public async Task<ApiResponse<IEnumerable<InternUserDataTransferObject>>> GetInternUsersByStateAsync(int stateId)
         {
+            if (stateId <= 0)
+                return ApiResponse<IEnumerable<InternUserDataTransferObject>>.ErrorResponse("El ID del estado debe ser mayor que 0", 400);
+            
+            var stateExists = await _stateRepository.GetByIdAsync(stateId);
+            if (stateExists == null)
+                return ApiResponse <IEnumerable<InternUserDataTransferObject>>.ErrorResponse("El estado provisionado no existe", 400);
+
             var internUsers = await _internUserRepository.GetByStateAsync(stateId);
-            return _mapper.Map<IEnumerable<InternUserDataTransferObject>>(internUsers);
+            var result = _mapper.Map<IEnumerable<InternUserDataTransferObject>>(internUsers);
+            return ApiResponse<IEnumerable<InternUserDataTransferObject>>.SuccessResponse(result, $"Se encontraron {result.Count()} usuarios");
         }
 
-        public async Task<InternUserDataTransferObject> CreateInternUserAsync(CreateInternUserDataTransferObject createDto)
+        public async Task<ApiResponse<InternUserDataTransferObject>> CreateInternUserAsync(CreateInternUserDataTransferObject createDto)
         {
-            // Validar DTO antes de crear
             var validationResult = await _internUserValidator.ValidateCreateAsync(createDto);
             if (!validationResult.IsValid)
             {
                 var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                throw new ArgumentException($"Validación fallida: {errors}");
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse("Datos invalidos, verifique antes de continuar", 400);
             }
 
             // Verificar que el rol exista
             var roleExists = await _roleRepository.GetByIdAsync(createDto.RolId);
             if (roleExists == null)
             {
-                throw new ArgumentException($"No existe un rol con ID {createDto.RolId}");
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse("El rol especificado no existe", 400);
             }
 
             // Verificar que el estado exista
             var stateExists = await _stateRepository.GetByIdAsync(createDto.StateId);
             if (stateExists == null)
             {
-                throw new ArgumentException($"No existe un estado con ID {createDto.StateId}");
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse("El estado especificado no existe", 400);
             }
 
             // Verificar que el email sea único
             var existingUser = await _internUserRepository.GetByEmailAsync(createDto.Email);
             if (existingUser != null)
             {
-                throw new InvalidOperationException($"Ya existe un usuario con el email '{createDto.Email}'");
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse("El correo ya existe", 400);
             }
 
             var internUser = _mapper.Map<InternUser>(createDto);
             var createdInternUser = await _internUserRepository.CreateAsync(internUser);
-            
-            return _mapper.Map<InternUserDataTransferObject>(createdInternUser);
+            var result = _mapper.Map<InternUserDataTransferObject>(createdInternUser);
+
+            return ApiResponse<InternUserDataTransferObject>.SuccessResponse(result,"Usuario creado sastifactoriamente", 201);
         }
 
-        public async Task<InternUserDataTransferObject?> UpdateInternUserAsync(UpdateInternUserDataTransferObject updateDto)
+        public async Task<ApiResponse<InternUserDataTransferObject>> UpdateInternUserAsync(UpdateInternUserDataTransferObject updateDto)
         {
-            // Validar DTO antes de actualizar
             var validationResult = await _internUserValidator.ValidateUpdateAsync(updateDto);
             if (!validationResult.IsValid)
             {
                 var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                throw new ArgumentException($"Validación fallida: {errors}");
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse("Datos invalidos, vuelva a verificar", 400);
             }
 
-            // Verificar que el usuario exista
             var existingUser = await _internUserRepository.GetByIdAsync(updateDto.Id);
             if (existingUser == null)
             {
-                throw new ArgumentException($"No existe un usuario con ID {updateDto.Id}");
+                return ApiResponse<InternUserDataTransferObject>.ErrorResponse($"No existe usuario con ID {updateDto.Id} en el sistema ", 404);
             }
 
-            // Verificar rol si se está actualizando
             if (updateDto.RolId.HasValue)
             {
                 var roleExists = await _roleRepository.GetByIdAsync(updateDto.RolId.Value);
                 if (roleExists == null)
                 {
-                    throw new ArgumentException($"No existe un rol con ID {updateDto.RolId.Value}");
+                    return ApiResponse<InternUserDataTransferObject>.ErrorResponse($"No existe el role ID {updateDto.RolId}", 404);
                 }
             }
 
-            // Verificar estado si se está actualizando
             if (updateDto.StateId.HasValue)
             {
                 var stateExists = await _stateRepository.GetByIdAsync(updateDto.StateId.Value);
                 if (stateExists == null)
                 {
-                    throw new ArgumentException($"No existe un estado con ID {updateDto.StateId.Value}");
+                    return ApiResponse<InternUserDataTransferObject>.ErrorResponse($"No existe el estado {updateDto.StateId}", 404);
                 }
             }
 
-            // Verificar email único si se está actualizando
             if (!string.IsNullOrWhiteSpace(updateDto.Email) && updateDto.Email != existingUser.Email)
             {
                 var userWithEmail = await _internUserRepository.GetByEmailAsync(updateDto.Email);
                 if (userWithEmail != null)
                 {
-                    throw new InvalidOperationException($"Ya existe un usuario con el email '{updateDto.Email}'");
+                    return ApiResponse<InternUserDataTransferObject>.ErrorResponse("El correo electronico ya existe", 400);
                 }
             }
 
             var internUser = _mapper.Map<InternUser>(updateDto);
             var updatedInternUser = await _internUserRepository.UpdateAsync(internUser);
-            
-            return _mapper.Map<InternUserDataTransferObject>(updatedInternUser);
+            var result = _mapper.Map<InternUserDataTransferObject>(updatedInternUser);
+
+            return ApiResponse<InternUserDataTransferObject>.SuccessResponse(result, "Usuario actualizado correctamente");
         }
 
-        public async Task<bool> DeleteInternUserAsync(int id)
+        public async Task<ApiResponse<bool>> DeleteInternUserAsync(int id)
         {
-            // Verificar que el usuario exista
+            if (id <= 0)
+                return ApiResponse<bool>.ErrorResponse("El ID debe ser mayor que 0", 400);
+
             var existingUser = await _internUserRepository.GetByIdAsync(id);
             if (existingUser == null)
-            {
-                return false;
-            }
+                return ApiResponse<bool>.ErrorResponse("No se encontro el usuario solicitado", 404);
 
-            // Aquí se podrían agregar validaciones adicionales antes de eliminar
-            // Por ejemplo, verificar que no tenga dependencias en otras tablas
-
-            return await _internUserRepository.DeleteAsync(id);
-        }
-
-        public async Task<bool> InternUserExistsAsync(int id)
-        {
-            return await _internUserRepository.ExistsByIdAsync(id);
-        }
-
-        public async Task<bool> InternUserEmailExistsAsync(string email)
-        {
-            var user = await _internUserRepository.GetByEmailAsync(email);
-            return user != null;
+            await _internUserRepository.DeleteAsync(id);
+            return ApiResponse<bool>.SuccessResponse(true, "Usuario eliminado sastifactoriamente");
         }
     }
 }
