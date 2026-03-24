@@ -11,12 +11,10 @@ namespace WorkTrackBio.API.Controllers
     public class EmployeeInfoController : ControllerBase
     {
         private readonly IEmployeeInfoService _employeeInfoService;
-        private readonly IEmployeeInfoValidator _employeeInfoValidator;
 
         public EmployeeInfoController(IEmployeeInfoService employeeInfoService, IEmployeeInfoValidator employeeInfoValidator)
         {
             _employeeInfoService = employeeInfoService ?? throw new ArgumentNullException(nameof(employeeInfoService));
-            _employeeInfoValidator = employeeInfoValidator ?? throw new ArgumentNullException(nameof(employeeInfoValidator));
         }
 
         [HttpGet]
@@ -25,7 +23,9 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>>> GetAllEmployees()
         {
             var response = await _employeeInfoService.GetAllEmployeesAsync();
-            return Ok(response);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok (response); 
         }
 
         [HttpGet("{id:int}")]
@@ -35,13 +35,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<EmployeeInfoDataTransferObject>>> GetEmployeeById(int id)
         {
             var response = await _employeeInfoService.GetEmployeeByIdAsync(id);
-
             if (!response.Success)
-            {
-                if (response.StatusCode == 404) return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -51,14 +46,9 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<EmployeeInfoDataTransferObject>>> GetEmployeeByDocument(string documentNumber, int documentTypeId)
         {
-            var response = await _employeeInfoService.GetEmployeeByDocumentNumberAsync(documentNumber, documentTypeId);
-
+            var response = await _employeeInfoService.GetEmployeeByDocumentAsync(documentNumber, documentTypeId);
             if (!response.Success)
-            {
-                if (response.StatusCode == 404) return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -68,14 +58,9 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>>> GetEmployeesByState(int stateId)
         {
-            var response = await _employeeInfoService.GetEmployeesByStateAsync(stateId);
-
+            var response = await _employeeInfoService.GetEmployeeByStateAsync(stateId);
             if (!response.Success)
-            {
-                if (response.StatusCode == 404) return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -85,40 +70,9 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>>> GetEmployeesByDocumentType(int documentTypeId)
         {
-            var response = await _employeeInfoService.GetEmployeesByDocumentTypeAsync(documentTypeId);
-
+            var response = await _employeeInfoService.GetEmployeeByDocumentTypeAsync(documentTypeId);
             if (!response.Success)
-            {
-                if (response.StatusCode == 404) return NotFound(response);
-                return BadRequest(response);
-            }
-
-            return Ok(response);
-        }
-
-        [HttpGet("{id:int}/exists")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse<bool>>> EmployeeExists(int id)
-        {
-            var response = await _employeeInfoService.EmployeeExistsAsync(id);
-
-            if (!response.Success)
-                return BadRequest(response);
-
-            return Ok(response);
-        }
-
-        [HttpGet("document/{documentNumber}/{documentTypeId:int}/exists")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse<bool>>> EmployeeDocumentExists(string documentNumber, int documentTypeId)
-        {
-            var response = await _employeeInfoService.EmployeeDocumentExistsAsync(documentNumber, documentTypeId);
-
-            if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -128,22 +82,10 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ApiResponse<EmployeeInfoDataTransferObject>>> CreateEmployee(CreateEmployeeInfoDataTransferObject createDto)
         {
-            var validation = await _employeeInfoValidator.ValidateCreateAsync(createDto);
-            if (!validation.IsValid)
-            {
-                var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
-                return BadRequest(ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("Datos de empleado inválidos", 400, errors));
-            }
-
             var response = await _employeeInfoService.CreateEmployeeAsync(createDto);
-
             if (!response.Success)
-            {
-                if (response.StatusCode == 409) return Conflict(response);
-                return BadRequest(response);
-            }
-
-            return CreatedAtAction(nameof(GetEmployeeById), new { id = response.Data!.Id }, response);
+                return StatusCode(response.StatusCode, response);
+            return CreatedAtAction(nameof(GetEmployeeById), new { id = response.Data.Id }, response);
         }
 
         [HttpPut]
@@ -153,22 +95,9 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ApiResponse<EmployeeInfoDataTransferObject>>> UpdateEmployee(UpdateEmployeeInfoDataTransferObject updateDto)
         {
-            var validation = await _employeeInfoValidator.ValidateUpdateAsync(updateDto);
-            if (!validation.IsValid)
-            {
-                var errors = validation.Errors.Select(e => e.ErrorMessage).ToList();
-                return BadRequest(ApiResponse<EmployeeInfoDataTransferObject>.ErrorResponse("Datos de empleado inválidos", 400, errors));
-            }
-
             var response = await _employeeInfoService.UpdateEmployeeAsync(updateDto);
-
             if (!response.Success)
-            {
-                if (response.StatusCode == 404) return NotFound(response);
-                if (response.StatusCode == 409) return Conflict(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -180,14 +109,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<bool>>> DeleteEmployee(int id)
         {
             var response = await _employeeInfoService.DeleteEmployeeAsync(id);
-
             if (!response.Success)
-            {
-                if (response.StatusCode == 404) return NotFound(response);
-                if (response.StatusCode == 409) return Conflict(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
     }

@@ -11,12 +11,10 @@ namespace WorkTrackBio.API.Controllers
     public class StateController : ControllerBase
     {
         private readonly IStateService _stateService;
-        private readonly IStateValidator _stateValidator;
 
         public StateController(IStateService stateService, IStateValidator stateValidator)
         {
             _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));
-            _stateValidator = stateValidator ?? throw new ArgumentNullException(nameof(stateValidator));
         }
 
         [HttpGet]
@@ -76,7 +74,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<StateDataTransferObject>>> UpdateState(int id, [FromBody] UpdateStateDataTransferObject updateDto)
         {
-            var response = await _stateService.UpdateStateAsync.(id);
+            var response = await _stateService.UpdateStateAsync(id);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok (response);
@@ -89,7 +87,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<object>>> DeleteState(int id)
         {
-            var response = await _stateService.DeleteStateAsync.(id);
+            var response = await _stateService.DeleteStateAsync(id);
             if (!response.Success)
                 return StatusCode(response.StatusCode,response);
             return Ok (response);

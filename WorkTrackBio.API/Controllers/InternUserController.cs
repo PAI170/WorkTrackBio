@@ -12,14 +12,11 @@ namespace WorkTrackBio.API.Controllers
     public class InternUserController : ControllerBase
     {
         private readonly IInternUserService _internUserService;
-        private readonly IInternUserValidator _internUserValidator;
 
         public InternUserController(
-            IInternUserService internUserService,
-            IInternUserValidator internUserValidator
+            IInternUserService internUserService)
         {
             _internUserService = internUserService ?? throw new ArgumentNullException(nameof(internUserService));
-            _internUserValidator = internUserValidator ?? throw new ArgumentNullException(nameof(internUserValidator));
         }
 
         [HttpGet]

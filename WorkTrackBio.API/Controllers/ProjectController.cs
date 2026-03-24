@@ -11,12 +11,10 @@ namespace WorkTrackBio.API.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly IProjectService _projectService;
-        private readonly IProjectValidator _projectValidator;
 
         public ProjectController(IProjectService projectService, IProjectValidator projectValidator)
         {
             _projectService = projectService ?? throw new ArgumentNullException(nameof(projectService));
-            _projectValidator = projectValidator ?? throw new ArgumentNullException(nameof(projectValidator));
         }
 
         [HttpGet]

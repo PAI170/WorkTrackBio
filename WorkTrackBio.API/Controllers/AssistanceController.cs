@@ -12,14 +12,11 @@ namespace WorkTrackBio.API.Controllers
     public class AssistanceController : ControllerBase
     {
         private readonly IAssistanceService _assistanceService;
-        private readonly IAssistanceValidator _assistanceValidator;
 
         public AssistanceController(
-            IAssistanceService assistanceService,
-            IAssistanceValidator assistanceValidator)
+            IAssistanceService assistanceService)
         {
             _assistanceService = assistanceService ?? throw new ArgumentNullException(nameof(assistanceService));
-            _assistanceValidator = assistanceValidator ?? throw new ArgumentNullException(nameof(assistanceValidator));
         }
 
         [HttpGet]
@@ -28,6 +25,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<AssistanceDataTransferObject>>>> GetAllAssistances()
         {
             var response = await _assistanceService.GetAllAssistancesAsync();
+            if(!response.Success)
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -39,14 +38,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<AssistanceDataTransferObject>>> GetAssistanceById(int id)
         {
             var response = await _assistanceService.GetAssistanceByIdAsync(id);
-            
             if (!response.Success)
-            {
-                if (response.Message.Contains("No se encontró"))
-                    return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -57,10 +50,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<AssistanceDataTransferObject>>>> GetAssistancesByEmployee(int employeeId)
         {
             var response = await _assistanceService.GetAssistancesByEmployeeAsync(employeeId);
-            
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -71,10 +62,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<AssistanceDataTransferObject>>>> GetAssistancesByProject(int projectId)
         {
             var response = await _assistanceService.GetAssistancesByProjectAsync(projectId);
-            
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -83,8 +72,9 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<AssistanceDataTransferObject>>), 500)]
         public async Task<ActionResult<ApiResponse<IEnumerable<AssistanceDataTransferObject>>>> GetAssistancesByDate(DateTime date)
         {
-            var dateOnly = DateOnly.FromDateTime(date);
-            var response = await _assistanceService.GetAssistancesByDateAsync(dateOnly);
+            var response = await _assistanceService.GetAssistancesByDateAsync(date);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -98,12 +88,10 @@ namespace WorkTrackBio.API.Controllers
         {
             var startDateOnly = DateOnly.FromDateTime(startDate);
             var endDateOnly = DateOnly.FromDateTime(endDate);
-            
-            var response = await _assistanceService.GetAssistancesByDateRangeAsync(startDateOnly, endDateOnly);
-            
-            if (!response.Success)
-                return BadRequest(response);
 
+            var response = await _assistanceService.GetAssistancesByDateRangeAsync(startDateOnly, endDateOnly);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -114,10 +102,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<AssistanceDataTransferObject>>>> GetAssistancesByEmployeeAndProject(int employeeId, int projectId)
         {
             var response = await _assistanceService.GetAssistancesByEmployeeAndProjectAsync(employeeId, projectId);
-            
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -132,12 +118,10 @@ namespace WorkTrackBio.API.Controllers
         {
             var startDateOnly = DateOnly.FromDateTime(startDate);
             var endDateOnly = DateOnly.FromDateTime(endDate);
-            
-            var response = await _assistanceService.GetAssistancesByEmployeeAndDateRangeAsync(employeeId, startDateOnly, endDateOnly);
-            
-            if (!response.Success)
-                return BadRequest(response);
 
+            var response = await _assistanceService.GetAssistancesByEmployeeAndDateRangeAsync(employeeId, startDateOnly, endDateOnly);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -152,12 +136,10 @@ namespace WorkTrackBio.API.Controllers
         {
             var startDateOnly = DateOnly.FromDateTime(startDate);
             var endDateOnly = DateOnly.FromDateTime(endDate);
-            
-            var response = await _assistanceService.GetAssistancesByProjectAndDateRangeAsync(projectId, startDateOnly, endDateOnly);
-            
-            if (!response.Success)
-                return BadRequest(response);
 
+            var response = await _assistanceService.GetAssistancesByProjectAndDateRangeAsync(projectId, startDateOnly, endDateOnly);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -169,11 +151,9 @@ namespace WorkTrackBio.API.Controllers
             int projectId, 
             int employeeId)
         {
-            var response = await _assistanceService.GetAssistancesByProjectAndEmployeeAsync(projectId, employeeId);
-            
+            var response = await _assistanceService.GetAssistancesByProjectAsync(employeeId, projectId);
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -184,10 +164,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<AssistanceDataTransferObject>>> CreateAssistance(CreateAssistanceDataTransferObject createDto)
         {
             var response = await _assistanceService.CreateAssistanceAsync(createDto);
-            
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return CreatedAtAction(nameof(GetAssistanceById), new { id = response.Data!.Id }, response);
         }
 
@@ -198,15 +176,9 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<AssistanceDataTransferObject>), 500)]
         public async Task<ActionResult<ApiResponse<AssistanceDataTransferObject>>> UpdateAssistance(int id, UpdateAssistanceDataTransferObject updateDto)
         {
-            var response = await _assistanceService.UpdateAssistanceAsync(id, updateDto);
-            
+            var response = await _assistanceService.UpdateAssistanceAsync(updateDto);
             if (!response.Success)
-            {
-                if (response.Message.Contains("No se encontró"))
-                    return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -218,14 +190,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<bool>>> DeleteAssistance(int id)
         {
             var response = await _assistanceService.DeleteAssistanceAsync(id);
-            
             if (!response.Success)
-            {
-                if (response.Message.Contains("No se encontró"))
-                    return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -237,14 +203,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<decimal>>> CalculateTotalHours(int id)
         {
             var response = await _assistanceService.CalculateTotalHoursAsync(id);
-            
             if (!response.Success)
-            {
-                if (response.Message.Contains("No se encontró"))
-                    return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
     }

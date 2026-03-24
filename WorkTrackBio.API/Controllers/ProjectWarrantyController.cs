@@ -24,6 +24,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>>> GetAllProjectWarranties()
         {
             var response = await _projectWarrantyService.GetAllProjectWarrantiesAsync();
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -35,14 +37,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<ProjectWarrantyDataTransferObject>>> GetProjectWarrantyById(int id)
         {
             var response = await _projectWarrantyService.GetProjectWarrantyByIdAsync(id);
-            
             if (!response.Success)
-            {
-                if (response.Message.Contains("No se encontró"))
-                    return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -53,10 +49,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>>> GetProjectWarrantiesByProject(int projectId)
         {
             var response = await _projectWarrantyService.GetProjectWarrantiesByProjectAsync(projectId);
-            
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -67,10 +61,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>>> GetProjectWarrantiesByEmployee(int employeeId)
         {
             var response = await _projectWarrantyService.GetProjectWarrantiesByEmployeeAsync(employeeId);
-            
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -81,10 +73,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<ProjectWarrantyDataTransferObject>>>> GetProjectWarrantiesByState(int stateId)
         {
             var response = await _projectWarrantyService.GetProjectWarrantiesByStateAsync(stateId);
-            
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -97,10 +87,8 @@ namespace WorkTrackBio.API.Controllers
             [FromQuery] DateTime endDate)
         {
             var response = await _projectWarrantyService.GetProjectWarrantiesByDateRangeAsync(startDate, endDate);
-            
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -112,11 +100,9 @@ namespace WorkTrackBio.API.Controllers
             int projectId, 
             int stateId)
         {
-            var response = await _projectWarrantyService.GetProjectWarrantiesByProjectAndStateAsync(projectId, stateId);
-            
+            var response = await _projectWarrantyService.GetProjectWarrantiesByDateRangeAsync(projectId, stateId);
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -126,11 +112,9 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<ProjectWarrantyDataTransferObject>), 500)]
         public async Task<ActionResult<ApiResponse<ProjectWarrantyDataTransferObject>>> CreateProjectWarranty(CreateProjectWarrantyDataTransferObject createDto)
         {
-            var response = await _projectWarrantyService.CreateProjectWarrantyAsync(createDto);
-            
+            var response = await _projectWarrantyService.CreateProjectWarrantyAsync(createDto);      
             if (!response.Success)
-                return BadRequest(response);
-
+                return StatusCode(response.StatusCode, response);
             return CreatedAtAction(nameof(GetProjectWarrantyById), new { id = response.Data!.Id }, response);
         }
 
@@ -141,15 +125,9 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<ProjectWarrantyDataTransferObject>), 500)]
         public async Task<ActionResult<ApiResponse<ProjectWarrantyDataTransferObject>>> UpdateProjectWarranty(int id, UpdateProjectWarrantyDataTransferObject updateDto)
         {
-            var response = await _projectWarrantyService.UpdateProjectWarrantyAsync(id, updateDto);
-            
+            var response = await _projectWarrantyService.UpdateProjectWarrantyAsync(updateDto);
             if (!response.Success)
-            {
-                if (response.Message.Contains("No se encontró"))
-                    return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -161,14 +139,8 @@ namespace WorkTrackBio.API.Controllers
         public async Task<ActionResult<ApiResponse<bool>>> DeleteProjectWarranty(int id)
         {
             var response = await _projectWarrantyService.DeleteProjectWarrantyAsync(id);
-            
             if (!response.Success)
-            {
-                if (response.Message.Contains("No se encontró"))
-                    return NotFound(response);
-                return BadRequest(response);
-            }
-
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
     }
