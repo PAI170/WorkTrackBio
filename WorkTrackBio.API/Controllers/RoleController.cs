@@ -71,7 +71,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ApiResponse<RoleDataTransferObject>>> UpdateRole(int id, [FromBody] UpdateRoleDataTransferObject updateDto)
         {
-            var response = await _roleService.UpdateRoleAsync(id);
+            var response = await _roleService.UpdateRoleAsync(updateDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);

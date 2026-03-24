@@ -176,7 +176,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<AssistanceDataTransferObject>), 500)]
         public async Task<ActionResult<ApiResponse<AssistanceDataTransferObject>>> UpdateAssistance(int id, UpdateAssistanceDataTransferObject updateDto)
         {
-            var response = await _assistanceService.UpdateAssistanceAsync(updateDto);
+            var response = await _assistanceService.UpdateAssistanceAsync(int id, updateDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);

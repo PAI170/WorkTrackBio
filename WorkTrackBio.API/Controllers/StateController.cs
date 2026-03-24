@@ -74,7 +74,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ApiResponse<StateDataTransferObject>>> UpdateState(int id, [FromBody] UpdateStateDataTransferObject updateDto)
         {
-            var response = await _stateService.UpdateStateAsync(id);
+            var response = await _stateService.UpdateStateAsync(updateDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok (response);

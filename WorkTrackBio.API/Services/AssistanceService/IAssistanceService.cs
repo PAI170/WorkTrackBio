@@ -2,7 +2,7 @@ using WorkTrackBio.API.Common;
 using WorkTrackBio.API.DataTransferObjects.Assistance;
 
 namespace WorkTrackBio.API.Services.AssistanceService
-{>
+{
     public interface IAssistanceService
     {
         Task<ApiResponse<IEnumerable<AssistanceDataTransferObject>>> GetAllAssistancesAsync();
