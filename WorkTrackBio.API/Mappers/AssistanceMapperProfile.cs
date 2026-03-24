@@ -8,14 +8,12 @@ namespace WorkTrackBio.API.Mappers
     {
         public AssistanceMapperProfile()
         {
-            // Model -> DTO
             CreateMap<Assistance, AssistanceDataTransferObject>()
                 .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => 
                     src.Employee != null ? $"{src.Employee.FirstName} {src.Employee.LastName}" : string.Empty))
                 .ForMember(dest => dest.ProjectName, opt => opt.MapFrom(src => 
                     src.Project != null ? src.Project.ProjectName : string.Empty));
 
-            // Create DTO -> Model
             CreateMap<CreateAssistanceDataTransferObject, Assistance>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => DateTime.UtcNow))
@@ -24,7 +22,6 @@ namespace WorkTrackBio.API.Mappers
                 .ForMember(dest => dest.Employee, opt => opt.Ignore())
                 .ForMember(dest => dest.Project, opt => opt.Ignore());
 
-            // Update DTO -> Model
             CreateMap<UpdateAssistanceDataTransferObject, Assistance>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
