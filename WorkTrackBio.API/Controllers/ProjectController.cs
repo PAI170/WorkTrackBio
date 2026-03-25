@@ -76,7 +76,7 @@ namespace WorkTrackBio.API.Controllers
             var response = await _projectService.CreateProjectAsync(createDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
-            return CreatedAtAction(nameof(GetProjectById), new { id = response.Data.Id }, response);
+            return CreatedAtAction(nameof(GetProjectById), new { id = response.Data!.Id }, response);
         }
 
         [HttpPut]

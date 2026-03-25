@@ -2,7 +2,6 @@ using WorkTrackBio.API.Data.Models;
 
 namespace WorkTrackBio.API.Repositories.InternUserRepository
 {
-    // Interface Repository, What can be do in the DB
     public interface IInternUserRepository
     {
         Task<IEnumerable<InternUser>> GetAllAsync();

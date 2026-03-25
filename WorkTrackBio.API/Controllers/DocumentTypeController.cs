@@ -63,7 +63,7 @@ namespace WorkTrackBio.API.Controllers
             var response = await _documentTypeService.CreateDocumentTypeAsync(createDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
-            return CreatedAtAction(nameof(GetDocumentTypeById), new { id = response.Data.Id }, response);
+            return CreatedAtAction(nameof(GetDocumentTypeById), new { id = response.Data!.Id }, response);
         }
 
         [HttpPut]

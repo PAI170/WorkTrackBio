@@ -72,18 +72,6 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
             return ApiResponse<EmployeeInfoDataTransferObject>.SuccessResponse(result, "Empleado obtenido exitosamente");
         }
 
-        public async Task<ApiResponse<bool>> EmployeeDocumentExistsAsync(string documentNumber, int documentTypeId)
-        {
-            if (string.IsNullOrWhiteSpace(documentNumber))
-                return ApiResponse<bool>.ErrorResponse("El número de documento no puede estar vacío", 400);
-
-            if (documentTypeId <= 0)
-                return ApiResponse<bool>.ErrorResponse("El ID del tipo de documento debe ser mayor que 0", 400);
-
-            var exists = await _employeeInfoRepository.ExistsByDocumentNumberAsync(documentNumber, documentTypeId);
-            return ApiResponse<bool>.SuccessResponse(exists, exists ? "El documento ya está registrado" : "El documento no está registrado");
-        }
-
         public async Task<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>> GetEmployeesByStateAsync(int stateId)
         {
             if (stateId <= 0)

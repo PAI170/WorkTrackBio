@@ -7,6 +7,7 @@ namespace WorkTrackBio.API.Services.InternUserService
     {
         Task<ApiResponse<IEnumerable<InternUserDataTransferObject>>> GetAllInternUsersAsync();
         Task<ApiResponse<InternUserDataTransferObject>> GetInternUserByIdAsync(int id);
+        Task<ApiResponse<InternUserDataTransferObject>> GetByDocumentAsync(string documentNumber);
         Task<ApiResponse<InternUserDataTransferObject>> GetInternUserByEmailAsync(string email);
         Task<ApiResponse<IEnumerable<InternUserDataTransferObject>>> GetInternUsersByRoleAsync(int roleId);
         Task<ApiResponse<IEnumerable<InternUserDataTransferObject>>> GetInternUsersByStateAsync(int stateId);

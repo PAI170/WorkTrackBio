@@ -70,9 +70,11 @@ namespace WorkTrackBio.API.Controllers
         [HttpGet("date/{date:datetime}")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<AssistanceDataTransferObject>>), 200)]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<AssistanceDataTransferObject>>), 500)]
-        public async Task<ActionResult<ApiResponse<IEnumerable<AssistanceDataTransferObject>>>> GetAssistancesByDate(DateTime date)
+        public async Task<ActionResult<ApiResponse<IEnumerable<AssistanceDataTransferObject>>>> GetAssistancesByDate([FromQuery] DateTime date)
         {
-            var response = await _assistanceService.GetAssistancesByDateAsync(date);
+            var dateOnly = DateOnly.FromDateTime(date);
+
+            var response = await _assistanceService.GetAssistancesByDateAsync(dateOnly);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);
@@ -82,9 +84,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<AssistanceDataTransferObject>>), 200)]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<AssistanceDataTransferObject>>), 400)]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<AssistanceDataTransferObject>>), 500)]
-        public async Task<ActionResult<ApiResponse<IEnumerable<AssistanceDataTransferObject>>>> GetAssistancesByDateRange(
-            [FromQuery] DateTime startDate, 
-            [FromQuery] DateTime endDate)
+        public async Task<ActionResult<ApiResponse<IEnumerable<AssistanceDataTransferObject>>>> GetAssistancesByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
             var startDateOnly = DateOnly.FromDateTime(startDate);
             var endDateOnly = DateOnly.FromDateTime(endDate);
@@ -151,7 +151,7 @@ namespace WorkTrackBio.API.Controllers
             int projectId, 
             int employeeId)
         {
-            var response = await _assistanceService.GetAssistancesByProjectAsync(employeeId, projectId);
+            var response = await _assistanceService.GetAssistancesByProjectAndEmployeeAsync(employeeId ,projectId);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);
@@ -176,7 +176,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<AssistanceDataTransferObject>), 500)]
         public async Task<ActionResult<ApiResponse<AssistanceDataTransferObject>>> UpdateAssistance(int id, UpdateAssistanceDataTransferObject updateDto)
         {
-            var response = await _assistanceService.UpdateAssistanceAsync(int id, updateDto);
+            var response = await _assistanceService.UpdateAssistanceAsync(id, updateDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);

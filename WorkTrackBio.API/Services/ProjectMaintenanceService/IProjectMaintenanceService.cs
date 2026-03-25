@@ -13,6 +13,5 @@ namespace WorkTrackBio.API.Services.ProjectMaintenanceService
         Task<ApiResponse<ProjectMaintenanceDataTransferObject>> CreateProjectMaintenanceAsync(CreateProjectMaintenanceDataTransferObject createDto);
         Task<ApiResponse<ProjectMaintenanceDataTransferObject>> UpdateProjectMaintenanceAsync(UpdateProjectMaintenanceDataTransferObject updateDto);
         Task<ApiResponse<bool>> DeleteProjectMaintenanceAsync(int id);
-        Task<ApiResponse<bool>> ProjectMaintenanceExistsAsync(int id);
     }
 }

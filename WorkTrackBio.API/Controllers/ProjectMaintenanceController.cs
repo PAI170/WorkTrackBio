@@ -88,7 +88,7 @@ namespace WorkTrackBio.API.Controllers
             var response = await _projectMaintenanceService.CreateProjectMaintenanceAsync(createDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
-            return CreatedAtAction(nameof(GetProjectMaintenanceById), new { id = response.Data.Id }, response);
+            return CreatedAtAction(nameof(GetProjectMaintenanceById), new { id = response.Data!.Id }, response);
         }
 
         [HttpPut]

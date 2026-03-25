@@ -63,7 +63,7 @@ namespace WorkTrackBio.API.Controllers
             var response = await _stateService.CreateStateAsync(createDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
-            return CreatedAtAction(nameof(GetStateById), new { id = response.Data.Id }, response);
+            return CreatedAtAction(nameof(GetStateById), new { id = response.Data!.Id }, response);
         }
 
         [HttpPut("{id:int}")]

@@ -61,7 +61,7 @@ namespace WorkTrackBio.API.Controllers
             var response = await _roleService.CreateRoleAsync(createDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
-            return CreatedAtAction(nameof(GetRoleById), new { id = response.Data.Id }, response);
+            return CreatedAtAction(nameof(GetRoleById), new { id = response.Data!.Id }, response);
         }
 
         [HttpPut("{id:int}")]

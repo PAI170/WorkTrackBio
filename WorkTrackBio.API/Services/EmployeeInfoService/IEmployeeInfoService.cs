@@ -8,8 +8,6 @@ namespace WorkTrackBio.API.Services.EmployeeInfoService
         Task<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>> GetAllEmployeesAsync();
         Task<ApiResponse<EmployeeInfoDataTransferObject>> GetEmployeeByIdAsync(int id);
         Task<ApiResponse<EmployeeInfoDataTransferObject>> GetEmployeeByDocumentNumberAsync(string documentNumber, int documentTypeId);
-        Task<ApiResponse<bool>> EmployeeExistsAsync(int id);
-        Task<ApiResponse<bool>> EmployeeDocumentExistsAsync(string documentNumber, int documentTypeId);
         Task<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>> GetEmployeesByStateAsync(int stateId);
         Task<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>> GetEmployeesByDocumentTypeAsync(int documentTypeId);
         Task<ApiResponse<EmployeeInfoDataTransferObject>> CreateEmployeeAsync(CreateEmployeeInfoDataTransferObject createDto);

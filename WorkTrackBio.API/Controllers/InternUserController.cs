@@ -90,7 +90,7 @@ namespace WorkTrackBio.API.Controllers
             var response = await _internUserService.CreateInternUserAsync(createDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
-            return CreatedAtAction(nameof(GetInternUserById), new { id = response.Data.Id }, response);
+            return CreatedAtAction(nameof(GetInternUserById), new { id = response.Data!.Id }, response);
         }
 
         [HttpPut("{id:int}")]

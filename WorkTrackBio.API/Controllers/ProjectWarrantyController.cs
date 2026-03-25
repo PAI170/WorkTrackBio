@@ -125,7 +125,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(typeof(ApiResponse<ProjectWarrantyDataTransferObject>), 500)]
         public async Task<ActionResult<ApiResponse<ProjectWarrantyDataTransferObject>>> UpdateProjectWarranty(int id, UpdateProjectWarrantyDataTransferObject updateDto)
         {
-            var response = await _projectWarrantyService.UpdateProjectWarrantyAsync(int id, updateDto);
+            var response = await _projectWarrantyService.UpdateProjectWarrantyAsync(id, updateDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);

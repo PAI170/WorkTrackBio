@@ -68,12 +68,12 @@ namespace WorkTrackBio.API.Services.InternUserService
             return ApiResponse<InternUserDataTransferObject>.SuccessResponse(result, "Usuario obtenido exitosamente");
         }
 
-        public async Task<ApiResponse<InternUserDataTransferObject>> GetInternUserByDocumentAsync(string documentNumber)
+        public async Task<ApiResponse<InternUserDataTransferObject>> GetByDocumentAsync(string documentNumber)
         {
             if (string.IsNullOrWhiteSpace(documentNumber))
                 return ApiResponse<InternUserDataTransferObject>.ErrorResponse("El número de documento no puede estar vacío", 400);
 
-            var internUser = await _internUserRepository.GetInternUserByDocumentAsync(documentNumber);
+            var internUser = await _internUserRepository.GetByDocumentAsync(documentNumber);
 
             if (internUser == null)
                 return ApiResponse<InternUserDataTransferObject>.ErrorResponse($"No se encontró un usuario con el número de documento '{documentNumber}'", 404);

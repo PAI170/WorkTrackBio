@@ -46,7 +46,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<EmployeeInfoDataTransferObject>>> GetEmployeeByDocument(string documentNumber, int documentTypeId)
         {
-            var response = await _employeeInfoService.GetEmployeeByDocumentAsync(documentNumber, documentTypeId);
+            var response = await _employeeInfoService.GetEmployeeByDocumentNumberAsync(documentNumber, documentTypeId);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);
@@ -58,7 +58,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>>> GetEmployeesByState(int stateId)
         {
-            var response = await _employeeInfoService.GetEmployeeByStateAsync(stateId);
+            var response = await _employeeInfoService.GetEmployeesByStateAsync(stateId);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);
@@ -70,7 +70,7 @@ namespace WorkTrackBio.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<IEnumerable<EmployeeInfoDataTransferObject>>>> GetEmployeesByDocumentType(int documentTypeId)
         {
-            var response = await _employeeInfoService.GetEmployeeByDocumentTypeAsync(documentTypeId);
+            var response = await _employeeInfoService.GetEmployeesByDocumentTypeAsync(documentTypeId);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);
@@ -85,7 +85,7 @@ namespace WorkTrackBio.API.Controllers
             var response = await _employeeInfoService.CreateEmployeeAsync(createDto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
-            return CreatedAtAction(nameof(GetEmployeeById), new { id = response.Data.Id }, response);
+            return CreatedAtAction(nameof(GetEmployeeById), new { id = response.Data!.Id }, response);
         }
 
         [HttpPut]
