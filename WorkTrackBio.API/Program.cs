@@ -1,36 +1,38 @@
-using Microsoft.EntityFrameworkCore;
-using WorkTrackBio.API.Data.Context;
-using WorkTrackBio.API.Repositories.StateRepository;
-using WorkTrackBio.API.Services.StateService;
-using WorkTrackBio.API.Validators.StateValidator;
-using WorkTrackBio.API.Repositories.RoleRepository;
-using WorkTrackBio.API.Services.RoleService;
-using WorkTrackBio.API.Validators.RoleValidator;
-using WorkTrackBio.API.Repositories.ProjectRepository;
-using WorkTrackBio.API.Services.ProjectService;
-using WorkTrackBio.API.Validators.ProjectValidator;
-using WorkTrackBio.API.Repositories.DocumentTypeRepository;
-using WorkTrackBio.API.Services.DocumentTypeService;
-using WorkTrackBio.API.Validators.DocumentTypeValidator;
-using WorkTrackBio.API.Repositories.EmployeeInfoRepository;
-using WorkTrackBio.API.Services.EmployeeInfoService;
-using WorkTrackBio.API.Validators.EmployeeInfoValidator;
-using WorkTrackBio.API.Validators.DocumentValidator;
-using WorkTrackBio.API.Validators.PhoneNumberFormatter;
-using WorkTrackBio.API.Repositories.InternUserRepository;
-using WorkTrackBio.API.Services.InternUserService;
-using WorkTrackBio.API.Validators.InternUserValidator;
-using WorkTrackBio.API.Repositories.ProjectMaintenanceRepository;
-using WorkTrackBio.API.Services.ProjectMaintenanceService;
-using WorkTrackBio.API.Validators.ProjectMaintenanceValidator;
-using WorkTrackBio.API.Repositories.AssistanceRepository;
-using WorkTrackBio.API.Services.AssistanceService;
-using WorkTrackBio.API.Validators.AssistanceValidator;
-using WorkTrackBio.API.Repositories.ProjectWarrantyRepository;
-using WorkTrackBio.API.Services.ProjectWarrantyService;
-using WorkTrackBio.API.Validators.ProjectWarrantyValidator;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WorkTrackBio.API.Common;
+using WorkTrackBio.API.Data.Context;
+using WorkTrackBio.API.Repositories.AssistanceRepository;
+using WorkTrackBio.API.Repositories.DocumentTypeRepository;
+using WorkTrackBio.API.Repositories.EmployeeInfoRepository;
+using WorkTrackBio.API.Repositories.InternUserRepository;
+using WorkTrackBio.API.Repositories.ProjectMaintenanceRepository;
+using WorkTrackBio.API.Repositories.ProjectRepository;
+using WorkTrackBio.API.Repositories.ProjectWarrantyRepository;
+using WorkTrackBio.API.Repositories.RoleRepository;
+using WorkTrackBio.API.Repositories.StateRepository;
+using WorkTrackBio.API.Services.AssistanceService;
+using WorkTrackBio.API.Services.DocumentTypeService;
+using WorkTrackBio.API.Services.EmployeeInfoService;
+using WorkTrackBio.API.Services.InternUserService;
+using WorkTrackBio.API.Services.ProjectMaintenanceService;
+using WorkTrackBio.API.Services.ProjectService;
+using WorkTrackBio.API.Services.ProjectWarrantyService;
+using WorkTrackBio.API.Services.RoleService;
+using WorkTrackBio.API.Services.StateService;
+using WorkTrackBio.API.Validators.AssistanceValidator;
+using WorkTrackBio.API.Validators.DocumentTypeValidator;
+using WorkTrackBio.API.Validators.DocumentValidator;
+using WorkTrackBio.API.Validators.EmployeeInfoValidator;
+using WorkTrackBio.API.Validators.InternUserValidator;
+using WorkTrackBio.API.Validators.PhoneNumberFormatter;
+using WorkTrackBio.API.Validators.ProjectMaintenanceValidator;
+using WorkTrackBio.API.Validators.ProjectValidator;
+using WorkTrackBio.API.Validators.ProjectWarrantyValidator;
+using WorkTrackBio.API.Validators.RoleValidator;
+using WorkTrackBio.API.Validators.StateValidator;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +40,22 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(e => e.Value.Errors.Count > 0)
+            .SelectMany(x => x.Value.Errors)
+            .Select(x => x.ErrorMessage)
+            .ToList();
+
+        var response = ApiResponse<object>.ErrorResponse("Error en los datos enviados", 400, errors);
+
+        return new BadRequestObjectResult(response);
+    };
+});
 
 builder.Services.AddDbContext<WorkTrackBioDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -95,6 +113,20 @@ builder.Services.AddCors(options =>
         builder.Services.AddScoped<IProjectWarrantyService, ProjectWarrantyService>();
 
 var app = builder.Build();
+
+app.UseMiddleware<WorkTrackBio.API.Middlewares.GlobalExceptionMiddleware>();
+
+app.UseStatusCodePages(async context =>
+{
+    if (context.HttpContext.Response.StatusCode == 404)
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        var response = ApiResponse<object>.ErrorResponse("La ruta o el recurso solicitado no existe.", 404);
+        var jsonOptions = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+        var json = System.Text.Json.JsonSerializer.Serialize(response, jsonOptions);
+        await context.HttpContext.Response.WriteAsync(json);
+    }
+});
 
 if (app.Environment.IsDevelopment())
 {
