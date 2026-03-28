@@ -17,10 +17,10 @@ namespace WorkTrackBio.API.Data.Models
         [StringLength(50)]
         public string? Description { get; set; }
         
-        public virtual ICollection<InternUser> InternUsers { get; set; } = new List<InternUser>();
         public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
         public virtual ICollection<EmployeeInfo> EmployeeInfos { get; set; } = new List<EmployeeInfo>();
         public virtual ICollection<ProjectMaintenance> ProjectMaintenances { get; set; } = new List<ProjectMaintenance>();
         public virtual ICollection<ProjectWarranty> ProjectWarranties { get; set; } = new List<ProjectWarranty>();
+        public virtual ICollection<Payroll> Payrolls { get; set; } = new List<Payroll>();
     }
 }

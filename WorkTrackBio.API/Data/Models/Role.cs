@@ -12,5 +12,7 @@ namespace WorkTrackBio.API.Data.Models
         
         [StringLength(255)]
         public string? Description { get; set; }
+
+        public virtual ICollection<AppUser> AppUsers { get; set; } = new List<AppUser>();
     }
 }

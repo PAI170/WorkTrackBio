@@ -8,7 +8,7 @@ namespace WorkTrackBio.API.Data.Models
         public int Id { get; set; }
         
         [Required]
-        public int IdProject { get; set; }
+        public int ProjectId { get; set; }
         
         [Required]
         public DateTime MaintenanceDate { get; set; } = DateTime.UtcNow;
