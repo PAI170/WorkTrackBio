@@ -36,8 +36,9 @@ namespace WorkTrackBio.API.Data.Models
         public string? Notes { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string Status { get; set; } = "Pendiente";
+        public int StateId { get; set; }
+        [ForeignKey("StateId")]
+        public virtual State State { get; set; } = null!;
 
         public int? ApprovedById { get; set; }
         [ForeignKey("ApprovedById")]

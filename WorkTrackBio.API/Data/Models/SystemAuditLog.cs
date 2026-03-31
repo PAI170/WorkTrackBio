@@ -21,12 +21,13 @@ namespace WorkTrackBio.API.Data.Models
         [StringLength(20)]
         public string Action { get; set; } = string.Empty;
 
-        // --- El antes y el después ---
         public string? OldValues { get; set; }
 
         public string? NewValues { get; set; }
 
         [Required]
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+
+        public int? RecordId { get; set; }
     }
 }

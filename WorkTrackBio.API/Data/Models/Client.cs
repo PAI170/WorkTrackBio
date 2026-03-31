@@ -49,6 +49,8 @@ namespace WorkTrackBio.API.Data.Models
     {
         [StringLength(50)]
         public string Code { get; set; } = string.Empty;
+
+        [Column(TypeName = "decimal(5,2)")]
         public decimal Percentage { get; set; }
         public DateTime? IssueDate { get; set; }
     }

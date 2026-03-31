@@ -28,7 +28,7 @@ namespace WorkTrackBio.API.Data.Models
         public string PasswordHash { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
+        [StringLength(255)]
         public string PasswordSalt {  get; set; } = string.Empty;
 
         public DateTime? LastLogin {  get; set; }
@@ -40,8 +40,8 @@ namespace WorkTrackBio.API.Data.Models
 
         public DateTime? LockoutEnd { get; set; }
 
-        public virtual ICollection<Payroll> CreatedPayrolls { get; set; } = new List<Payroll>();
-        public virtual ICollection<Payroll> ApprovedPayrolls { get; set; } = new List<Payroll>();
+        public virtual ICollection<PayrollRun> CreatedPayrollRuns { get; set; } = new List<PayrollRun>();
+        public virtual ICollection<PayrollRun> ApprovedPayrollRuns { get; set; } = new List<PayrollRun>();
         public virtual ICollection<UserSession> UserSessions { get; set; } = new List<UserSession>();
         public virtual ICollection<SystemAuditLog> SystemAuditLogs { get; set; } = new List<SystemAuditLog>();
     }

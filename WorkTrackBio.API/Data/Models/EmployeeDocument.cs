@@ -9,6 +9,7 @@ namespace WorkTrackBio.API.Data.Models
 
         public int EmployeeInfoId { get; set; }
 
+        [ForeignKey("EmployeeInfoId")]
         public virtual EmployeeInfo EmployeeInfo { get; set; } = null!;
 
         [Required]

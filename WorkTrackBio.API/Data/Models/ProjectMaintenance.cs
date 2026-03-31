@@ -28,7 +28,7 @@ namespace WorkTrackBio.API.Data.Models
         [Required]
         public int StateId { get; set; }
         
-        [ForeignKey("IdProject")]
+        [ForeignKey("ProjectId")]
         public virtual Project Project { get; set; } = null!;
         
         [ForeignKey("MadeById")]

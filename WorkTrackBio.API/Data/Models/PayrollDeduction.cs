@@ -11,7 +11,7 @@ namespace WorkTrackBio.API.Data.Models
         public int PayrollId { get; set; }
 
         [ForeignKey("PayrollId")]
-        public virtual Payroll Payroll { get; set; } = null!;
+        public virtual PayrollEntry Payroll { get; set; } = null!;
 
         public int? EmployeeDeductionId { get; set; }
 

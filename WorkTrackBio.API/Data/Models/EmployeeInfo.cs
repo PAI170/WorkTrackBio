@@ -43,12 +43,15 @@ namespace WorkTrackBio.API.Data.Models
         public string? PhotoUrl { get; set; }
 
         public int StateId { get; set; }
+        [ForeignKey("StateId")]
         public virtual State State { get; set; } = null!;
 
         public int DocumentTypeId { get; set; }
+        [ForeignKey("DocumentTypeId")]
         public virtual DocumentType DocumentType { get; set; } = null!;
 
         public int DepartmentId { get; set; }
+        [ForeignKey("DepartmentId")]
         public virtual Department Department { get; set; } = null!;
 
         [Required]
@@ -85,11 +88,21 @@ namespace WorkTrackBio.API.Data.Models
         public virtual AppUser? AppUser { get; set; }
         public virtual ICollection<EmployeeDeduction> EmployeeDeductions { get; set; } = new List<EmployeeDeduction>();
 
-        public virtual ICollection<Payroll> Payrolls { get; set; } = new List<Payroll>();
+        public virtual ICollection<PayrollEntry> PayrollEntries { get; set; } = new List<PayrollEntry>();
 
         public virtual ICollection<Assistance> Assistances { get; set; } = new List<Assistance>();
 
         public virtual ICollection<EmployeeDocument> EmployeeDocuments { get; set; } = new List<EmployeeDocument>();
+
+        public virtual ICollection<VacationRequest> VacationRequests { get; set; } = new List<VacationRequest>();
+
+        public virtual ICollection<AbsenceRecord> AbsenceRecords { get; set; } = new List<AbsenceRecord>();
+
+        public virtual ICollection<Disability> Disabilities { get; set; } = new List<Disability>();
+
+        public virtual ICollection<ChristmasBonus> ChristmasBonuses { get; set; } = new List<ChristmasBonus>();
+
+        public virtual ICollection<Liquidation> Liquidations { get; set; } = new List<Liquidation>();
 
         public bool CanClaimExpenses { get; set; } = false;
 
@@ -102,7 +115,7 @@ namespace WorkTrackBio.API.Data.Models
     public class SalaryData
     {
         [StringLength(50)]
-        public string PaymentFrequency { get; set; } = string.Empty;
+        public PayFrequency PaymentFrequency { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
         public decimal? CostPerHour { get; set; }
