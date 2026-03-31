@@ -1,11 +1,15 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 using WorkTrackBio.API.Common;
 using WorkTrackBio.API.Data;
 using WorkTrackBio.API.Interfaces;
 using WorkTrackBio.API.Services;
+using WorkTrackBio.API.Validators.State;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,10 +37,9 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddValidatorsFromAssemblyContaining<StateCreateValidator>();
 
 builder.Services.AddCors(options =>
 {
@@ -56,9 +59,18 @@ builder.Services.AddCors(options =>
 //SERVICES
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IStateService, StateService>();
+//-----------------------------------------------------------
 
+//MAPSTER
+var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
+typeAdapterConfig.Scan(Assembly.GetExecutingAssembly());
+builder.Services.AddSingleton(typeAdapterConfig);
+builder.Services.AddScoped<IMapper, ServiceMapper>();
+//------------------------------------------------------------
 var app = builder.Build();
 
+//GlobalMiddleWare
 app.UseMiddleware<WorkTrackBio.API.Middlewares.GlobalExceptionMiddleware>();
 
 app.UseStatusCodePages(async context =>
@@ -72,6 +84,7 @@ app.UseStatusCodePages(async context =>
         await context.HttpContext.Response.WriteAsync(json);
     }
 });
+//-------------------------------------------------------------
 
 if (app.Environment.IsDevelopment())
 {
