@@ -222,7 +222,7 @@ namespace WorkTrackBio.API.Data
 
             modelBuilder.Entity<VacationRequest>()
                 .HasOne(v => v.ApprovedBy)
-                .WithMany()
+                .WithMany(u => u.ApprovedVacationRequests)
                 .HasForeignKey(v => v.ApprovedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
