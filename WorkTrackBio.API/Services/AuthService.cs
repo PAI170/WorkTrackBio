@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -12,16 +12,10 @@ using WorkTrackBio.API.Interfaces;
 
 namespace WorkTrackBio.API.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService(AppDbContext context, IConfiguration configuration) : IAuthService
     {
-        private readonly AppDbContext _context;
-        private readonly IConfiguration _configuration;
-
-        public AuthService(AppDbContext context, IConfiguration configuration)
-        {
-            _context = context;
-            _configuration = configuration;
-        }
+        private readonly AppDbContext _context = context;
+        private readonly IConfiguration _configuration = configuration;
 
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
         {
@@ -29,10 +23,8 @@ namespace WorkTrackBio.API.Services
             var user = await _context.AppUsers
                 .Include(u => u.Role)
                 .Include(u => u.EmployeeInfo)
-                .FirstOrDefaultAsync(u => u.WorkEmail == request.WorkEmail);
-
-            if (user == null)
-                throw new UnauthorizedException("Credenciales incorrectas.");
+                .FirstOrDefaultAsync(u => u.WorkEmail == request.WorkEmail)
+                ?? throw new UnauthorizedException("Credenciales incorrectas.");
 
             // 2. verificar si está bloqueado
             if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
@@ -103,24 +95,22 @@ namespace WorkTrackBio.API.Services
         {
             // 1. buscar la sesión
             var session = await _context.UserSessions
-                .Include(s => s.AppUser)
+                .Include(s => s.AppUser!)
                     .ThenInclude(u => u.Role)
-                .Include(s => s.AppUser)
+                .Include(s => s.AppUser!)
                     .ThenInclude(u => u.EmployeeInfo)
                 .FirstOrDefaultAsync(s => s.Token == refreshToken
                                        && !s.IsRevoked
                                        && !s.IsUsed
-                                       && s.ExpiryDate > DateTime.UtcNow);
-
-            if (session == null)
-                throw new UnauthorizedException("Refresh token inválido o expirado.");
+                                       && s.ExpiryDate > DateTime.UtcNow)
+                ?? throw new UnauthorizedException("Refresh token inválido o expirado.");
 
             // 2. marcar sesión anterior como usada
             session.IsUsed = true;
 
             // 3. generar nuevos tokens
             var jwtSettings = _configuration.GetSection("JwtSettings");
-            var newAccessToken = GenerateAccessToken(session.AppUser);
+            var newAccessToken = GenerateAccessToken(session.AppUser!);
             var newRefreshToken = GenerateRefreshToken();
             var refreshExpiration = DateTime.UtcNow.AddDays(
                 int.Parse(jwtSettings["RefreshTokenExpirationDays"]!));
@@ -147,7 +137,7 @@ namespace WorkTrackBio.API.Services
                 RefreshTokenExpiration = refreshExpiration,
                 User = new UserInfoDto
                 {
-                    Id = session.AppUser.Id,
+                    Id = session.AppUser!.Id,
                     FullName = $"{session.AppUser.EmployeeInfo.FirstName} {session.AppUser.EmployeeInfo.LastName}",
                     WorkEmail = session.AppUser.WorkEmail,
                     Role = session.AppUser.Role.RoleName
@@ -158,10 +148,8 @@ namespace WorkTrackBio.API.Services
         public async Task RevokeTokenAsync(string refreshToken)
         {
             var session = await _context.UserSessions
-                .FirstOrDefaultAsync(s => s.Token == refreshToken);
-
-            if (session == null)
-                throw new UnauthorizedException("Refresh token inválido.");
+                .FirstOrDefaultAsync(s => s.Token == refreshToken)
+                ?? throw new UnauthorizedException("Refresh token inválido.");
 
             session.IsRevoked = true;
             await _context.SaveChangesAsync();
@@ -203,6 +191,7 @@ namespace WorkTrackBio.API.Services
             rng.GetBytes(randomBytes);
             return Convert.ToBase64String(randomBytes);
         }
+
         private static bool VerifyPassword(string password, string hash, string salt)
         {
             var saltBytes = Convert.FromHexString(salt);
@@ -212,7 +201,7 @@ namespace WorkTrackBio.API.Services
                 100_000,
                 HashAlgorithmName.SHA512);
             var hashBytes = pbkdf2.GetBytes(64);
-            return Convert.ToHexString(hashBytes) == hash.ToUpper();
+            return string.Equals(Convert.ToHexString(hashBytes), hash, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
