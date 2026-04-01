@@ -41,6 +41,7 @@ namespace WorkTrackBio.API.Data.Models
 
         public virtual ICollection<PayrollRun> CreatedPayrollRuns { get; set; } = new List<PayrollRun>();
         public virtual ICollection<PayrollRun> ApprovedPayrollRuns { get; set; } = new List<PayrollRun>();
+        public virtual ICollection<VacationRequest> ApprovedVacationRequests { get; set; } = new List<VacationRequest>();
         public virtual ICollection<UserSession> UserSessions { get; set; } = new List<UserSession>();
         public virtual ICollection<SystemAuditLog> SystemAuditLogs { get; set; } = new List<SystemAuditLog>();
     }

@@ -31,7 +31,7 @@ namespace WorkTrackBio.API.Data.Models
 
         public int? ApprovedById { get; set; }
         [ForeignKey("ApprovedById")]
-        public virtual EmployeeInfo? ApprovedBy { get; set; }
+        public virtual AppUser? ApprovedBy { get; set; }
 
         public DateTime? ApprovedAt { get; set; }
     }
