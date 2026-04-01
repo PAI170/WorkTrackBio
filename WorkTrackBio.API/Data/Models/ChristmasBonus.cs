@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class ChristmasBonus
+    public class ChristmasBonus : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
         public int EmployeeInfoId { get; set; }
         [ForeignKey("EmployeeInfoId")]
@@ -33,9 +32,6 @@ namespace WorkTrackBio.API.Data.Models
 
         [StringLength(255)]
         public string? Notes { get; set; }
-
-        [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public int? ConfirmedById { get; set; }
         [ForeignKey("ConfirmedById")]

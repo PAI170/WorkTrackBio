@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class ChristmasBonusDetail
+    public class ChristmasBonusDetail : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
         public int ChristmasBonusId { get; set; }
         [ForeignKey("ChristmasBonusId")]

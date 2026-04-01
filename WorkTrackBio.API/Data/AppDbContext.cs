@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using WorkTrackBio.API.Data.Common;
 using WorkTrackBio.API.Data.Models;
+using System.Linq.Expressions;
 using System.Text.Json;
 
 namespace WorkTrackBio.API.Data
@@ -62,6 +64,17 @@ namespace WorkTrackBio.API.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // ── Soft delete: filtro global para todas las entidades BaseEntity ─
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType)
+                    && !entityType.ClrType.IsAbstract)
+                {
+                    modelBuilder.Entity(entityType.ClrType)
+                        .HasQueryFilter(BuildIsDeletedFilter(entityType.ClrType));
+                }
+            }
 
             // ── Enums como string ──────────────────────────────────────────────
 
@@ -157,7 +170,7 @@ namespace WorkTrackBio.API.Data
 
             modelBuilder.Entity<TravelExpense>()
                 .HasOne(t => t.State)
-                .WithMany()
+                .WithMany(s => s.TravelExpenses)
                 .HasForeignKey(t => t.StateId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -239,6 +252,21 @@ namespace WorkTrackBio.API.Data
                 .HasForeignKey(l => l.ConfirmedById)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // SystemAuditLog y UserSession → AppUser
+            // AppUser tiene global filter de soft delete; estas tablas son logs/sesiones
+            // que no participan en soft delete, por eso se configuran explícitamente.
+            modelBuilder.Entity<SystemAuditLog>()
+                .HasOne(s => s.AppUser)
+                .WithMany(u => u.SystemAuditLogs)
+                .HasForeignKey(s => s.AppUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserSession>()
+                .HasOne(s => s.AppUser)
+                .WithMany(u => u.UserSessions)
+                .HasForeignKey(s => s.AppUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // ── Índices ────────────────────────────────────────────────────────
 
             modelBuilder.Entity<PayrollRun>()
@@ -269,20 +297,45 @@ namespace WorkTrackBio.API.Data
         public override async Task<int> SaveChangesAsync(
             CancellationToken cancellationToken = default)
         {
+            HandleAuditableEntities();
             AuditChanges();
             return await base.SaveChangesAsync(cancellationToken);
         }
 
+        private void HandleAuditableEntities()
+        {
+            var now = DateTime.UtcNow;
+            var userId = GetCurrentUserId();
+
+            foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+            {
+                switch (entry.State)
+                {
+                    case EntityState.Added:
+                        entry.Entity.CreatedAt = now;
+                        break;
+
+                    case EntityState.Modified:
+                        entry.Entity.UpdatedAt = now;
+                        break;
+
+                    case EntityState.Deleted:
+                        // Convertir hard delete en soft delete
+                        entry.State = EntityState.Modified;
+                        entry.Entity.IsDeleted = true;
+                        entry.Entity.DeletedAt = now;
+                        entry.Entity.DeletedById = userId;
+                        break;
+                }
+            }
+        }
+
         private void AuditChanges()
         {
-            // si no hay contexto HTTP no auditamos
             if (_httpContextAccessor?.HttpContext == null) return;
 
-            var userIdClaim = _httpContextAccessor.HttpContext.User?
-                .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim)) return;
-            if (!int.TryParse(userIdClaim, out int userId)) return;
+            var userId = GetCurrentUserId();
+            if (userId == null) return;
 
             var entries = ChangeTracker.Entries()
                 .Where(e => e.State == EntityState.Added
@@ -294,12 +347,22 @@ namespace WorkTrackBio.API.Data
             {
                 if (entry.Entity is SystemAuditLog) continue;
 
+                // Detectar si es un soft delete
+                string action = entry.State.ToString();
+                if (entry.State == EntityState.Modified
+                    && entry.Entity is BaseEntity baseEntity
+                    && baseEntity.IsDeleted
+                    && entry.Property(nameof(BaseEntity.IsDeleted)).IsModified)
+                {
+                    action = "SoftDeleted";
+                }
+
                 var audit = new SystemAuditLog
                 {
-                    AppUserId = userId,
+                    AppUserId = userId.Value,
                     TableName = entry.Metadata.GetTableName()
                                 ?? entry.Entity.GetType().Name,
-                    Action = entry.State.ToString(),
+                    Action = action,
                     Timestamp = DateTime.UtcNow,
                     RecordId = entry.State != EntityState.Added
                                 ? (int?)entry.Property("Id").CurrentValue
@@ -328,6 +391,24 @@ namespace WorkTrackBio.API.Data
 
                 SystemAuditLogs.Add(audit);
             }
+        }
+
+        private int? GetCurrentUserId()
+        {
+            var userIdClaim = _httpContextAccessor?.HttpContext?.User?
+                .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            return int.TryParse(userIdClaim, out int userId) ? userId : null;
+        }
+
+        // ─── Helpers ──────────────────────────────────────────────────────────
+
+        private static LambdaExpression BuildIsDeletedFilter(Type entityType)
+        {
+            var parameter = Expression.Parameter(entityType, "e");
+            var property = Expression.Property(parameter, nameof(BaseEntity.IsDeleted));
+            var condition = Expression.Equal(property, Expression.Constant(false));
+            return Expression.Lambda(condition, parameter);
         }
     }
 }

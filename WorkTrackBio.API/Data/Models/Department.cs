@@ -1,11 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class Department
+    public class Department : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
         [StringLength(100)]
         public string DepartmentName { get; set; } = string.Empty;

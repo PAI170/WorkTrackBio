@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class PayrollDeduction
+    public class PayrollDeduction : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
         public int PayrollId { get; set; }
 
@@ -25,7 +24,5 @@ namespace WorkTrackBio.API.Data.Models
         [Required]
         [Column(TypeName = "decimal(10,2)")]
         public decimal Amount { get; set; }
-
-
     }
 }

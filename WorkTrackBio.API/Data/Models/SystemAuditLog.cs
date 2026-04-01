@@ -11,7 +11,7 @@ namespace WorkTrackBio.API.Data.Models
         public int AppUserId { get; set; }
 
         [ForeignKey("AppUserId")]
-        public virtual AppUser AppUser { get; set; } = null!;
+        public virtual AppUser? AppUser { get; set; }
 
         [Required]
         [StringLength(100)]

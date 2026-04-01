@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class Disability
+    public class Disability : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
         public int EmployeeInfoId { get; set; }
         [ForeignKey("EmployeeInfoId")]
@@ -35,8 +34,5 @@ namespace WorkTrackBio.API.Data.Models
 
         [StringLength(100)]
         public string? CSSDocumentNumber { get; set; }
-
-        [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
