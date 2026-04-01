@@ -46,6 +46,11 @@ namespace WorkTrackBio.API.Services
                     user.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
 
                 await _context.SaveChangesAsync();
+
+                if (user.LockoutEnd.HasValue)
+                    throw new UnauthorizedException(
+                        $"Cuenta bloqueada. Intente de nuevo después de {user.LockoutEnd}.");
+
                 throw new UnauthorizedException("Credenciales incorrectas.");
             }
 
