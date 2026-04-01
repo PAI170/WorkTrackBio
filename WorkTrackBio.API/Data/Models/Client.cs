@@ -1,14 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class Client
+    public class Client : BaseEntity
     {
-        [Key]
-        public int Id { get; set; }
-
         [Required]
         [StringLength(150)]
         public string BusinessName { get; set; } = string.Empty;
@@ -38,7 +36,6 @@ namespace WorkTrackBio.API.Data.Models
         [StringLength(50)]
         public string PaymentMethod { get; set; } = string.Empty;
 
-        public DateTime CreationDate { get; set; } = DateTime.UtcNow;
         public ExonerationData Exoneration { get; set; } = new ExonerationData();
 
         public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
@@ -54,5 +51,4 @@ namespace WorkTrackBio.API.Data.Models
         public decimal Percentage { get; set; }
         public DateTime? IssueDate { get; set; }
     }
-
 }

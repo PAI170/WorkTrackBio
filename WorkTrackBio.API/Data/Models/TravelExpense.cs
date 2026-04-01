@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class TravelExpense
+    public class TravelExpense : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
         public int EmployeeInfoId { get; set; }
         [ForeignKey("EmployeeInfoId")]

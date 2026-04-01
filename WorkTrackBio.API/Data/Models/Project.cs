@@ -1,12 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class Project
+    public class Project : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
         [StringLength(150)]
         public string ProjectName { get; set; } = string.Empty;

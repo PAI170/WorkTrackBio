@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class AppUser
+    public class AppUser : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
         public int EmployeeInfoId { get; set; }
 
@@ -29,9 +28,9 @@ namespace WorkTrackBio.API.Data.Models
 
         [Required]
         [StringLength(255)]
-        public string PasswordSalt {  get; set; } = string.Empty;
+        public string PasswordSalt { get; set; } = string.Empty;
 
-        public DateTime? LastLogin {  get; set; }
+        public DateTime? LastLogin { get; set; }
 
         [Required]
         public bool IsActive { get; set; } = true;

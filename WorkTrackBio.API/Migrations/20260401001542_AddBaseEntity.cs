@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WorkTrackBio.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class AddBaseEntity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,10 +26,14 @@ namespace WorkTrackBio.API.Migrations
                     PaymentCondition = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
                     PaymentMethod = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Exoneration_Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Exoneration_Percentage = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
-                    Exoneration_IssueDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Exoneration_IssueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -43,7 +47,12 @@ namespace WorkTrackBio.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DepartmentName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -57,7 +66,12 @@ namespace WorkTrackBio.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DocumentName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -71,7 +85,12 @@ namespace WorkTrackBio.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     RoleName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -86,7 +105,12 @@ namespace WorkTrackBio.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     StateName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     StateType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -107,7 +131,6 @@ namespace WorkTrackBio.API.Migrations
                     HireDate = table.Column<DateOnly>(type: "date", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     IBAN = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    RegisterDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     PhotoUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     StateId = table.Column<int>(type: "int", nullable: false),
@@ -134,7 +157,12 @@ namespace WorkTrackBio.API.Migrations
                     ExitInformation_ExitReason = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     ExitInformation_IsRehire = table.Column<bool>(type: "bit", nullable: false),
                     ExitInformation_LiquidationDate = table.Column<DateOnly>(type: "date", nullable: true),
-                    ExitInformation_RehireDate = table.Column<DateOnly>(type: "date", nullable: true)
+                    ExitInformation_RehireDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -170,7 +198,12 @@ namespace WorkTrackBio.API.Migrations
                     EndDate = table.Column<DateOnly>(type: "date", nullable: true),
                     Location = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
                     StateId = table.Column<int>(type: "int", nullable: false),
-                    ClientId = table.Column<int>(type: "int", nullable: true)
+                    ClientId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -202,7 +235,12 @@ namespace WorkTrackBio.API.Migrations
                     LastLogin = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     FailedLoginAttempts = table.Column<int>(type: "int", nullable: false),
-                    LockoutEnd = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    LockoutEnd = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -235,8 +273,12 @@ namespace WorkTrackBio.API.Migrations
                     PaymentDate = table.Column<DateOnly>(type: "date", nullable: true),
                     IsConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    ConfirmedById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ConfirmedById = table.Column<int>(type: "int", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -270,7 +312,11 @@ namespace WorkTrackBio.API.Migrations
                     DisabilityType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     CSSDocumentNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -293,7 +339,12 @@ namespace WorkTrackBio.API.Migrations
                     DeductionName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     FixedAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     Percentage = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -316,7 +367,11 @@ namespace WorkTrackBio.API.Migrations
                     FileName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     FilePath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     FileType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    FileRegisterDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -349,9 +404,13 @@ namespace WorkTrackBio.API.Migrations
                     FinalTotal = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     PaymentDate = table.Column<DateOnly>(type: "date", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ConfirmedById = table.Column<int>(type: "int", nullable: true),
-                    ConfirmedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ConfirmedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -383,9 +442,13 @@ namespace WorkTrackBio.API.Migrations
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     RejectionReason = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ApprovedById = table.Column<int>(type: "int", nullable: true),
-                    ApprovedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ApprovedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -412,14 +475,17 @@ namespace WorkTrackBio.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     EmployeeId = table.Column<int>(type: "int", nullable: false),
                     ProjectId = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     CheckIn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CheckOut = table.Column<DateTime>(type: "datetime2", nullable: true),
                     TotalHours = table.Column<decimal>(type: "decimal(5,2)", nullable: true),
                     RegisterType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CheckInDateOnly = table.Column<DateOnly>(type: "date", nullable: false)
+                    CheckInDateOnly = table.Column<DateOnly>(type: "date", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -450,7 +516,12 @@ namespace WorkTrackBio.API.Migrations
                     MadeById = table.Column<int>(type: "int", nullable: false),
                     MaintenanceCost = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     AdditionalInfo = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    StateId = table.Column<int>(type: "int", nullable: false)
+                    StateId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -486,7 +557,12 @@ namespace WorkTrackBio.API.Migrations
                     WarrantyDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MadeById = table.Column<int>(type: "int", nullable: false),
                     WarrantyCost = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
-                    StateId = table.Column<int>(type: "int", nullable: false)
+                    StateId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -525,7 +601,12 @@ namespace WorkTrackBio.API.Migrations
                     ReceiptUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     StateId = table.Column<int>(type: "int", nullable: false),
-                    ApprovedById = table.Column<int>(type: "int", nullable: true)
+                    ApprovedById = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -568,10 +649,14 @@ namespace WorkTrackBio.API.Migrations
                     PaymentDate = table.Column<DateOnly>(type: "date", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedById = table.Column<int>(type: "int", nullable: false),
                     ApprovedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ApprovedById = table.Column<int>(type: "int", nullable: true)
+                    ApprovedById = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -612,7 +697,7 @@ namespace WorkTrackBio.API.Migrations
                         column: x => x.AppUserId,
                         principalTable: "AppUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -637,7 +722,7 @@ namespace WorkTrackBio.API.Migrations
                         column: x => x.AppUserId,
                         principalTable: "AppUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -651,8 +736,12 @@ namespace WorkTrackBio.API.Migrations
                     AbsenceType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     VacationRequestId = table.Column<int>(type: "int", nullable: true),
+                    RegisteredById = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RegisteredById = table.Column<int>(type: "int", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -691,7 +780,12 @@ namespace WorkTrackBio.API.Migrations
                     TotalDeductions = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     NetSalary = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
+                    Notes = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -720,7 +814,12 @@ namespace WorkTrackBio.API.Migrations
                     PayrollEntryId = table.Column<int>(type: "int", nullable: false),
                     Month = table.Column<int>(type: "int", nullable: false),
                     Year = table.Column<int>(type: "int", nullable: false),
-                    EarnedAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
+                    EarnedAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -748,7 +847,12 @@ namespace WorkTrackBio.API.Migrations
                     PayrollId = table.Column<int>(type: "int", nullable: false),
                     EmployeeDeductionId = table.Column<int>(type: "int", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
+                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeletedById = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {

@@ -1,15 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class DocumentType
+    public class DocumentType : BaseEntity
     {
-        public int Id { get; set; }
-        
         [Required]
         [StringLength(50)]
         public string DocumentName { get; set; } = string.Empty;
-        
+
         [StringLength(255)]
         public string? Description { get; set; }
 

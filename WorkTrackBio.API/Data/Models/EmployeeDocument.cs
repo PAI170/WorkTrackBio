@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class EmployeeDocument
+    public class EmployeeDocument : BaseEntity
     {
-        public int Id { get; set; }
-
         public int EmployeeInfoId { get; set; }
 
         [ForeignKey("EmployeeInfoId")]
@@ -22,9 +21,6 @@ namespace WorkTrackBio.API.Data.Models
 
         [Required]
         [StringLength(50)]
-        public string FileType {  get; set; } = string.Empty;
-
-        [Required]
-        public DateTime FileRegisterDate { get; set; } = DateTime.UtcNow;
+        public string FileType { get; set; } = string.Empty;
     }
 }

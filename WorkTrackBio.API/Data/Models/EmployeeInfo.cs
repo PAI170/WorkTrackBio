@@ -1,13 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
 {
-    public class EmployeeInfo
+    public class EmployeeInfo : BaseEntity
     {
-        public int Id { get; set; }
-
         [Required]
         [StringLength(50)]
         public string FirstName { get; set; } = string.Empty;
@@ -33,9 +32,6 @@ namespace WorkTrackBio.API.Data.Models
 
         [StringLength(50)]
         public string? IBAN { get; set; }
-
-        [Required]
-        public DateTime RegisterDate { get; set; } = DateTime.UtcNow;
 
         public bool IsActive { get; set; } = true;
 
@@ -85,30 +81,22 @@ namespace WorkTrackBio.API.Data.Models
         [StringLength(20)]
         public string? EmergencyContactPhoneNumber { get; set; }
 
-        public virtual AppUser? AppUser { get; set; }
-        public virtual ICollection<EmployeeDeduction> EmployeeDeductions { get; set; } = new List<EmployeeDeduction>();
-
-        public virtual ICollection<PayrollEntry> PayrollEntries { get; set; } = new List<PayrollEntry>();
-
-        public virtual ICollection<Assistance> Assistances { get; set; } = new List<Assistance>();
-
-        public virtual ICollection<EmployeeDocument> EmployeeDocuments { get; set; } = new List<EmployeeDocument>();
-
-        public virtual ICollection<VacationRequest> VacationRequests { get; set; } = new List<VacationRequest>();
-
-        public virtual ICollection<AbsenceRecord> AbsenceRecords { get; set; } = new List<AbsenceRecord>();
-
-        public virtual ICollection<Disability> Disabilities { get; set; } = new List<Disability>();
-
-        public virtual ICollection<ChristmasBonus> ChristmasBonuses { get; set; } = new List<ChristmasBonus>();
-
-        public virtual ICollection<Liquidation> Liquidations { get; set; } = new List<Liquidation>();
-
         public bool CanClaimExpenses { get; set; } = false;
 
         public SalaryData Salary { get; set; } = new SalaryData();
 
         public ExitData ExitInformation { get; set; } = new ExitData();
+
+        public virtual AppUser? AppUser { get; set; }
+        public virtual ICollection<EmployeeDeduction> EmployeeDeductions { get; set; } = new List<EmployeeDeduction>();
+        public virtual ICollection<PayrollEntry> PayrollEntries { get; set; } = new List<PayrollEntry>();
+        public virtual ICollection<Assistance> Assistances { get; set; } = new List<Assistance>();
+        public virtual ICollection<EmployeeDocument> EmployeeDocuments { get; set; } = new List<EmployeeDocument>();
+        public virtual ICollection<VacationRequest> VacationRequests { get; set; } = new List<VacationRequest>();
+        public virtual ICollection<AbsenceRecord> AbsenceRecords { get; set; } = new List<AbsenceRecord>();
+        public virtual ICollection<Disability> Disabilities { get; set; } = new List<Disability>();
+        public virtual ICollection<ChristmasBonus> ChristmasBonuses { get; set; } = new List<ChristmasBonus>();
+        public virtual ICollection<Liquidation> Liquidations { get; set; } = new List<Liquidation>();
     }
 
     [Owned]
@@ -141,5 +129,4 @@ namespace WorkTrackBio.API.Data.Models
         public DateOnly? LiquidationDate { get; set; }
         public DateOnly? RehireDate { get; set; }
     }
-
 }
