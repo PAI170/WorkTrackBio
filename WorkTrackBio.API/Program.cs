@@ -42,7 +42,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<StateCreateValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddCors(options =>
 {

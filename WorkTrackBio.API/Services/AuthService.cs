@@ -29,7 +29,7 @@ namespace WorkTrackBio.API.Services
             // 2. verificar si está bloqueado
             if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
                 throw new UnauthorizedException(
-                    $"Cuenta bloqueada. Intente de nuevo después de {user.LockoutEnd}.");
+                    "Cuenta bloqueada temporalmente por múltiples intentos fallidos. Intente más tarde.");
 
             // 3. verificar si está activo
             if (!user.IsActive)
@@ -38,18 +38,16 @@ namespace WorkTrackBio.API.Services
             // 4. verificar la contraseña
             if (!VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
             {
-                // incrementar intentos fallidos
                 user.FailedLoginAttempts++;
 
-                // bloquear después de 3 intentos
                 if (user.FailedLoginAttempts >= 3)
                     user.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
 
                 await _context.SaveChangesAsync();
 
-                if (user.LockoutEnd.HasValue)
+                if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
                     throw new UnauthorizedException(
-                        $"Cuenta bloqueada. Intente de nuevo después de {user.LockoutEnd}.");
+                        "Cuenta bloqueada temporalmente por múltiples intentos fallidos. Intente más tarde.");
 
                 throw new UnauthorizedException("Credenciales incorrectas.");
             }
