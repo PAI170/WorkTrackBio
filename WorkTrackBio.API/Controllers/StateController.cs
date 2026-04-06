@@ -52,11 +52,7 @@ namespace WorkTrackBio.API.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] StateUpdateDto dto)
         {
-            if (id != dto.Id)
-                return BadRequest(ApiResponse<object>
-                    .ErrorResponse("El Id de la URL no coincide con el Id del body.", 400));
-
-            var data = await _stateService.UpdateAsync(dto);
+            var data = await _stateService.UpdateAsync(id, dto);
             return Ok(ApiResponse<StateResponseDto>
                 .SuccessResponse(data, "Estado actualizado exitosamente."));
         }

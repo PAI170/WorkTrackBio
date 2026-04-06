@@ -7,9 +7,6 @@ namespace WorkTrackBio.API.Validators.State
     {
         public StateUpdateValidator()
         {
-            RuleFor(x => x.Id)
-                .GreaterThan(0).WithMessage("El Id debe ser mayor a 0.");
-
             RuleFor(x => x.StateName)
                 .NotEmpty().WithMessage("El nombre del estado es obligatorio.")
                 .MaximumLength(50).WithMessage("El nombre no puede superar 50 caracteres.");

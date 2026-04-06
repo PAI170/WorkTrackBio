@@ -7,7 +7,7 @@ namespace WorkTrackBio.API.Interfaces
         Task<IEnumerable<StateResponseDto>> GetAllAsync();
         Task<StateResponseDto> GetByIdAsync(int id);
         Task<StateResponseDto> CreateAsync(StateCreateDto dto);
-        Task<StateResponseDto> UpdateAsync(StateUpdateDto dto);
+        Task<StateResponseDto> UpdateAsync(int id, StateUpdateDto dto);
         Task DeleteAsync(int id);
     }
 }

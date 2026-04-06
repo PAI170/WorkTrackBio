@@ -46,10 +46,10 @@ namespace WorkTrackBio.API.Services
             return state.Adapt<StateResponseDto>();
         }
 
-        public async Task<StateResponseDto> UpdateAsync(StateUpdateDto dto)
+        public async Task<StateResponseDto> UpdateAsync(int id, StateUpdateDto dto)
         {
             var state = await _context.States
-                .FirstOrDefaultAsync(s => s.Id == dto.Id)
+                .FirstOrDefaultAsync(s => s.Id == id)
                 ?? throw new NotFoundException("Estado no encontrado.");
 
             dto.Adapt(state);
@@ -57,7 +57,6 @@ namespace WorkTrackBio.API.Services
 
             return state.Adapt<StateResponseDto>();
         }
-
         public async Task DeleteAsync(int id)
         {
             var state = await _context.States
