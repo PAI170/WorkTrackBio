@@ -94,6 +94,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IStateService, StateService>();
+builder.Services.AddScoped<IDepartmentService,  DepartmentService>();
+builder.Services.AddScoped<IDocumentTypeService, DocumentTypeService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 //-----------------------------------------------------------
 
 //MAPSTER

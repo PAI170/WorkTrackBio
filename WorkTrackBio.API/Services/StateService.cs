@@ -38,15 +38,14 @@ namespace WorkTrackBio.API.Services
 
         public async Task<StateResponseDto> CreateAsync(StateCreateDto dto)
         {
-            var exists = await _context.States
-                .AnyAsync(s => s.StateName == dto.StateName
-                           && s.StateType == dto.StateType);
+            var nameExists = await _context.States
+                .AnyAsync(s => EF.Functions.Collate(s.StateName, "SQL_Latin1_General_CP1_CI_AI") == dto.StateName);
 
-            if (exists)
-                throw new ConflictException(
-                    $"Ya existe un estado '{dto.StateName}' de tipo {dto.StateType}.");
+            if (nameExists)
+                throw new ConflictException("Ya existe un estado con ese nombre.");
 
             var state = dto.Adapt<State>();
+
             _context.States.Add(state);
             await _context.SaveChangesAsync();
 
@@ -59,14 +58,11 @@ namespace WorkTrackBio.API.Services
                 .FirstOrDefaultAsync(s => s.Id == id)
                 ?? throw new NotFoundException("Estado no encontrado.");
 
-            var exists = await _context.States
-                .AnyAsync(s => s.StateName == dto.StateName
-                           && s.StateType == dto.StateType
-                           && s.Id != id);
+            var nameExists = await _context.States
+                .AnyAsync(s => EF.Functions.Collate(s.StateName, "SQL_Latin1_General_CP1_CI_AI") == dto.StateName && s.Id != id);
 
-            if (exists)
-                throw new ConflictException(
-                    $"Ya existe un estado '{dto.StateName}' de tipo {dto.StateType}.");
+            if (nameExists)
+                throw new ConflictException("Ya existe un estado con ese nombre.");
 
             dto.Adapt(state);
             await _context.SaveChangesAsync();
