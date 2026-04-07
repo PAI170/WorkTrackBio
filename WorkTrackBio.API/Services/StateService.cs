@@ -38,8 +38,15 @@ namespace WorkTrackBio.API.Services
 
         public async Task<StateResponseDto> CreateAsync(StateCreateDto dto)
         {
-            var state = dto.Adapt<State>();
+            var exists = await _context.States
+                .AnyAsync(s => s.StateName == dto.StateName
+                           && s.StateType == dto.StateType);
 
+            if (exists)
+                throw new ConflictException(
+                    $"Ya existe un estado '{dto.StateName}' de tipo {dto.StateType}.");
+
+            var state = dto.Adapt<State>();
             _context.States.Add(state);
             await _context.SaveChangesAsync();
 
@@ -51,6 +58,15 @@ namespace WorkTrackBio.API.Services
             var state = await _context.States
                 .FirstOrDefaultAsync(s => s.Id == id)
                 ?? throw new NotFoundException("Estado no encontrado.");
+
+            var exists = await _context.States
+                .AnyAsync(s => s.StateName == dto.StateName
+                           && s.StateType == dto.StateType
+                           && s.Id != id);
+
+            if (exists)
+                throw new ConflictException(
+                    $"Ya existe un estado '{dto.StateName}' de tipo {dto.StateType}.");
 
             dto.Adapt(state);
             await _context.SaveChangesAsync();
