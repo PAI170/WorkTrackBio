@@ -4,10 +4,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using WorkTrackBio.API.Exceptions;
+using WorkTrackBio.API.Common;
 using WorkTrackBio.API.Data;
 using WorkTrackBio.API.Data.Models;
 using WorkTrackBio.API.DataTransferObjects.Auth;
+using WorkTrackBio.API.Exceptions;
 using WorkTrackBio.API.Interfaces;
 
 namespace WorkTrackBio.API.Services
@@ -33,10 +34,10 @@ namespace WorkTrackBio.API.Services
 
             // 3. verificar si está activo
             if (!user.IsActive)
-                throw new UnauthorizedException("Cuenta inactiva.");
+                throw new UnauthorizedException("Cuenta inactiva. Contacte al administrador");
 
             // 4. verificar la contraseña
-            if (!VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
+            if (!PasswordHelper.VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
             {
                 user.FailedLoginAttempts++;
 
@@ -193,18 +194,6 @@ namespace WorkTrackBio.API.Services
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);
             return Convert.ToBase64String(randomBytes);
-        }
-
-        private static bool VerifyPassword(string password, string hash, string salt)
-        {
-            var saltBytes = Convert.FromHexString(salt);
-            using var pbkdf2 = new Rfc2898DeriveBytes(
-                password,
-                saltBytes,
-                100_000,
-                HashAlgorithmName.SHA512);
-            var hashBytes = pbkdf2.GetBytes(64);
-            return string.Equals(Convert.ToHexString(hashBytes), hash, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

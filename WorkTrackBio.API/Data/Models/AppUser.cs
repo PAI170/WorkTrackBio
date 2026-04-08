@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WorkTrackBio.API.Common;
 using WorkTrackBio.API.Data.Common;
 
 namespace WorkTrackBio.API.Data.Models
@@ -22,10 +23,12 @@ namespace WorkTrackBio.API.Data.Models
         [StringLength(100)]
         public string WorkEmail { get; set; } = string.Empty;
 
+        [AuditIgnore]
         [Required]
         [StringLength(255)]
         public string PasswordHash { get; set; } = string.Empty;
 
+        [AuditIgnore]
         [Required]
         [StringLength(255)]
         public string PasswordSalt { get; set; } = string.Empty;

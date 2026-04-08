@@ -97,6 +97,9 @@ builder.Services.AddScoped<IStateService, StateService>();
 builder.Services.AddScoped<IDepartmentService,  DepartmentService>();
 builder.Services.AddScoped<IDocumentTypeService, DocumentTypeService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IAppUserService, AppUserService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 //-----------------------------------------------------------
 
 //MAPSTER

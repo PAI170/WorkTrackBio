@@ -7,16 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="DataTransferObjects\Employee\**" />
     <Compile Remove="DataTransferObjects\Payroll\**" />
     <Compile Remove="Repositories\**" />
-    <Content Remove="DataTransferObjects\Employee\**" />
     <Content Remove="DataTransferObjects\Payroll\**" />
     <Content Remove="Repositories\**" />
-    <EmbeddedResource Remove="DataTransferObjects\Employee\**" />
     <EmbeddedResource Remove="DataTransferObjects\Payroll\**" />
     <EmbeddedResource Remove="Repositories\**" />
-    <None Remove="DataTransferObjects\Employee\**" />
     <None Remove="DataTransferObjects\Payroll\**" />
     <None Remove="Repositories\**" />
   </ItemGroup>
