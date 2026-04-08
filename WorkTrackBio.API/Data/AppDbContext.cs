@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Text.Json;
+using WorkTrackBio.API.Common;
 using WorkTrackBio.API.Data.Common;
 using WorkTrackBio.API.Data.Models;
-using System.Linq.Expressions;
-using System.Text.Json;
 
 namespace WorkTrackBio.API.Data
 {
@@ -371,8 +373,8 @@ namespace WorkTrackBio.API.Data
                              || entry.State == EntityState.Deleted
                                 ? JsonSerializer.Serialize(
                                     entry.Properties
-                                         .Where(p => p.IsModified
-                                                  || entry.State == EntityState.Deleted)
+                                         .Where(p => (p.IsModified || entry.State == EntityState.Deleted)
+                                                  && !IsAuditIgnored(p))
                                          .ToDictionary(
                                              p => p.Metadata.Name,
                                              p => p.OriginalValue))
@@ -381,8 +383,8 @@ namespace WorkTrackBio.API.Data
                              || entry.State == EntityState.Modified
                                 ? JsonSerializer.Serialize(
                                     entry.Properties
-                                         .Where(p => p.IsModified
-                                                  || entry.State == EntityState.Added)
+                                         .Where(p => (p.IsModified || entry.State == EntityState.Added)
+                                                  && !IsAuditIgnored(p))
                                          .ToDictionary(
                                              p => p.Metadata.Name,
                                              p => p.CurrentValue))
@@ -399,6 +401,12 @@ namespace WorkTrackBio.API.Data
                 .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             return int.TryParse(userIdClaim, out int userId) ? userId : null;
+        }
+
+        private static bool IsAuditIgnored(Microsoft.EntityFrameworkCore.ChangeTracking.PropertyEntry p)
+        {
+            return p.Metadata.PropertyInfo
+                    ?.GetCustomAttribute<AuditIgnoreAttribute>() != null;
         }
 
         // ─── Helpers ──────────────────────────────────────────────────────────
